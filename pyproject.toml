@@ -1,0 +1,85 @@
+[project]
+name = "sift"
+version = "0.2.0"
+description = "Multi-tenant question answering over documents, with citations, refusals and a CI-gated eval"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.16",
+    "asyncpg>=0.30",
+    "beautifulsoup4>=4.13",
+    "fastapi>=0.115",
+    "httpx>=0.28",
+    "lxml>=6.0",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.9",
+    "sqlalchemy[asyncio]>=2.0.40,<2.1",
+    "structlog>=25.1",
+    "tokenizers>=0.21",
+    "uvicorn>=0.35",
+]
+
+[project.optional-dependencies]
+# sift-models only: the embedding model and the cross-encoder. CPU PyTorch (see [tool.uv.sources]).
+models = ["sentence-transformers>=5.0", "torch>=2.7"]
+# PDF parsing (tenant B's circulars). Heavy: layout and OCR models.
+pdf = ["docling>=2.40", "torchvision>=0.22"]  # torchvision listed to pin it to the CPU index
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16",
+    "pytest>=8.4",
+    "pytest-asyncio>=1.0",
+    "ruff>=0.12",
+    "types-beautifulsoup4>=4.12",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+# CPU wheels: the default PyPI torch for Linux bundles CUDA (gigabytes) that no host here has.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]  # must match the CPU torch build
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "ASYNC", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ASYNC109", "ASYNC110"]  # polling loops and timeouts are fine in tests (as Hopper)
+
+[tool.mypy]
+strict = true
+files = ["src", "eval"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["asyncpg", "asyncpg.*", "sentence_transformers", "sentence_transformers.*", "docling", "docling.*"]
+ignore_missing_imports = true
+
+# Optional (the pdf extra), and it re-exports its item classes without __all__.
+[[tool.mypy.overrides]]
+module = ["docling_core.*"]
+implicit_reexport = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+markers = ["e2e: needs the full Compose stack (make up); run with SIFT_E2E=1"]

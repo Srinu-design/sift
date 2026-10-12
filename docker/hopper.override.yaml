@@ -1,0 +1,5 @@
+# Applied on top of Hopper's compose.yaml when Sift includes it (see compose.yaml).
+# Same Postgres major as Hopper (16), plus pgvector: Hopper's schema and data are unchanged.
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg16

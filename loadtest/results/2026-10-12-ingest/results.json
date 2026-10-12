@@ -1,0 +1,155 @@
+{
+ "environment": {
+  "host": "13th Gen Intel(R) Core(TM) i7-13700H, 20 threads",
+  "os": "Linux 7.0.0-38-generic",
+  "docker": "Docker engine 29.9.0",
+  "git": "no commit yet",
+  "date": "2026-10-12T14:56:14+00:00"
+ },
+ "runs": [
+  {
+   "embed_workers": 1,
+   "seconds": 87.4,
+   "files": 182,
+   "versions_ready": 182,
+   "chunks": 1903,
+   "chunks_embedded": 1903,
+   "texts_sent_to_model": 1007,
+   "chunks_per_second": 21.8,
+   "hopper_jobs": [
+    {
+     "queue": "default",
+     "jobs": 364,
+     "retried": 0,
+     "not_succeeded": 0
+    },
+    {
+     "queue": "sift-embed",
+     "jobs": 181,
+     "retried": 0,
+     "not_succeeded": 0
+    }
+   ]
+  },
+  {
+   "embed_workers": 2,
+   "seconds": 85.6,
+   "files": 182,
+   "versions_ready": 182,
+   "chunks": 1903,
+   "chunks_embedded": 1903,
+   "texts_sent_to_model": 1007,
+   "chunks_per_second": 22.2,
+   "hopper_jobs": [
+    {
+     "queue": "default",
+     "jobs": 364,
+     "retried": 0,
+     "not_succeeded": 0
+    },
+    {
+     "queue": "sift-embed",
+     "jobs": 181,
+     "retried": 0,
+     "not_succeeded": 0
+    }
+   ]
+  },
+  {
+   "embed_workers": 4,
+   "seconds": 81.9,
+   "files": 182,
+   "versions_ready": 182,
+   "chunks": 1903,
+   "chunks_embedded": 1903,
+   "texts_sent_to_model": 1007,
+   "chunks_per_second": 23.2,
+   "hopper_jobs": [
+    {
+     "queue": "default",
+     "jobs": 364,
+     "retried": 0,
+     "not_succeeded": 0
+    },
+    {
+     "queue": "sift-embed",
+     "jobs": 181,
+     "retried": 0,
+     "not_succeeded": 0
+    }
+   ]
+  },
+  {
+   "embed_workers": 1,
+   "seconds": 87.6,
+   "files": 182,
+   "versions_ready": 182,
+   "chunks": 1903,
+   "chunks_embedded": 1903,
+   "texts_sent_to_model": 1007,
+   "chunks_per_second": 21.7,
+   "hopper_jobs": [
+    {
+     "queue": "default",
+     "jobs": 364,
+     "retried": 0,
+     "not_succeeded": 0
+    },
+    {
+     "queue": "sift-embed",
+     "jobs": 181,
+     "retried": 0,
+     "not_succeeded": 0
+    }
+   ]
+  },
+  {
+   "embed_workers": 2,
+   "seconds": 84.0,
+   "files": 182,
+   "versions_ready": 182,
+   "chunks": 1903,
+   "chunks_embedded": 1903,
+   "texts_sent_to_model": 1007,
+   "chunks_per_second": 22.7,
+   "hopper_jobs": [
+    {
+     "queue": "default",
+     "jobs": 364,
+     "retried": 0,
+     "not_succeeded": 0
+    },
+    {
+     "queue": "sift-embed",
+     "jobs": 181,
+     "retried": 0,
+     "not_succeeded": 0
+    }
+   ]
+  },
+  {
+   "embed_workers": 4,
+   "seconds": 80.9,
+   "files": 182,
+   "versions_ready": 182,
+   "chunks": 1903,
+   "chunks_embedded": 1903,
+   "texts_sent_to_model": 1007,
+   "chunks_per_second": 23.5,
+   "hopper_jobs": [
+    {
+     "queue": "default",
+     "jobs": 364,
+     "retried": 0,
+     "not_succeeded": 0
+    },
+    {
+     "queue": "sift-embed",
+     "jobs": 181,
+     "retried": 0,
+     "not_succeeded": 0
+    }
+   ]
+  }
+ ]
+}

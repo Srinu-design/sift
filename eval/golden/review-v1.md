@@ -1,0 +1,385 @@
+# Golden set review
+
+Tick a question once its answer is checked against the page,
+then set `verified_by` on its line in the JSONL.
+
+- [ ] **q001** (factoid, v17) Can CREATE INDEX CONCURRENTLY run inside a transaction block?
+  - Answer: No. A regular CREATE INDEX can run inside a transaction block, but CREATE INDEX CONCURRENTLY cannot.
+  - Source: [pg17/sql-createindex#SQL-CREATEINDEX-CONCURRENTLY](https://www.postgresql.org/docs/17/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY)
+- [ ] **q002** (factoid, v16) What kind of index does CREATE INDEX build when no index method is given?
+  - Answer: A B-tree index; B-tree is the default and fits the most common situations.
+  - Source: [pg16/indexes-types#INDEXES-TYPES](https://www.postgresql.org/docs/16/indexes-types.html#INDEXES-TYPES)
+- [ ] **q003** (factoid, v18) Which index types support indexes on more than one column?
+  - Answer: B-tree, GiST, GIN and BRIN support multicolumn (multiple-key-column) indexes.
+  - Source: [pg18/indexes-multicolumn#INDEXES-MULTICOLUMN](https://www.postgresql.org/docs/18/indexes-multicolumn.html#INDEXES-MULTICOLUMN)
+- [ ] **q004** (factoid, v17) How many columns can a multicolumn index have?
+  - Answer: Up to 32 columns, INCLUDE columns counted (the limit can be changed when building PostgreSQL).
+  - Source: [pg17/indexes-multicolumn#INDEXES-MULTICOLUMN](https://www.postgresql.org/docs/17/indexes-multicolumn.html#INDEXES-MULTICOLUMN)
+- [ ] **q005** (factoid, v16) What kind of comparisons can a hash index handle?
+  - Answer: Only simple equality comparisons (the = operator).
+  - Source: [pg16/indexes-types#INDEXES-TYPES-HASH](https://www.postgresql.org/docs/16/indexes-types.html#INDEXES-TYPES-HASH)
+- [ ] **q006** (factoid, v18) What does BRIN stand for?
+  - Answer: Block Range INdexes: they store summaries of the values in consecutive physical block ranges of a table.
+  - Source: [pg18/indexes-types#INDEXES-TYPES-BRIN](https://www.postgresql.org/docs/18/indexes-types.html#INDEXES-TYPES-BRIN)
+- [ ] **q007** (factoid, v17) Which index types can be declared unique?
+  - Answer: Only B-tree indexes can be declared unique.
+  - Source: [pg17/indexes-unique#INDEXES-UNIQUE](https://www.postgresql.org/docs/17/indexes-unique.html#INDEXES-UNIQUE)
+- [ ] **q008** (factoid, v16) What is the default fillfactor of a B-tree index?
+  - Answer: 90 (percent); leaf pages are packed to that level during the initial build and when extending at the right.
+  - Source: [pg16/sql-createindex#SQL-CREATEINDEX-STORAGE-PARAMETERS](https://www.postgresql.org/docs/16/sql-createindex.html#SQL-CREATEINDEX-STORAGE-PARAMETERS)
+- [ ] **q009** (factoid, v18) What does the INCLUDE clause add to an index?
+  - Answer: Non-key payload columns stored in the index, making it a covering index that can satisfy index-only scans; they are not used for searching.
+  - Source: [pg18/indexes-index-only-scans#INDEXES-INDEX-ONLY-SCANS](https://www.postgresql.org/docs/18/indexes-index-only-scans.html#INDEXES-INDEX-ONLY-SCANS)
+- [ ] **q010** (factoid, v17) What is left behind if CREATE INDEX CONCURRENTLY fails?
+  - Answer: An invalid index: it is ignored for queries but still updated, so drop it (or REINDEX it) and try again.
+  - Source: [pg17/sql-createindex#SQL-CREATEINDEX-CONCURRENTLY](https://www.postgresql.org/docs/17/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY)
+- [ ] **q011** (factoid, v16) Why does an index-only scan still sometimes visit the table?
+  - Answer: It must check row visibility in the heap unless the visibility map marks the page all-visible.
+  - Source: [pg16/indexes-index-only-scans#INDEXES-INDEX-ONLY-SCANS](https://www.postgresql.org/docs/16/indexes-index-only-scans.html#INDEXES-INDEX-ONLY-SCANS)
+- [ ] **q012** (factoid, v18) Which operator class lets a B-tree index serve LIKE prefix searches when the database does not use the C locale?
+  - Answer: text_pattern_ops (and varchar_pattern_ops / bpchar_pattern_ops for those types).
+  - Source: [pg18/indexes-opclass#INDEXES-OPCLASS](https://www.postgresql.org/docs/18/indexes-opclass.html#INDEXES-OPCLASS)
+- [ ] **q013** (factoid, v17) What are the restrictions on DROP INDEX CONCURRENTLY?
+  - Answer: Only one index name can be given, CASCADE is not supported (so an index behind a UNIQUE or PRIMARY KEY constraint cannot be dropped this way), it cannot run inside a transaction block, and indexes on partitioned tables cannot be dropped with it.
+  - Source: [pg17/sql-dropindex#id-1.9.3.116.6](https://www.postgresql.org/docs/17/sql-dropindex.html#id-1.9.3.116.6)
+- [ ] **q014** (factoid, v16) What is PostgreSQL's default transaction isolation level?
+  - Answer: Read Committed.
+  - Source: [pg16/transaction-iso#XACT-READ-COMMITTED](https://www.postgresql.org/docs/16/transaction-iso.html#XACT-READ-COMMITTED)
+- [ ] **q015** (factoid, v17) How does Read Uncommitted behave in PostgreSQL?
+  - Answer: Exactly like Read Committed; PostgreSQL implements only three distinct isolation levels.
+  - Source: [pg17/transaction-iso#TRANSACTION-ISO](https://www.postgresql.org/docs/17/transaction-iso.html#TRANSACTION-ISO)
+- [ ] **q016** (factoid, v18) Can phantom reads happen at the Repeatable Read level in PostgreSQL?
+  - Answer: No. The standard allows them at Repeatable Read, but PostgreSQL's implementation does not.
+  - Source: [pg18/transaction-iso#TRANSACTION-ISO](https://www.postgresql.org/docs/18/transaction-iso.html#TRANSACTION-ISO)
+- [ ] **q017** (factoid, v16) Which lock does a plain SELECT take, and what does it conflict with?
+  - Answer: ACCESS SHARE, which conflicts only with ACCESS EXCLUSIVE.
+  - Source: [pg16/explicit-locking#LOCKING-TABLES](https://www.postgresql.org/docs/16/explicit-locking.html#LOCKING-TABLES)
+- [ ] **q018** (factoid, v17) What row-level lock modes are there?
+  - Answer: FOR UPDATE, FOR NO KEY UPDATE, FOR SHARE and FOR KEY SHARE.
+  - Source: [pg17/explicit-locking#LOCKING-ROWS](https://www.postgresql.org/docs/17/explicit-locking.html#LOCKING-ROWS)
+- [ ] **q019** (factoid, v18) What does PostgreSQL do when transactions deadlock?
+  - Answer: It detects the deadlock automatically and resolves it by aborting one of the transactions involved.
+  - Source: [pg18/explicit-locking#LOCKING-DEADLOCKS](https://www.postgresql.org/docs/18/explicit-locking.html#LOCKING-DEADLOCKS)
+- [ ] **q020** (factoid, v16) How do session-level and transaction-level advisory locks differ?
+  - Answer: Session-level locks are held until released explicitly or the session ends, and are not undone by a rollback; transaction-level locks are released automatically at the end of the transaction.
+  - Source: [pg16/explicit-locking#ADVISORY-LOCKS](https://www.postgresql.org/docs/16/explicit-locking.html#ADVISORY-LOCKS)
+- [ ] **q021** (factoid, v17) Is TRUNCATE MVCC-safe?
+  - Answer: No. After TRUNCATE, a concurrent transaction using a snapshot taken before it will see the table as empty.
+  - Source: [pg17/mvcc-caveats#MVCC-CAVEATS](https://www.postgresql.org/docs/17/mvcc-caveats.html#MVCC-CAVEATS)
+- [ ] **q022** (factoid, v18) What are the reasons tables need regular VACUUM?
+  - Answer: To recover or reuse disk space from updated or deleted rows, update planner statistics, update the visibility map, and protect against transaction ID wraparound.
+  - Source: [pg18/routine-vacuuming#VACUUM-BASICS](https://www.postgresql.org/docs/18/routine-vacuuming.html#VACUUM-BASICS)
+- [ ] **q023** (factoid, v16) How is VACUUM FULL different from plain VACUUM?
+  - Answer: VACUUM FULL can reclaim more disk space but runs much more slowly and needs an ACCESS EXCLUSIVE lock on the table; standard VACUUM runs alongside normal work (SELECT, INSERT, UPDATE and DELETE keep working).
+  - Source: [pg16/routine-vacuuming#VACUUM-BASICS](https://www.postgresql.org/docs/16/routine-vacuuming.html#VACUUM-BASICS)
+- [ ] **q024** (factoid, v17) What is the default value of autovacuum_freeze_max_age?
+  - Answer: 200 million transactions.
+  - Source: [pg17/routine-vacuuming#VACUUM-FOR-WRAPAROUND](https://www.postgresql.org/docs/17/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND)
+- [ ] **q025** (factoid, v18) Why can transaction IDs wrap around?
+  - Answer: Transaction IDs are 32 bits wide (about four billion values), so a long-running cluster eventually wraps around.
+  - Source: [pg18/routine-vacuuming#VACUUM-FOR-WRAPAROUND](https://www.postgresql.org/docs/18/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND)
+- [ ] **q026** (factoid, v16) What are the fundamentally different approaches to backing up PostgreSQL data?
+  - Answer: SQL dump, file system level backup, and continuous archiving.
+  - Source: [pg16/backup#BACKUP](https://www.postgresql.org/docs/16/backup.html#BACKUP)
+- [ ] **q027** (factoid, v17) Does pg_dump block other users while it runs?
+  - Answer: No; it takes a consistent snapshot without blocking readers or writers, though it blocks operations that need an exclusive lock, such as most forms of ALTER TABLE.
+  - Source: [pg17/backup-dump#BACKUP-DUMP](https://www.postgresql.org/docs/17/backup-dump.html#BACKUP-DUMP)
+- [ ] **q028** (factoid, v18) What does pg_dumpall back up that pg_dump does not?
+  - Answer: Cluster-wide data such as roles and tablespace definitions, along with every database.
+  - Source: [pg18/backup-dump#BACKUP-DUMP-ALL](https://www.postgresql.org/docs/18/backup-dump.html#BACKUP-DUMP-ALL)
+- [ ] **q029** (factoid, v16) Can a file system level backup be used to restore just one table?
+  - Answer: No. The table files are useless without the commit log (pg_xact), so only a whole-cluster backup and restore works.
+  - Source: [pg16/backup-file#BACKUP-FILE](https://www.postgresql.org/docs/16/backup-file.html#BACKUP-FILE)
+- [ ] **q030** (factoid, v17) What must an archive_command return when it succeeds?
+  - Answer: A zero exit status, and only when the file was archived successfully; a nonzero status makes PostgreSQL retry.
+  - Source: [pg17/continuous-archiving#BACKUP-ARCHIVING-WAL](https://www.postgresql.org/docs/17/continuous-archiving.html#BACKUP-ARCHIVING-WAL)
+- [ ] **q031** (factoid, v18) Which pg_dump output format supports parallel dumping?
+  - Answer: Only the directory format (-Fd): it is the format that supports parallel dumps with -j/--jobs.
+  - Source: [pg18/app-pgdump#PG-DUMP-OPTIONS](https://www.postgresql.org/docs/18/app-pgdump.html#PG-DUMP-OPTIONS)
+- [ ] **q032** (factoid, v16) How do ts_rank and ts_rank_cd differ?
+  - Answer: ts_rank ranks by how often matching lexemes appear; ts_rank_cd computes cover density ranking, which also rewards matching lexemes that are close together.
+  - Source: [pg16/textsearch-controls#TEXTSEARCH-RANKING](https://www.postgresql.org/docs/16/textsearch-controls.html#TEXTSEARCH-RANKING)
+- [ ] **q033** (factoid, v17) Which index type is preferred for text search, GIN or GiST?
+  - Answer: GIN is the preferred text search index type; GiST indexes are lossy and need heap rechecks.
+  - Source: [pg17/textsearch-indexes#TEXTSEARCH-INDEXES](https://www.postgresql.org/docs/17/textsearch-indexes.html#TEXTSEARCH-INDEXES)
+- [ ] **q034** (factoid, v18) What is the largest position value a tsvector can hold?
+  - Answer: 16,383; positions must be greater than 0 and at most 16,383.
+  - Source: [pg18/textsearch-limitations#TEXTSEARCH-LIMITATIONS](https://www.postgresql.org/docs/18/textsearch-limitations.html#TEXTSEARCH-LIMITATIONS)
+- [ ] **q035** (factoid, v16) How does jsonb store data differently from json?
+  - Answer: json keeps an exact copy of the input text and reparses it on every use; jsonb stores a decomposed binary form that is slower to input but faster to process and can be indexed. jsonb drops whitespace, key order and duplicate keys.
+  - Source: [pg16/datatype-json#DATATYPE-JSON](https://www.postgresql.org/docs/16/datatype-json.html#DATATYPE-JSON)
+- [ ] **q036** (factoid, v17) Which GIN operator class for jsonb is smaller and faster but supports fewer operators?
+  - Answer: jsonb_path_ops: it supports @>, @? and @@ but not the key-exists operators.
+  - Source: [pg17/datatype-json#JSON-INDEXING](https://www.postgresql.org/docs/17/datatype-json.html#JSON-INDEXING)
+- [ ] **q037** (factoid, v18) What does EXPLAIN ANALYZE do that plain EXPLAIN does not?
+  - Answer: It actually runs the statement and reports actual run times and row counts alongside the estimates.
+  - Source: [pg18/sql-explain#id-1.9.3.148.8](https://www.postgresql.org/docs/18/sql-explain.html#id-1.9.3.148.8)
+- [ ] **q038** (factoid, v16) Why should EXPLAIN ANALYZE of an INSERT be wrapped in a transaction?
+  - Answer: Because ANALYZE really executes the statement; wrap it in BEGIN ... ROLLBACK to avoid changing data.
+  - Source: [pg16/sql-explain#id-1.9.3.148.7](https://www.postgresql.org/docs/16/sql-explain.html#id-1.9.3.148.7)
+- [ ] **q039** (factoid, v17) Who may use COPY to read a file on the database server?
+  - Answer: Superusers and roles granted pg_read_server_files (pg_write_server_files to write; pg_execute_server_program for PROGRAM).
+  - Source: [pg17/sql-copy#id-1.9.3.55.8](https://www.postgresql.org/docs/17/sql-copy.html#id-1.9.3.55.8)
+- [ ] **q040** (factoid, v18) Can the isolation level be changed after a transaction has run its first query?
+  - Answer: No. It cannot be changed after the first query or data-modification statement of the transaction.
+  - Source: [pg18/sql-set-transaction#id-1.9.3.178.8](https://www.postgresql.org/docs/18/sql-set-transaction.html#id-1.9.3.178.8)
+- [ ] **q041** (factoid, v16) Which lock mode does LOCK TABLE use when no mode is given?
+  - Answer: ACCESS EXCLUSIVE, the most restrictive mode.
+  - Source: [pg16/sql-lock#id-1.9.3.155.6](https://www.postgresql.org/docs/16/sql-lock.html#id-1.9.3.155.6)
+- [ ] **q042** (factoid, v17) How does ANALYZE decide how many rows of a large table to read?
+  - Answer: It reads a random sample rather than every row; the largest statistics target among the analyzed columns (default_statistics_target, 100 by default) sets how many rows are sampled, and raising it makes ANALYZE take proportionally more time and space.
+  - Source: [pg17/sql-analyze#id-1.9.3.46.8](https://www.postgresql.org/docs/17/sql-analyze.html#id-1.9.3.46.8)
+- [ ] **q043** (factoid, v18) Does CLUSTER keep a table ordered as new rows arrive?
+  - Answer: No. Clustering is a one-time operation; later changes are not clustered, so run CLUSTER again periodically.
+  - Source: [pg18/sql-cluster#id-1.9.3.51.5](https://www.postgresql.org/docs/18/sql-cluster.html#id-1.9.3.51.5)
+- [ ] **q044** (factoid, v16) Can VACUUM be run inside a transaction block?
+  - Answer: No, VACUUM cannot be executed inside a transaction block.
+  - Source: [pg16/sql-vacuum#id-1.9.3.184.8](https://www.postgresql.org/docs/16/sql-vacuum.html#id-1.9.3.184.8)
+- [ ] **q045** (procedural, v17) How do I build an index on a busy table without blocking inserts and updates?
+  - Answer: Use CREATE INDEX CONCURRENTLY: it scans the table twice and waits for existing transactions, but does not lock out writes.
+  - Source: [pg17/sql-createindex#SQL-CREATEINDEX-CONCURRENTLY](https://www.postgresql.org/docs/17/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY)
+- [ ] **q046** (procedural, v18) How do I rebuild a bloated index without blocking writes?
+  - Answer: Run REINDEX CONCURRENTLY: it builds a new copy of the index without locking out writes, then switches to it and drops the old one.
+  - Source: [pg18/sql-reindex#SQL-REINDEX-CONCURRENTLY](https://www.postgresql.org/docs/18/sql-reindex.html#SQL-REINDEX-CONCURRENTLY)
+- [ ] **q047** (procedural, v16) How do I restore a plain-text dump made by pg_dump?
+  - Answer: Create the database yourself from template0, then feed the file to psql: psql -X dbname < dumpfile.
+  - Source: [pg16/backup-dump#BACKUP-DUMP-RESTORE](https://www.postgresql.org/docs/16/backup-dump.html#BACKUP-DUMP-RESTORE)
+- [ ] **q048** (procedural, v17) How do I make a psql restore stop at the first error?
+  - Answer: Run psql with ON_ERROR_STOP set (psql --set ON_ERROR_STOP=on); add --single-transaction (-1) to roll back everything on error.
+  - Source: [pg17/backup-dump#BACKUP-DUMP-RESTORE](https://www.postgresql.org/docs/17/backup-dump.html#BACKUP-DUMP-RESTORE)
+- [ ] **q049** (procedural, v18) How do I dump a database that is bigger than the file system's maximum file size?
+  - Answer: Pipe pg_dump through a compressor such as gzip, split the output with split, or use pg_dump's custom format, which compresses.
+  - Source: [pg18/backup-dump#BACKUP-DUMP-LARGE](https://www.postgresql.org/docs/18/backup-dump.html#BACKUP-DUMP-LARGE)
+- [ ] **q050** (procedural, v16) How do I turn on WAL archiving?
+  - Answer: Set wal_level to replica or higher, archive_mode to on, and give an archive_command (or archive_library) that copies each finished WAL segment somewhere safe.
+  - Source: [pg16/continuous-archiving#BACKUP-ARCHIVING-WAL](https://www.postgresql.org/docs/16/continuous-archiving.html#BACKUP-ARCHIVING-WAL)
+- [ ] **q051** (procedural, v17) How do I take a base backup for continuous archiving?
+  - Answer: Use the pg_basebackup tool, which can write the base backup as regular files or as a tar archive; the low-level API is the alternative when more flexibility is needed.
+  - Source: [pg17/continuous-archiving#BACKUP-BASE-BACKUP](https://www.postgresql.org/docs/17/continuous-archiving.html#BACKUP-BASE-BACKUP)
+- [ ] **q052** (procedural, v18) How do I recover to a specific point in time using a base backup and archived WAL?
+  - Answer: Restore the base backup, set restore_command and a recovery target such as recovery_target_time, create recovery.signal in the data directory, and start the server.
+  - Source: [pg18/continuous-archiving#BACKUP-PITR-RECOVERY](https://www.postgresql.org/docs/18/continuous-archiving.html#BACKUP-PITR-RECOVERY)
+- [ ] **q053** (procedural, v16) How do I check whether my queries actually use an index?
+  - Answer: Run EXPLAIN on them (ideally with real data and after ANALYZE), and look at the statistics views that count index usage.
+  - Source: [pg16/indexes-examine#INDEXES-EXAMINE](https://www.postgresql.org/docs/16/indexes-examine.html#INDEXES-EXAMINE)
+- [ ] **q054** (procedural, v17) How do I create an index to speed up full text search on a text column?
+  - Answer: Create a GIN index on the tsvector expression, naming the configuration, e.g. CREATE INDEX ... USING GIN (to_tsvector('english', body)).
+  - Source: [pg17/textsearch-tables#TEXTSEARCH-TABLES-INDEX](https://www.postgresql.org/docs/17/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX)
+- [ ] **q055** (procedural, v18) How do I show search results with the matching words highlighted?
+  - Answer: Use ts_headline, which returns an excerpt of the document with the query terms marked.
+  - Source: [pg18/textsearch-controls#TEXTSEARCH-HEADLINE](https://www.postgresql.org/docs/18/textsearch-controls.html#TEXTSEARCH-HEADLINE)
+- [ ] **q056** (procedural, v16) How do I see how a text search configuration processes a given piece of text?
+  - Answer: Call ts_debug, which shows each token, its type, the dictionaries consulted and the resulting lexemes.
+  - Source: [pg16/textsearch-debugging#TEXTSEARCH-CONFIGURATION-TESTING](https://www.postgresql.org/docs/16/textsearch-debugging.html#TEXTSEARCH-CONFIGURATION-TESTING)
+- [ ] **q057** (procedural, v17) How do I add synonyms to full text search?
+  - Answer: Create a synonym dictionary from a .syn file with CREATE TEXT SEARCH DICTIONARY (TEMPLATE = synonym) and add it to the configuration's mapping with ALTER TEXT SEARCH CONFIGURATION.
+  - Source: [pg17/textsearch-dictionaries#TEXTSEARCH-SYNONYM-DICTIONARY](https://www.postgresql.org/docs/17/textsearch-dictionaries.html#TEXTSEARCH-SYNONYM-DICTIONARY)
+- [ ] **q058** (procedural, v18) How do I take an application-defined lock identified by a number?
+  - Answer: Use advisory locks, e.g. SELECT pg_advisory_lock(id): an application-defined lock on a number, taken at session level (held until released or the session ends) or at transaction level.
+  - Source: [pg18/explicit-locking#ADVISORY-LOCKS](https://www.postgresql.org/docs/18/explicit-locking.html#ADVISORY-LOCKS)
+- [ ] **q059** (procedural, v16) How do I insert a row, or update it if it already exists?
+  - Answer: INSERT ... ON CONFLICT (conflict target) DO UPDATE SET ..., using EXCLUDED to refer to the proposed row.
+  - Source: [pg16/sql-insert#SQL-ON-CONFLICT](https://www.postgresql.org/docs/16/sql-insert.html#SQL-ON-CONFLICT)
+- [ ] **q060** (procedural, v17) How do I load a CSV file that has a header line into a table?
+  - Answer: COPY table FROM 'file' WITH (FORMAT csv, HEADER); the HEADER option skips the first line on input.
+  - Source: [pg17/sql-copy#id-1.9.3.55.6](https://www.postgresql.org/docs/17/sql-copy.html#id-1.9.3.55.6)
+- [ ] **q061** (procedural, v18) How do I physically reorder a table's rows according to one of its indexes?
+  - Answer: CLUSTER table_name USING index_name.
+  - Source: [pg18/sql-cluster#id-1.9.3.51.5](https://www.postgresql.org/docs/18/sql-cluster.html#id-1.9.3.51.5)
+- [ ] **q062** (procedural, v16) How do I restore a single table from a custom-format dump?
+  - Answer: Use pg_restore with -t/--table naming the table.
+  - Source: [pg16/app-pgrestore#APP-PGRESTORE-OPTIONS](https://www.postgresql.org/docs/16/app-pgrestore.html#APP-PGRESTORE-OPTIONS)
+- [ ] **q063** (procedural, v17) How do I dump a database using several parallel jobs?
+  - Answer: pg_dump -j N (--jobs) with the directory format (-Fd).
+  - Source: [pg17/app-pgdump#PG-DUMP-OPTIONS](https://www.postgresql.org/docs/17/app-pgdump.html#PG-DUMP-OPTIONS)
+- [ ] **q064** (procedural, v18) How do I update rows using values from another table?
+  - Answer: Add a FROM clause to UPDATE listing the other table and join it in the WHERE condition.
+  - Source: [pg18/sql-update#id-1.9.3.183.6](https://www.postgresql.org/docs/18/sql-update.html#id-1.9.3.183.6)
+- [ ] **q065** (procedural, v16) How do I run a transaction at the serializable isolation level?
+  - Answer: SET TRANSACTION ISOLATION LEVEL SERIALIZABLE as the first statement (or BEGIN ISOLATION LEVEL SERIALIZABLE).
+  - Source: [pg16/sql-set-transaction#SQL-SET-TRANSACTION](https://www.postgresql.org/docs/16/sql-set-transaction.html#SQL-SET-TRANSACTION)
+- [ ] **q066** (paraphrase, v17) I deleted half the rows in a big table but its file on disk did not shrink. Why, and what gives the space back?
+  - Answer: Plain VACUUM only makes the space reusable inside the table (it returns just empty pages at the end); VACUUM FULL rewrites the table and gives space back to the operating system.
+  - Source: [pg17/routine-vacuuming#VACUUM-FOR-SPACE-RECOVERY](https://www.postgresql.org/docs/17/routine-vacuuming.html#VACUUM-FOR-SPACE-RECOVERY)
+- [ ] **q067** (paraphrase, v18) Two sessions are each stuck waiting for the other to finish. What will the database do about it?
+  - Answer: That is a deadlock: PostgreSQL detects it and aborts one of the transactions so the other can continue.
+  - Source: [pg18/explicit-locking#LOCKING-DEADLOCKS](https://www.postgresql.org/docs/18/explicit-locking.html#LOCKING-DEADLOCKS)
+- [ ] **q068** (paraphrase, v16) Can a query be answered from the index alone, without fetching the table rows?
+  - Answer: Yes, with an index-only scan, when every column the query needs is in the index and the pages are marked all-visible.
+  - Source: [pg16/indexes-index-only-scans#INDEXES-INDEX-ONLY-SCANS](https://www.postgresql.org/docs/16/indexes-index-only-scans.html#INDEXES-INDEX-ONLY-SCANS)
+- [ ] **q069** (paraphrase, v17) Looking people up by a lowercased version of their name is slow. How can an index help?
+  - Answer: Create an index on the expression, e.g. CREATE INDEX ... ON people (lower(name)); queries using the same expression can use it.
+  - Source: [pg17/indexes-expressional#INDEXES-EXPRESSIONAL](https://www.postgresql.org/docs/17/indexes-expressional.html#INDEXES-EXPRESSIONAL)
+- [ ] **q070** (paraphrase, v18) How do I stop very old rows from suddenly appearing to be in the future?
+  - Answer: Vacuum regularly so old rows are frozen before transaction ID wraparound; autovacuum forces this before the limit.
+  - Source: [pg18/routine-vacuuming#VACUUM-FOR-WRAPAROUND](https://www.postgresql.org/docs/18/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND)
+- [ ] **q071** (paraphrase, v16) How do I bring the database back to exactly how it was at 3pm yesterday?
+  - Answer: Point-in-time recovery: restore a base backup and replay archived WAL up to a recovery target given as a date and time.
+  - Source: [pg16/continuous-archiving#BACKUP-PITR-RECOVERY](https://www.postgresql.org/docs/16/continuous-archiving.html#BACKUP-PITR-RECOVERY)
+- [ ] **q072** (paraphrase, v17) Under the strictest setting my app sometimes gets errors when two users edit at once. What should it do?
+  - Answer: Those are serialization failures (SQLSTATE 40001); the application should retry the whole transaction.
+  - Source: [pg17/mvcc-serialization-failure-handling#MVCC-SERIALIZATION-FAILURE-HANDLING](https://www.postgresql.org/docs/17/mvcc-serialization-failure-handling.html#MVCC-SERIALIZATION-FAILURE-HANDLING)
+- [ ] **q073** (paraphrase, v18) Can I index only the orders that are still unpaid?
+  - Answer: Yes, with a partial index whose WHERE clause selects those rows.
+  - Source: [pg18/indexes-partial#INDEXES-PARTIAL](https://www.postgresql.org/docs/18/indexes-partial.html#INDEXES-PARTIAL)
+- [ ] **q074** (paraphrase, v16) How can searching treat 'colour' and 'color' as the same word?
+  - Answer: Use a synonym dictionary (or a thesaurus) in the text search configuration to map one word to the other.
+  - Source: [pg16/textsearch-dictionaries#TEXTSEARCH-SYNONYM-DICTIONARY](https://www.postgresql.org/docs/16/textsearch-dictionaries.html#TEXTSEARCH-SYNONYM-DICTIONARY)
+- [ ] **q075** (paraphrase, v17) Why does searching ignore very common words such as 'the'?
+  - Answer: They are stop words: too common to help, so dictionaries discard them.
+  - Source: [pg17/textsearch-dictionaries#TEXTSEARCH-STOPWORDS](https://www.postgresql.org/docs/17/textsearch-dictionaries.html#TEXTSEARCH-STOPWORDS)
+- [ ] **q076** (paraphrase, v18) Will the server's diagnostic output keep growing forever if nobody cleans it up?
+  - Answer: It can; rotate the server log, for example with the logging collector's rotation settings or an external tool like logrotate.
+  - Source: [pg18/logfile-maintenance#LOGFILE-MAINTENANCE](https://www.postgresql.org/docs/18/logfile-maintenance.html#LOGFILE-MAINTENANCE)
+- [ ] **q077** (paraphrase, v16) Can a query with conditions on two different columns use two separate indexes at once?
+  - Answer: Yes: PostgreSQL can combine several indexes with bitmap scans, ANDing or ORing the bitmaps.
+  - Source: [pg16/indexes-bitmap-scans#INDEXES-BITMAP-SCANS](https://www.postgresql.org/docs/16/indexes-bitmap-scans.html#INDEXES-BITMAP-SCANS)
+- [ ] **q078** (multi_section, v17) How does an SQL dump differ from a file system level backup, and what does each require?
+  - Answer: pg_dump writes SQL commands that recreate the database and runs while the server is up; a file system backup copies the data directory and needs the server shut down (or a consistent snapshot), and only restores whole clusters.
+  - Source: [pg17/backup-dump#BACKUP-DUMP](https://www.postgresql.org/docs/17/backup-dump.html#BACKUP-DUMP)
+  - Source: [pg17/backup-file#BACKUP-FILE](https://www.postgresql.org/docs/17/backup-file.html#BACKUP-FILE)
+- [ ] **q079** (multi_section, v18) What do REINDEX CONCURRENTLY and CREATE INDEX CONCURRENTLY each leave behind when they fail?
+  - Answer: Both leave an invalid index: CREATE INDEX CONCURRENTLY leaves the half-built index, REINDEX CONCURRENTLY leaves a new index with a _ccnew suffix (or _ccold); drop them and retry.
+  - Source: [pg18/sql-reindex#SQL-REINDEX-CONCURRENTLY](https://www.postgresql.org/docs/18/sql-reindex.html#SQL-REINDEX-CONCURRENTLY)
+  - Source: [pg18/sql-createindex#SQL-CREATEINDEX-CONCURRENTLY](https://www.postgresql.org/docs/18/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY)
+- [ ] **q080** (multi_section, v16) What lock does VACUUM FULL take, and what does that lock block?
+  - Answer: VACUUM FULL takes an ACCESS EXCLUSIVE lock, which conflicts with every other lock mode, including the ACCESS SHARE taken by plain SELECT.
+  - Source: [pg16/sql-vacuum#id-1.9.3.184.6](https://www.postgresql.org/docs/16/sql-vacuum.html#id-1.9.3.184.6)
+  - Source: [pg16/explicit-locking#LOCKING-TABLES](https://www.postgresql.org/docs/16/explicit-locking.html#LOCKING-TABLES)
+- [ ] **q081** (multi_section, v17) Which isolation levels can fail with serialization errors, and how should an application handle them?
+  - Answer: Repeatable Read and Serializable can fail with 'could not serialize access'; the application should retry the complete transaction.
+  - Source: [pg17/transaction-iso#XACT-REPEATABLE-READ](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-REPEATABLE-READ)
+  - Source: [pg17/transaction-iso#XACT-SERIALIZABLE](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-SERIALIZABLE)
+  - Source: [pg17/mvcc-serialization-failure-handling#MVCC-SERIALIZATION-FAILURE-HANDLING](https://www.postgresql.org/docs/17/mvcc-serialization-failure-handling.html#MVCC-SERIALIZATION-FAILURE-HANDLING)
+- [ ] **q082** (multi_section, v18) How do I test whether one jsonb document contains another, and how do I index that test?
+  - Answer: Use the containment operator @>; a GIN index with jsonb_ops or the smaller jsonb_path_ops speeds it up.
+  - Source: [pg18/datatype-json#JSON-CONTAINMENT](https://www.postgresql.org/docs/18/datatype-json.html#JSON-CONTAINMENT)
+  - Source: [pg18/datatype-json#JSON-INDEXING](https://www.postgresql.org/docs/18/datatype-json.html#JSON-INDEXING)
+- [ ] **q083** (multi_section, v16) What must be set up so that a base backup can be used for point-in-time recovery?
+  - Answer: WAL archiving must be running (archive_mode and archive_command) before and while the base backup is taken, e.g. with pg_basebackup, so the WAL needed to replay it is archived.
+  - Source: [pg16/continuous-archiving#BACKUP-ARCHIVING-WAL](https://www.postgresql.org/docs/16/continuous-archiving.html#BACKUP-ARCHIVING-WAL)
+  - Source: [pg16/continuous-archiving#BACKUP-BASE-BACKUP](https://www.postgresql.org/docs/16/continuous-archiving.html#BACKUP-BASE-BACKUP)
+- [ ] **q084** (multi_section, v17) How can I keep a tsvector column up to date automatically and index it?
+  - Answer: Use a generated column (GENERATED ALWAYS AS (to_tsvector(...)) STORED) or a trigger such as tsvector_update_trigger, then create a GIN index on it.
+  - Source: [pg17/textsearch-tables#TEXTSEARCH-TABLES-INDEX](https://www.postgresql.org/docs/17/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX)
+  - Source: [pg17/textsearch-features#TEXTSEARCH-UPDATE-TRIGGERS](https://www.postgresql.org/docs/17/textsearch-features.html#TEXTSEARCH-UPDATE-TRIGGERS)
+- [ ] **q085** (multi_section, v18) What does ANALYZE collect, and when does autovacuum run it automatically?
+  - Answer: Statistics about the contents of tables used by the planner; autovacuum analyzes a table once the rows inserted, updated or deleted since the last ANALYZE exceed the analyze threshold: base threshold + scale factor * number of tuples.
+  - Source: [pg18/sql-analyze#id-1.9.3.46.5](https://www.postgresql.org/docs/18/sql-analyze.html#id-1.9.3.46.5)
+  - Source: [pg18/routine-vacuuming#AUTOVACUUM](https://www.postgresql.org/docs/18/routine-vacuuming.html#AUTOVACUUM)
+- [ ] **q086** (multi_section, v16) How do I make a pg_dump archive I can restore selectively, and then restore part of it?
+  - Answer: Dump with the custom (-Fc) or directory format; pg_restore can then select, reorder or exclude items, e.g. with -t, -n or a -L list.
+  - Source: [pg16/app-pgdump#PG-DUMP-OPTIONS](https://www.postgresql.org/docs/16/app-pgdump.html#PG-DUMP-OPTIONS)
+  - Source: [pg16/app-pgrestore#APP-PGRESTORE-DESCRIPTION](https://www.postgresql.org/docs/16/app-pgrestore.html#APP-PGRESTORE-DESCRIPTION)
+- [ ] **q087** (multi_section, v17) In Read Committed mode, what happens when an UPDATE hits a row another transaction has locked with SELECT FOR UPDATE?
+  - Answer: The UPDATE waits for the locking transaction to commit or roll back; if it committed, the UPDATE re-checks its WHERE condition against the updated row version before proceeding.
+  - Source: [pg17/transaction-iso#XACT-READ-COMMITTED](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-READ-COMMITTED)
+  - Source: [pg17/explicit-locking#LOCKING-ROWS](https://www.postgresql.org/docs/17/explicit-locking.html#LOCKING-ROWS)
+- [ ] **q088** (version_specific, v17) How do I take an incremental backup in PostgreSQL 17?
+  - Answer: Run pg_basebackup --incremental, passing the backup manifest of an earlier backup of the same server; the server needs WAL summaries covering the range. Restoring needs every earlier backup in the chain, combined with pg_combinebackup.
+  - Source: [pg17/continuous-archiving#BACKUP-INCREMENTAL-BACKUP](https://www.postgresql.org/docs/17/continuous-archiving.html#BACKUP-INCREMENTAL-BACKUP)
+- [ ] **q089** (version_specific, v18) What does pg_combinebackup do in PostgreSQL 18?
+  - Answer: It reconstructs a synthetic full backup from an incremental backup and the earlier backups it depends on.
+  - Source: [pg18/app-pgcombinebackup#id-1.9.4.12.5](https://www.postgresql.org/docs/18/app-pgcombinebackup.html#id-1.9.4.12.5)
+- [ ] **q090** (version_specific, v17) What does JSON_TABLE do in PostgreSQL 17?
+  - Answer: It queries JSON data and presents the results as a relational view, usable like a table in FROM.
+  - Source: [pg17/functions-json#FUNCTIONS-SQLJSON-TABLE](https://www.postgresql.org/docs/17/functions-json.html#FUNCTIONS-SQLJSON-TABLE)
+- [ ] **q091** (version_specific, v17) In PostgreSQL 17, can MERGE return the rows it inserted, updated or deleted?
+  - Answer: Yes, with a RETURNING clause; merge_action() reports which action (INSERT, UPDATE or DELETE) produced each row.
+  - Source: [pg17/sql-merge#id-1.9.3.156.5](https://www.postgresql.org/docs/17/sql-merge.html#id-1.9.3.156.5)
+- [ ] **q092** (version_specific, v18) In PostgreSQL 18, how can UPDATE ... RETURNING show the values a row had before the update?
+  - Answer: RETURNING uses the new (post-update) values by default, but in PostgreSQL 18 it can also request the old (pre-update) values.
+  - Source: [pg18/sql-update#id-1.9.3.183.5](https://www.postgresql.org/docs/18/sql-update.html#id-1.9.3.183.5)
+- [ ] **q093** (version_specific, v18) In PostgreSQL 18, can a multicolumn B-tree index be used when the query has no condition on its first column?
+  - Answer: Yes: a B-tree index scan can use skip scan, applying the constraints on later columns through repeated index searches even when the leading column has no equality constraint.
+  - Source: [pg18/indexes-multicolumn#INDEXES-MULTICOLUMN](https://www.postgresql.org/docs/18/indexes-multicolumn.html#INDEXES-MULTICOLUMN)
+- [ ] **q094** (version_specific, v17) In PostgreSQL 17, how do I make COPY FROM skip rows whose values cannot be converted instead of failing?
+  - Answer: Use ON_ERROR ignore; the default, stop, fails the command.
+  - Source: [pg17/sql-copy#id-1.9.3.55.6](https://www.postgresql.org/docs/17/sql-copy.html#id-1.9.3.55.6)
+- [ ] **q095** (version_specific, v18) In PostgreSQL 18, how do I make COPY give up after too many bad rows while ignoring errors?
+  - Answer: Set REJECT_LIMIT together with ON_ERROR ignore; COPY fails once more rows than that are rejected.
+  - Source: [pg18/sql-copy#id-1.9.3.55.6](https://www.postgresql.org/docs/18/sql-copy.html#id-1.9.3.55.6)
+- [ ] **q096** (version_specific, v17) What does EXPLAIN's SERIALIZE option measure in PostgreSQL 17?
+  - Answer: The cost of serializing the query's output, i.e. converting it to text or binary format to send to the client.
+  - Source: [pg17/sql-explain#id-1.9.3.148.8](https://www.postgresql.org/docs/17/sql-explain.html#id-1.9.3.148.8)
+- [ ] **q097** (version_specific, v17) What does EXPLAIN's MEMORY option report in PostgreSQL 17?
+  - Answer: Memory consumption of the planning phase: storage used by planner in-memory structures and total memory including allocation overhead.
+  - Source: [pg17/sql-explain#id-1.9.3.148.8](https://www.postgresql.org/docs/17/sql-explain.html#id-1.9.3.148.8)
+- [ ] **q098** (version_specific, v18) In PostgreSQL 18, how do I dump optimizer statistics with pg_dump?
+  - Answer: Use --statistics (or --statistics-only to dump only them).
+  - Source: [pg18/app-pgdump#PG-DUMP-OPTIONS](https://www.postgresql.org/docs/18/app-pgdump.html#PG-DUMP-OPTIONS)
+- [ ] **q099** (version_specific, v17) In PostgreSQL 17, which privilege lets a role that does not own a table vacuum it?
+  - Answer: The MAINTAIN privilege on the table; database owners may also vacuum every table in their database except shared catalogs.
+  - Source: [pg17/sql-vacuum#id-1.9.3.184.8](https://www.postgresql.org/docs/17/sql-vacuum.html#id-1.9.3.184.8)
+- [ ] **q100** (version_specific, v17) In PostgreSQL 17, which SQL/JSON function tests whether a JSON path expression returns any item?
+  - Answer: JSON_EXISTS.
+  - Source: [pg17/functions-json#SQLJSON-QUERY-FUNCTIONS](https://www.postgresql.org/docs/17/functions-json.html#SQLJSON-QUERY-FUNCTIONS)
+- [ ] **q101** (version_specific, v18) In PostgreSQL 18, how can MERGE delete target rows that have no matching source row?
+  - Answer: With a WHEN NOT MATCHED BY SOURCE THEN DELETE clause.
+  - Source: [pg18/sql-merge#id-1.9.3.156.6](https://www.postgresql.org/docs/18/sql-merge.html#id-1.9.3.156.6)
+- [ ] **q102** (version_specific, v16) In PostgreSQL 16, which predicate tests whether a string is valid JSON?
+  - Answer: IS JSON, optionally IS JSON VALUE, SCALAR, ARRAY or OBJECT, with WITH/WITHOUT UNIQUE KEYS.
+  - Source: [pg16/functions-json#FUNCTIONS-JSON-PROCESSING](https://www.postgresql.org/docs/16/functions-json.html#FUNCTIONS-JSON-PROCESSING)
+- [ ] **q103** (unanswerable, v16) How do I take an incremental backup with pg_basebackup in PostgreSQL 16?
+  - Answer: Not in the PostgreSQL 16 docs: incremental backup arrived in 17.
+  - Proof it is unanswerable: `summarize_wal|incremental backup` appears nowhere in that version
+- [ ] **q104** (unanswerable, v16) How do I use JSON_TABLE in PostgreSQL 16?
+  - Answer: Not in the PostgreSQL 16 docs: JSON_TABLE arrived in 17.
+  - Proof it is unanswerable: `JSON_TABLE` appears nowhere in that version
+- [ ] **q105** (unanswerable, v16) In PostgreSQL 16, how do I make MERGE return the rows it changed?
+  - Answer: Not in the PostgreSQL 16 docs: MERGE ... RETURNING arrived in 17.
+  - Proof it is unanswerable: `merge_action` appears nowhere in that version
+- [ ] **q106** (unanswerable, v16) In PostgreSQL 16, how do I make COPY skip rows with malformed values?
+  - Answer: Not in the PostgreSQL 16 docs: COPY's ON_ERROR option arrived in 17.
+  - Proof it is unanswerable: `\bON_ERROR\b` appears nowhere in that version
+- [ ] **q107** (unanswerable, v17) In PostgreSQL 17, how do I set a maximum number of rejected rows for COPY?
+  - Answer: Not in the PostgreSQL 17 docs: REJECT_LIMIT arrived in 18.
+  - Proof it is unanswerable: `REJECT_LIMIT` appears nowhere in that version
+- [ ] **q108** (unanswerable, v17) In PostgreSQL 17, how do I return a column's pre-update value from UPDATE ... RETURNING?
+  - Answer: Not in the PostgreSQL 17 docs: OLD/NEW in RETURNING arrived in 18.
+  - Proof it is unanswerable: `\(pre-update\) values|WITH \(\s*OLD` appears nowhere in that version
+- [ ] **q109** (unanswerable, v16) What does pg_combinebackup do in PostgreSQL 16?
+  - Answer: Not in the PostgreSQL 16 docs: pg_combinebackup arrived in 17.
+  - Proof it is unanswerable: `pg_combinebackup` appears nowhere in that version
+- [ ] **q110** (unanswerable, v16) What does EXPLAIN's SERIALIZE option do in PostgreSQL 16?
+  - Answer: Not in the PostgreSQL 16 docs: the SERIALIZE option arrived in 17.
+  - Proof it is unanswerable: `SERIALIZE (NONE|TEXT|BINARY)` appears nowhere in that version
+- [ ] **q111** (unanswerable, v17) How do I merge two documents with the jsonb_deep_merge function?
+  - Answer: No such function is documented.
+  - Proof it is unanswerable: `jsonb_deep_merge` appears nowhere in that version
+- [ ] **q112** (unanswerable, v18) How do I create an HNSW index for vector similarity search?
+  - Answer: Not in these docs: HNSW comes from the pgvector extension, not core PostgreSQL.
+  - Proof it is unanswerable: `\bhnsw\b` appears nowhere in that version
+- [ ] **q113** (unanswerable, v16) How do I schedule a nightly VACUUM with pg_cron?
+  - Answer: Not in these docs: pg_cron is a third-party extension.
+  - Proof it is unanswerable: `pg_cron` appears nowhere in that version
+- [ ] **q114** (unanswerable, v17) How do I rank full text search results with BM25?
+  - Answer: Not in these docs: built-in ranking is ts_rank and ts_rank_cd; BM25 is not provided.
+  - Proof it is unanswerable: `bm25` appears nowhere in that version
+- [ ] **q115** (unanswerable, v18) What does the advisory_lock_timeout setting control?
+  - Answer: No such setting is documented.
+  - Proof it is unanswerable: `advisory_lock_timeout` appears nowhere in that version
+- [ ] **q116** (unanswerable, v16) How do I set up logical replication with CREATE PUBLICATION?
+  - Answer: Not in the chapters indexed here (logical replication is out of scope).
+  - Proof it is unanswerable: `CREATE PUBLICATION` appears nowhere in that version
+- [ ] **q117** (unanswerable, v17) What port does PgBouncer listen on by default?
+  - Answer: Not in these docs: PgBouncer is a separate project.
+  - Proof it is unanswerable: `pgbouncer` appears nowhere in that version
+- [ ] **q118** (unanswerable, v18) How do I encrypt a pg_dump archive with a password?
+  - Answer: Not in these docs: pg_dump has no encryption option.
+  - Proof it is unanswerable: `\bencrypt` appears nowhere in that version
+- [ ] **q119** (unanswerable, v16) How do I convert a table into a TimescaleDB hypertable?
+  - Answer: Not in these docs: TimescaleDB is a third-party extension.
+  - Proof it is unanswerable: `hypertable` appears nowhere in that version
+- [ ] **q120** (unanswerable, v18) How do I create a full text search configuration for Klingon?
+  - Answer: Not in these docs: there is no Klingon dictionary or configuration.
+  - Proof it is unanswerable: `klingon` appears nowhere in that version
+- [ ] **q121** (unanswerable, v17) What is the recommended shared_buffers size for a server with 64 GB of RAM?
+  - Answer: Not in the chapters indexed here (server configuration is out of scope).
+  - Proof it is unanswerable: `shared_buffers` appears nowhere in that version
+- [ ] **q122** (unanswerable, v18) How do I write a PL/pgSQL function that loops over the rows of a query?
+  - Answer: Not in the chapters indexed here (PL/pgSQL is out of scope).
+  - Proof it is unanswerable: `FOR \w+ IN SELECT` appears nowhere in that version
+- [ ] **q123** (unanswerable, v17) How do I configure Kubernetes liveness probes for PostgreSQL?
+  - Answer: Not in these docs.
+  - Proof it is unanswerable: `kubernetes` appears nowhere in that version

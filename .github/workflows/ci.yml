@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+
+  # Unit and integration tests against a real pgvector Postgres (same image as Compose).
+  # The models are faked in tests; the tokenizer (a small file) comes from Hugging Face.
+  # PDF tests skip here (no pdf extra) and e2e tests need the full stack: run them locally.
+  # The retrieval eval gate arrives in week 5, with the corpus snapshot as a CI artifact.
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg16
+        env: { POSTGRES_USER: hopper, POSTGRES_PASSWORD: hopper, POSTGRES_DB: hopper }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U hopper" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://hopper:hopper@127.0.0.1:5432/sift
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --frozen
+      - run: uv run pytest -q

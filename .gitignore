@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.env
+!.env.example
+# Raw corpus files are re-fetched from the manifest (make corpus); the manifest is committed.
+corpus/raw/
+# Uploaded files (the dev file store)
+data/

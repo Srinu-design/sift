@@ -1,0 +1,2853 @@
+{
+ "strategy": "lexical-and",
+ "split": "dev",
+ "golden": "v1",
+ "tenant": "pgdocs",
+ "run_at": "2026-10-20T09:21:14+00:00",
+ "commit": "fea373a",
+ "setup": {
+  "embed_model": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+  "rerank_model": "cross-encoder/ms-marco-MiniLM-L6-v2@233902d25c44",
+  "chunker": "headings-400-15",
+  "index_version": 183,
+  "depth": 50,
+  "lexical_mode": "and"
+ },
+ "questions": 86,
+ "unanswerable_skipped": 15,
+ "timings_ms": {
+  "lexical": {
+   "p50": 0.5,
+   "p95": 0.8
+  }
+ },
+ "overall": {
+  "n": 71,
+  "hit@5": {
+   "mean": 0.3521,
+   "ci95": [
+    0.2394,
+    0.4648
+   ]
+  },
+  "hit@8": {
+   "mean": 0.3521,
+   "ci95": [
+    0.2394,
+    0.4648
+   ]
+  },
+  "hit@10": {
+   "mean": 0.3521,
+   "ci95": [
+    0.2394,
+    0.4648
+   ]
+  },
+  "hit@20": {
+   "mean": 0.3521,
+   "ci95": [
+    0.2394,
+    0.4648
+   ]
+  },
+  "recall@5": {
+   "mean": 0.3357,
+   "ci95": [
+    0.2324,
+    0.4507
+   ]
+  },
+  "recall@8": {
+   "mean": 0.3357,
+   "ci95": [
+    0.2324,
+    0.4507
+   ]
+  },
+  "recall@10": {
+   "mean": 0.3357,
+   "ci95": [
+    0.2324,
+    0.4507
+   ]
+  },
+  "recall@20": {
+   "mean": 0.3357,
+   "ci95": [
+    0.2324,
+    0.4507
+   ]
+  },
+  "mrr@10": {
+   "mean": 0.2897,
+   "ci95": [
+    0.193,
+    0.3972
+   ]
+  }
+ },
+ "by_type": {
+  "factoid": {
+   "n": 31,
+   "hit@5": {
+    "mean": 0.4516,
+    "ci95": [
+     0.2903,
+     0.6452
+    ]
+   },
+   "hit@8": {
+    "mean": 0.4516,
+    "ci95": [
+     0.2903,
+     0.6452
+    ]
+   },
+   "hit@10": {
+    "mean": 0.4516,
+    "ci95": [
+     0.2903,
+     0.6452
+    ]
+   },
+   "hit@20": {
+    "mean": 0.4516,
+    "ci95": [
+     0.2903,
+     0.6452
+    ]
+   },
+   "recall@5": {
+    "mean": 0.4516,
+    "ci95": [
+     0.2903,
+     0.6452
+    ]
+   },
+   "recall@8": {
+    "mean": 0.4516,
+    "ci95": [
+     0.2903,
+     0.6452
+    ]
+   },
+   "recall@10": {
+    "mean": 0.4516,
+    "ci95": [
+     0.2903,
+     0.6452
+    ]
+   },
+   "recall@20": {
+    "mean": 0.4516,
+    "ci95": [
+     0.2903,
+     0.6452
+    ]
+   },
+   "mrr@10": {
+    "mean": 0.3763,
+    "ci95": [
+     0.2151,
+     0.543
+    ]
+   }
+  },
+  "multi_section": {
+   "n": 7,
+   "hit@5": {
+    "mean": 0.4286,
+    "ci95": [
+     0.1429,
+     0.8571
+    ]
+   },
+   "hit@8": {
+    "mean": 0.4286,
+    "ci95": [
+     0.1429,
+     0.8571
+    ]
+   },
+   "hit@10": {
+    "mean": 0.4286,
+    "ci95": [
+     0.1429,
+     0.8571
+    ]
+   },
+   "hit@20": {
+    "mean": 0.4286,
+    "ci95": [
+     0.1429,
+     0.8571
+    ]
+   },
+   "recall@5": {
+    "mean": 0.2619,
+    "ci95": [
+     0.0476,
+     0.5476
+    ]
+   },
+   "recall@8": {
+    "mean": 0.2619,
+    "ci95": [
+     0.0476,
+     0.5476
+    ]
+   },
+   "recall@10": {
+    "mean": 0.2619,
+    "ci95": [
+     0.0476,
+     0.5476
+    ]
+   },
+   "recall@20": {
+    "mean": 0.2619,
+    "ci95": [
+     0.0476,
+     0.5476
+    ]
+   },
+   "mrr@10": {
+    "mean": 0.4286,
+    "ci95": [
+     0.1429,
+     0.8571
+    ]
+   }
+  },
+  "paraphrase": {
+   "n": 8,
+   "hit@5": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   },
+   "hit@8": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   },
+   "hit@10": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   },
+   "hit@20": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   },
+   "recall@5": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   },
+   "recall@8": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   },
+   "recall@10": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   },
+   "recall@20": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   },
+   "mrr@10": {
+    "mean": 0.25,
+    "ci95": [
+     0.0,
+     0.625
+    ]
+   }
+  },
+  "procedural": {
+   "n": 15,
+   "hit@5": {
+    "mean": 0.4,
+    "ci95": [
+     0.2,
+     0.6667
+    ]
+   },
+   "hit@8": {
+    "mean": 0.4,
+    "ci95": [
+     0.2,
+     0.6667
+    ]
+   },
+   "hit@10": {
+    "mean": 0.4,
+    "ci95": [
+     0.2,
+     0.6667
+    ]
+   },
+   "hit@20": {
+    "mean": 0.4,
+    "ci95": [
+     0.2,
+     0.6667
+    ]
+   },
+   "recall@5": {
+    "mean": 0.4,
+    "ci95": [
+     0.2,
+     0.6667
+    ]
+   },
+   "recall@8": {
+    "mean": 0.4,
+    "ci95": [
+     0.2,
+     0.6667
+    ]
+   },
+   "recall@10": {
+    "mean": 0.4,
+    "ci95": [
+     0.2,
+     0.6667
+    ]
+   },
+   "recall@20": {
+    "mean": 0.4,
+    "ci95": [
+     0.2,
+     0.6667
+    ]
+   },
+   "mrr@10": {
+    "mean": 0.26,
+    "ci95": [
+     0.08,
+     0.4467
+    ]
+   }
+  },
+  "version_specific": {
+   "n": 10,
+   "hit@5": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   },
+   "hit@8": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   },
+   "hit@10": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   },
+   "hit@20": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   },
+   "recall@5": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   },
+   "recall@8": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   },
+   "recall@10": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   },
+   "recall@20": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   },
+   "mrr@10": {
+    "mean": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ]
+   }
+  }
+ },
+ "per_question": [
+  {
+   "id": "q002",
+   "type": "factoid",
+   "question": "What kind of index does CREATE INDEX build when no index method is given?",
+   "gold": [
+    {
+     "doc": "pg16/indexes-types",
+     "section": "INDEXES-TYPES"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 2.8
+   },
+   "top": []
+  },
+  {
+   "id": "q006",
+   "type": "factoid",
+   "question": "What does BRIN stand for?",
+   "gold": [
+    {
+     "doc": "pg18/indexes-types",
+     "section": "INDEXES-TYPES-BRIN"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.8
+   },
+   "top": []
+  },
+  {
+   "id": "q007",
+   "type": "factoid",
+   "question": "Which index types can be declared unique?",
+   "gold": [
+    {
+     "doc": "pg17/indexes-unique",
+     "section": "INDEXES-UNIQUE"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.9
+   },
+   "top": [
+    {
+     "doc": "pg17/sql-insert",
+     "anchor": "id-1.9.3.152.5",
+     "heading": "INSERT > Description",
+     "score": 0.0129
+    }
+   ]
+  },
+  {
+   "id": "q008",
+   "type": "factoid",
+   "question": "What is the default fillfactor of a B-tree index?",
+   "gold": [
+    {
+     "doc": "pg16/sql-createindex",
+     "section": "SQL-CREATEINDEX-STORAGE-PARAMETERS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 1.1
+   },
+   "top": [
+    {
+     "doc": "pg16/sql-createindex",
+     "anchor": "SQL-CREATEINDEX-STORAGE-PARAMETERS",
+     "heading": "CREATE INDEX > Parameters > Index Storage Parameters",
+     "score": 0.1428
+    },
+    {
+     "doc": "pg16/sql-createindex",
+     "anchor": "SQL-CREATEINDEX-STORAGE-PARAMETERS",
+     "heading": "CREATE INDEX > Parameters > Index Storage Parameters",
+     "score": 0.135
+    },
+    {
+     "doc": "pg16/sql-createindex",
+     "anchor": "id-1.9.3.69.8",
+     "heading": "CREATE INDEX > Examples",
+     "score": 0.0037
+    }
+   ]
+  },
+  {
+   "id": "q009",
+   "type": "factoid",
+   "question": "What does the INCLUDE clause add to an index?",
+   "gold": [
+    {
+     "doc": "pg18/indexes-index-only-scans",
+     "section": "INDEXES-INDEX-ONLY-SCANS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q010",
+   "type": "factoid",
+   "question": "What is left behind if CREATE INDEX CONCURRENTLY fails?",
+   "gold": [
+    {
+     "doc": "pg17/sql-createindex",
+     "section": "SQL-CREATEINDEX-CONCURRENTLY"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.7
+   },
+   "top": []
+  },
+  {
+   "id": "q012",
+   "type": "factoid",
+   "question": "Which operator class lets a B-tree index serve LIKE prefix searches when the database does not use the C locale?",
+   "gold": [
+    {
+     "doc": "pg18/indexes-opclass",
+     "section": "INDEXES-OPCLASS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q013",
+   "type": "factoid",
+   "question": "What are the restrictions on DROP INDEX CONCURRENTLY?",
+   "gold": [
+    {
+     "doc": "pg17/sql-dropindex",
+     "section": "id-1.9.3.116.6"
+    }
+   ],
+   "first_hit_rank": 3,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.3333333333333333
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg17/sql-dropindex",
+     "anchor": "SQL-DROPINDEX",
+     "heading": "DROP INDEX > Synopsis",
+     "score": 0.08
+    },
+    {
+     "doc": "pg17/sql-createindex",
+     "anchor": "id-1.9.3.69.7",
+     "heading": "CREATE INDEX > Notes",
+     "score": 0.0543
+    },
+    {
+     "doc": "pg17/sql-dropindex",
+     "anchor": "id-1.9.3.116.6",
+     "heading": "DROP INDEX > Parameters",
+     "score": 0.0075
+    }
+   ]
+  },
+  {
+   "id": "q014",
+   "type": "factoid",
+   "question": "What is PostgreSQL's default transaction isolation level?",
+   "gold": [
+    {
+     "doc": "pg16/transaction-iso",
+     "section": "XACT-READ-COMMITTED"
+    }
+   ],
+   "first_hit_rank": 2,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.5
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg16/sql-set-transaction",
+     "anchor": "R1-SQL-SET-TRANSACTION-3",
+     "heading": "SET TRANSACTION > Compatibility",
+     "score": 0.2421
+    },
+    {
+     "doc": "pg16/transaction-iso",
+     "anchor": "XACT-READ-COMMITTED",
+     "heading": "13.2. Transaction Isolation > 13.2.1. Read Committed Isolation Level",
+     "score": 0.1635
+    },
+    {
+     "doc": "pg16/applevel-consistency",
+     "anchor": "SERIALIZABLE-CONSISTENCY",
+     "heading": "13.4. Data Consistency Checks at the Application Level > 13.4.1. Enforcing Consistency with Serializable Transactions",
+     "score": 0.0161
+    },
+    {
+     "doc": "pg16/sql-set-transaction",
+     "anchor": "id-1.9.3.178.8",
+     "heading": "SET TRANSACTION > Description",
+     "score": 0.0068
+    }
+   ]
+  },
+  {
+   "id": "q016",
+   "type": "factoid",
+   "question": "Can phantom reads happen at the Repeatable Read level in PostgreSQL?",
+   "gold": [
+    {
+     "doc": "pg18/transaction-iso",
+     "section": "TRANSACTION-ISO"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q017",
+   "type": "factoid",
+   "question": "Which lock does a plain SELECT take, and what does it conflict with?",
+   "gold": [
+    {
+     "doc": "pg16/explicit-locking",
+     "section": "LOCKING-TABLES"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q018",
+   "type": "factoid",
+   "question": "What row-level lock modes are there?",
+   "gold": [
+    {
+     "doc": "pg17/explicit-locking",
+     "section": "LOCKING-ROWS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg17/explicit-locking",
+     "anchor": "LOCKING-ROWS",
+     "heading": "13.3. Explicit Locking > 13.3.2. Row-Level Locks",
+     "score": 0.4
+    },
+    {
+     "doc": "pg17/explicit-locking",
+     "anchor": "LOCKING-ROWS",
+     "heading": "13.3. Explicit Locking > 13.3.2. Row-Level Locks",
+     "score": 0.2
+    },
+    {
+     "doc": "pg17/sql-lock",
+     "anchor": "id-1.9.3.155.7",
+     "heading": "LOCK > Notes",
+     "score": 0.1615
+    },
+    {
+     "doc": "pg17/explicit-locking",
+     "anchor": "LOCKING-DEADLOCKS",
+     "heading": "13.3. Explicit Locking > 13.3.4. Deadlocks",
+     "score": 0.0178
+    },
+    {
+     "doc": "pg17/explicit-locking",
+     "anchor": "LOCKING-ROWS",
+     "heading": "13.3. Explicit Locking > 13.3.2. Row-Level Locks",
+     "score": 0.0111
+    }
+   ]
+  },
+  {
+   "id": "q019",
+   "type": "factoid",
+   "question": "What does PostgreSQL do when transactions deadlock?",
+   "gold": [
+    {
+     "doc": "pg18/explicit-locking",
+     "section": "LOCKING-DEADLOCKS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg18/explicit-locking",
+     "anchor": "LOCKING-DEADLOCKS",
+     "heading": "13.3. Explicit Locking > 13.3.4. Deadlocks",
+     "score": 0.1649
+    },
+    {
+     "doc": "pg18/explicit-locking",
+     "anchor": "LOCKING-DEADLOCKS",
+     "heading": "13.3. Explicit Locking > 13.3.4. Deadlocks",
+     "score": 0.0564
+    },
+    {
+     "doc": "pg18/transaction-iso",
+     "anchor": "XACT-SERIALIZABLE",
+     "heading": "13.2. Transaction Isolation > 13.2.3. Serializable Isolation Level",
+     "score": 0.0312
+    },
+    {
+     "doc": "pg18/sql-merge",
+     "anchor": "id-1.9.3.156.8",
+     "heading": "MERGE > Notes",
+     "score": 0.0031
+    },
+    {
+     "doc": "pg18/mvcc-serialization-failure-handling",
+     "anchor": "MVCC-SERIALIZATION-FAILURE-HANDLING",
+     "heading": "13.5. Serialization Failure Handling",
+     "score": 0.0021
+    }
+   ]
+  },
+  {
+   "id": "q020",
+   "type": "factoid",
+   "question": "How do session-level and transaction-level advisory locks differ?",
+   "gold": [
+    {
+     "doc": "pg16/explicit-locking",
+     "section": "ADVISORY-LOCKS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q021",
+   "type": "factoid",
+   "question": "Is TRUNCATE MVCC-safe?",
+   "gold": [
+    {
+     "doc": "pg17/mvcc-caveats",
+     "section": "MVCC-CAVEATS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg17/mvcc-caveats",
+     "anchor": "MVCC-CAVEATS",
+     "heading": "13.6. Caveats",
+     "score": 0.1
+    }
+   ]
+  },
+  {
+   "id": "q022",
+   "type": "factoid",
+   "question": "What are the reasons tables need regular VACUUM?",
+   "gold": [
+    {
+     "doc": "pg18/routine-vacuuming",
+     "section": "VACUUM-BASICS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q023",
+   "type": "factoid",
+   "question": "How is VACUUM FULL different from plain VACUUM?",
+   "gold": [
+    {
+     "doc": "pg16/routine-vacuuming",
+     "section": "VACUUM-BASICS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q024",
+   "type": "factoid",
+   "question": "What is the default value of autovacuum_freeze_max_age?",
+   "gold": [
+    {
+     "doc": "pg17/routine-vacuuming",
+     "section": "VACUUM-FOR-WRAPAROUND"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": [
+    {
+     "doc": "pg17/routine-vacuuming",
+     "anchor": "VACUUM-FOR-WRAPAROUND",
+     "heading": "24.1. Routine Vacuuming > 24.1.5. Preventing Transaction ID Wraparound Failures",
+     "score": 0.0148
+    }
+   ]
+  },
+  {
+   "id": "q025",
+   "type": "factoid",
+   "question": "Why can transaction IDs wrap around?",
+   "gold": [
+    {
+     "doc": "pg18/routine-vacuuming",
+     "section": "VACUUM-FOR-WRAPAROUND"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": [
+    {
+     "doc": "pg18/routine-vacuuming",
+     "anchor": "VACUUM-FOR-WRAPAROUND",
+     "heading": "24.1. Routine Vacuuming > 24.1.5. Preventing Transaction ID Wraparound Failures",
+     "score": 0.1133
+    }
+   ]
+  },
+  {
+   "id": "q028",
+   "type": "factoid",
+   "question": "What does pg_dumpall back up that pg_dump does not?",
+   "gold": [
+    {
+     "doc": "pg18/backup-dump",
+     "section": "BACKUP-DUMP-ALL"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg18/backup-dump",
+     "anchor": "BACKUP-DUMP-ALL",
+     "heading": "25.1. SQL Dump > 25.1.2. Using pg_dumpall",
+     "score": 0.0437
+    },
+    {
+     "doc": "pg18/continuous-archiving",
+     "anchor": "CONTINUOUS-ARCHIVING",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR)",
+     "score": 0.0031
+    }
+   ]
+  },
+  {
+   "id": "q029",
+   "type": "factoid",
+   "question": "Can a file system level backup be used to restore just one table?",
+   "gold": [
+    {
+     "doc": "pg16/backup-file",
+     "section": "BACKUP-FILE"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q030",
+   "type": "factoid",
+   "question": "What must an archive_command return when it succeeds?",
+   "gold": [
+    {
+     "doc": "pg17/continuous-archiving",
+     "section": "BACKUP-ARCHIVING-WAL"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": [
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "BACKUP-LOWLEVEL-BASE-BACKUP",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API",
+     "score": 0.0056
+    }
+   ]
+  },
+  {
+   "id": "q031",
+   "type": "factoid",
+   "question": "Which pg_dump output format supports parallel dumping?",
+   "gold": [
+    {
+     "doc": "pg18/app-pgdump",
+     "section": "PG-DUMP-OPTIONS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg18/app-pgdump",
+     "anchor": "PG-DUMP-OPTIONS",
+     "heading": "pg_dump > Options",
+     "score": 0.0795
+    },
+    {
+     "doc": "pg18/app-pgdump",
+     "anchor": "PG-DUMP-DESCRIPTION",
+     "heading": "pg_dump > Description",
+     "score": 0.077
+    }
+   ]
+  },
+  {
+   "id": "q032",
+   "type": "factoid",
+   "question": "How do ts_rank and ts_rank_cd differ?",
+   "gold": [
+    {
+     "doc": "pg16/textsearch-controls",
+     "section": "TEXTSEARCH-RANKING"
+    }
+   ],
+   "first_hit_rank": 2,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.5
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg16/textsearch-dictionaries",
+     "anchor": "TEXTSEARCH-STOPWORDS",
+     "heading": "12.6. Dictionaries > 12.6.1. Stop Words",
+     "score": 0.2091
+    },
+    {
+     "doc": "pg16/textsearch-controls",
+     "anchor": "TEXTSEARCH-RANKING",
+     "heading": "12.3. Controlling Text Search > 12.3.3. Ranking Search Results",
+     "score": 0.0065
+    }
+   ]
+  },
+  {
+   "id": "q033",
+   "type": "factoid",
+   "question": "Which index type is preferred for text search, GIN or GiST?",
+   "gold": [
+    {
+     "doc": "pg17/textsearch-indexes",
+     "section": "TEXTSEARCH-INDEXES"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg17/textsearch-indexes",
+     "anchor": "TEXTSEARCH-INDEXES",
+     "heading": "12.9. Preferred Index Types for Text Search",
+     "score": 0.0556
+    },
+    {
+     "doc": "pg17/textsearch-indexes",
+     "anchor": "TEXTSEARCH-INDEXES",
+     "heading": "12.9. Preferred Index Types for Text Search",
+     "score": 0.013
+    },
+    {
+     "doc": "pg17/textsearch-indexes",
+     "anchor": "TEXTSEARCH-INDEXES",
+     "heading": "12.9. Preferred Index Types for Text Search",
+     "score": 0.0063
+    }
+   ]
+  },
+  {
+   "id": "q035",
+   "type": "factoid",
+   "question": "How does jsonb store data differently from json?",
+   "gold": [
+    {
+     "doc": "pg16/datatype-json",
+     "section": "DATATYPE-JSON"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg16/datatype-json",
+     "anchor": "DATATYPE-JSON",
+     "heading": "8.14. JSON Types",
+     "score": 0.0502
+    }
+   ]
+  },
+  {
+   "id": "q037",
+   "type": "factoid",
+   "question": "What does EXPLAIN ANALYZE do that plain EXPLAIN does not?",
+   "gold": [
+    {
+     "doc": "pg18/sql-explain",
+     "section": "id-1.9.3.148.8"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg18/sql-explain",
+     "anchor": "id-1.9.3.148.7",
+     "heading": "EXPLAIN > Description",
+     "score": 0.0024
+    }
+   ]
+  },
+  {
+   "id": "q038",
+   "type": "factoid",
+   "question": "Why should EXPLAIN ANALYZE of an INSERT be wrapped in a transaction?",
+   "gold": [
+    {
+     "doc": "pg16/sql-explain",
+     "section": "id-1.9.3.148.7"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q040",
+   "type": "factoid",
+   "question": "Can the isolation level be changed after a transaction has run its first query?",
+   "gold": [
+    {
+     "doc": "pg18/sql-set-transaction",
+     "section": "id-1.9.3.178.8"
+    }
+   ],
+   "first_hit_rank": 3,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.3333333333333333
+   },
+   "timings_ms": {
+    "lexical": 0.7
+   },
+   "top": [
+    {
+     "doc": "pg18/transaction-iso",
+     "anchor": "XACT-READ-COMMITTED",
+     "heading": "13.2. Transaction Isolation > 13.2.1. Read Committed Isolation Level",
+     "score": 0.0045
+    },
+    {
+     "doc": "pg18/sql-lock",
+     "anchor": "id-1.9.3.155.5",
+     "heading": "LOCK > Description",
+     "score": 0.0033
+    },
+    {
+     "doc": "pg18/sql-set-transaction",
+     "anchor": "id-1.9.3.178.8",
+     "heading": "SET TRANSACTION > Description",
+     "score": 0.0032
+    },
+    {
+     "doc": "pg18/sql-set-transaction",
+     "anchor": "id-1.9.3.178.8",
+     "heading": "SET TRANSACTION > Description",
+     "score": 0.0025
+    }
+   ]
+  },
+  {
+   "id": "q041",
+   "type": "factoid",
+   "question": "Which lock mode does LOCK TABLE use when no mode is given?",
+   "gold": [
+    {
+     "doc": "pg16/sql-lock",
+     "section": "id-1.9.3.155.6"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q044",
+   "type": "factoid",
+   "question": "Can VACUUM be run inside a transaction block?",
+   "gold": [
+    {
+     "doc": "pg16/sql-vacuum",
+     "section": "id-1.9.3.184.8"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q048",
+   "type": "procedural",
+   "question": "How do I make a psql restore stop at the first error?",
+   "gold": [
+    {
+     "doc": "pg17/backup-dump",
+     "section": "BACKUP-DUMP-RESTORE"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q049",
+   "type": "procedural",
+   "question": "How do I dump a database that is bigger than the file system's maximum file size?",
+   "gold": [
+    {
+     "doc": "pg18/backup-dump",
+     "section": "BACKUP-DUMP-LARGE"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q050",
+   "type": "procedural",
+   "question": "How do I turn on WAL archiving?",
+   "gold": [
+    {
+     "doc": "pg16/continuous-archiving",
+     "section": "BACKUP-ARCHIVING-WAL"
+    }
+   ],
+   "first_hit_rank": 2,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.5
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg16/continuous-archiving",
+     "anchor": "CONTINUOUS-ARCHIVING-CAVEATS",
+     "heading": "26.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 26.3.7. Caveats",
+     "score": 0.1524
+    },
+    {
+     "doc": "pg16/continuous-archiving",
+     "anchor": "BACKUP-ARCHIVING-WAL",
+     "heading": "26.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 26.3.1. Setting Up WAL Archiving",
+     "score": 0.0908
+    }
+   ]
+  },
+  {
+   "id": "q051",
+   "type": "procedural",
+   "question": "How do I take a base backup for continuous archiving?",
+   "gold": [
+    {
+     "doc": "pg17/continuous-archiving",
+     "section": "BACKUP-BASE-BACKUP"
+    }
+   ],
+   "first_hit_rank": 5,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.2
+   },
+   "timings_ms": {
+    "lexical": 0.7
+   },
+   "top": [
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "BACKUP-LOWLEVEL-BASE-BACKUP",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API",
+     "score": 0.0427
+    },
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "CONTINUOUS-ARCHIVING",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR)",
+     "score": 0.0157
+    },
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "BACKUP-LOWLEVEL-BASE-BACKUP",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API",
+     "score": 0.0152
+    },
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "CONTINUOUS-ARCHIVING-CAVEATS",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.8. Caveats",
+     "score": 0.0105
+    },
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "BACKUP-BASE-BACKUP",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.2. Making a Base Backup",
+     "score": 0.0069
+    },
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "CONTINUOUS-ARCHIVING-CAVEATS",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.8. Caveats",
+     "score": 0.0052
+    },
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "CONTINUOUS-ARCHIVING",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR)",
+     "score": 0.0048
+    },
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "BACKUP-LOWLEVEL-BASE-BACKUP",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.4. Making a Base Backup Using the Low Level API",
+     "score": 0.0039
+    },
+    {
+     "doc": "pg17/backup-file",
+     "anchor": "BACKUP-FILE",
+     "heading": "25.2. File System Level Backup",
+     "score": 0.0026
+    },
+    {
+     "doc": "pg17/continuous-archiving",
+     "anchor": "BACKUP-BASE-BACKUP",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.2. Making a Base Backup",
+     "score": 0.0026
+    }
+   ]
+  },
+  {
+   "id": "q052",
+   "type": "procedural",
+   "question": "How do I recover to a specific point in time using a base backup and archived WAL?",
+   "gold": [
+    {
+     "doc": "pg18/continuous-archiving",
+     "section": "BACKUP-PITR-RECOVERY"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg18/continuous-archiving",
+     "anchor": "BACKUP-PITR-RECOVERY",
+     "heading": "25.3. Continuous Archiving and Point-in-Time Recovery (PITR) > 25.3.5. Recovering Using a Continuous Archive Backup",
+     "score": 0.0041
+    }
+   ]
+  },
+  {
+   "id": "q053",
+   "type": "procedural",
+   "question": "How do I check whether my queries actually use an index?",
+   "gold": [
+    {
+     "doc": "pg16/indexes-examine",
+     "section": "INDEXES-EXAMINE"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q056",
+   "type": "procedural",
+   "question": "How do I see how a text search configuration processes a given piece of text?",
+   "gold": [
+    {
+     "doc": "pg16/textsearch-debugging",
+     "section": "TEXTSEARCH-CONFIGURATION-TESTING"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q057",
+   "type": "procedural",
+   "question": "How do I add synonyms to full text search?",
+   "gold": [
+    {
+     "doc": "pg17/textsearch-dictionaries",
+     "section": "TEXTSEARCH-SYNONYM-DICTIONARY"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.4
+   },
+   "top": []
+  },
+  {
+   "id": "q058",
+   "type": "procedural",
+   "question": "How do I take an application-defined lock identified by a number?",
+   "gold": [
+    {
+     "doc": "pg18/explicit-locking",
+     "section": "ADVISORY-LOCKS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q059",
+   "type": "procedural",
+   "question": "How do I insert a row, or update it if it already exists?",
+   "gold": [
+    {
+     "doc": "pg16/sql-insert",
+     "section": "SQL-ON-CONFLICT"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg16/sql-update",
+     "anchor": "id-1.9.3.183.9",
+     "heading": "UPDATE > Examples",
+     "score": 0.0071
+    }
+   ]
+  },
+  {
+   "id": "q060",
+   "type": "procedural",
+   "question": "How do I load a CSV file that has a header line into a table?",
+   "gold": [
+    {
+     "doc": "pg17/sql-copy",
+     "section": "id-1.9.3.55.6"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": [
+    {
+     "doc": "pg17/sql-copy",
+     "anchor": "id-1.9.3.55.6",
+     "heading": "COPY > Parameters",
+     "score": 0.0018
+    }
+   ]
+  },
+  {
+   "id": "q061",
+   "type": "procedural",
+   "question": "How do I physically reorder a table's rows according to one of its indexes?",
+   "gold": [
+    {
+     "doc": "pg18/sql-cluster",
+     "section": "id-1.9.3.51.5"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg18/sql-cluster",
+     "anchor": "id-1.9.3.51.5",
+     "heading": "CLUSTER > Description",
+     "score": 0.0125
+    }
+   ]
+  },
+  {
+   "id": "q063",
+   "type": "procedural",
+   "question": "How do I dump a database using several parallel jobs?",
+   "gold": [
+    {
+     "doc": "pg17/app-pgdump",
+     "section": "PG-DUMP-OPTIONS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q064",
+   "type": "procedural",
+   "question": "How do I update rows using values from another table?",
+   "gold": [
+    {
+     "doc": "pg18/sql-update",
+     "section": "id-1.9.3.183.6"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg18/textsearch-features",
+     "anchor": "TEXTSEARCH-UPDATE-TRIGGERS",
+     "heading": "12.4. Additional Features > 12.4.3. Triggers for Automatic Updates",
+     "score": 0.0077
+    },
+    {
+     "doc": "pg18/sql-insert",
+     "anchor": "SQL-ON-CONFLICT",
+     "heading": "INSERT > Parameters > ON CONFLICT Clause",
+     "score": 0.002
+    }
+   ]
+  },
+  {
+   "id": "q065",
+   "type": "procedural",
+   "question": "How do I run a transaction at the serializable isolation level?",
+   "gold": [
+    {
+     "doc": "pg16/sql-set-transaction",
+     "section": "SQL-SET-TRANSACTION"
+    }
+   ],
+   "first_hit_rank": 5,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.2
+   },
+   "timings_ms": {
+    "lexical": 0.8
+   },
+   "top": [
+    {
+     "doc": "pg16/sql-lock",
+     "anchor": "id-1.9.3.155.5",
+     "heading": "LOCK > Description",
+     "score": 0.0638
+    },
+    {
+     "doc": "pg16/transaction-iso",
+     "anchor": "XACT-SERIALIZABLE",
+     "heading": "13.2. Transaction Isolation > 13.2.3. Serializable Isolation Level",
+     "score": 0.0469
+    },
+    {
+     "doc": "pg16/mvcc-caveats",
+     "anchor": "MVCC-CAVEATS",
+     "heading": "13.6. Caveats",
+     "score": 0.0334
+    },
+    {
+     "doc": "pg16/transaction-iso",
+     "anchor": "TRANSACTION-ISO",
+     "heading": "13.2. Transaction Isolation",
+     "score": 0.0312
+    },
+    {
+     "doc": "pg16/sql-set-transaction",
+     "anchor": "id-1.9.3.178.8",
+     "heading": "SET TRANSACTION > Description",
+     "score": 0.0106
+    },
+    {
+     "doc": "pg16/transaction-iso",
+     "anchor": "XACT-SERIALIZABLE",
+     "heading": "13.2. Transaction Isolation > 13.2.3. Serializable Isolation Level",
+     "score": 0.0069
+    },
+    {
+     "doc": "pg16/sql-set-transaction",
+     "anchor": "id-1.9.3.178.8",
+     "heading": "SET TRANSACTION > Description",
+     "score": 0.0038
+    },
+    {
+     "doc": "pg16/transaction-iso",
+     "anchor": "XACT-REPEATABLE-READ",
+     "heading": "13.2. Transaction Isolation > 13.2.2. Repeatable Read Isolation Level",
+     "score": 0.0033
+    },
+    {
+     "doc": "pg16/sql-set-transaction",
+     "anchor": "id-1.9.3.178.8",
+     "heading": "SET TRANSACTION > Description",
+     "score": 0.0031
+    },
+    {
+     "doc": "pg16/transaction-iso",
+     "anchor": "XACT-SERIALIZABLE",
+     "heading": "13.2. Transaction Isolation > 13.2.3. Serializable Isolation Level",
+     "score": 0.0025
+    }
+   ]
+  },
+  {
+   "id": "q066",
+   "type": "paraphrase",
+   "question": "I deleted half the rows in a big table but its file on disk did not shrink. Why, and what gives the space back?",
+   "gold": [
+    {
+     "doc": "pg17/routine-vacuuming",
+     "section": "VACUUM-FOR-SPACE-RECOVERY"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q068",
+   "type": "paraphrase",
+   "question": "Can a query be answered from the index alone, without fetching the table rows?",
+   "gold": [
+    {
+     "doc": "pg16/indexes-index-only-scans",
+     "section": "INDEXES-INDEX-ONLY-SCANS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg16/indexes-index-only-scans",
+     "anchor": "INDEXES-INDEX-ONLY-SCANS",
+     "heading": "11.9. Index-Only Scans and Covering Indexes",
+     "score": 0.004
+    }
+   ]
+  },
+  {
+   "id": "q069",
+   "type": "paraphrase",
+   "question": "Looking people up by a lowercased version of their name is slow. How can an index help?",
+   "gold": [
+    {
+     "doc": "pg17/indexes-expressional",
+     "section": "INDEXES-EXPRESSIONAL"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q071",
+   "type": "paraphrase",
+   "question": "How do I bring the database back to exactly how it was at 3pm yesterday?",
+   "gold": [
+    {
+     "doc": "pg16/continuous-archiving",
+     "section": "BACKUP-PITR-RECOVERY"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q073",
+   "type": "paraphrase",
+   "question": "Can I index only the orders that are still unpaid?",
+   "gold": [
+    {
+     "doc": "pg18/indexes-partial",
+     "section": "INDEXES-PARTIAL"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q075",
+   "type": "paraphrase",
+   "question": "Why does searching ignore very common words such as 'the'?",
+   "gold": [
+    {
+     "doc": "pg17/textsearch-dictionaries",
+     "section": "TEXTSEARCH-STOPWORDS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg17/textsearch-dictionaries",
+     "anchor": "TEXTSEARCH-STOPWORDS",
+     "heading": "12.6. Dictionaries > 12.6.1. Stop Words",
+     "score": 0.0315
+    },
+    {
+     "doc": "pg17/textsearch-controls",
+     "anchor": "TEXTSEARCH-HEADLINE",
+     "heading": "12.3. Controlling Text Search > 12.3.4. Highlighting Results",
+     "score": 0.0042
+    }
+   ]
+  },
+  {
+   "id": "q076",
+   "type": "paraphrase",
+   "question": "Will the server's diagnostic output keep growing forever if nobody cleans it up?",
+   "gold": [
+    {
+     "doc": "pg18/logfile-maintenance",
+     "section": "LOGFILE-MAINTENANCE"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q077",
+   "type": "paraphrase",
+   "question": "Can a query with conditions on two different columns use two separate indexes at once?",
+   "gold": [
+    {
+     "doc": "pg16/indexes-bitmap-scans",
+     "section": "INDEXES-BITMAP-SCANS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q079",
+   "type": "multi_section",
+   "question": "What do REINDEX CONCURRENTLY and CREATE INDEX CONCURRENTLY each leave behind when they fail?",
+   "gold": [
+    {
+     "doc": "pg18/sql-reindex",
+     "section": "SQL-REINDEX-CONCURRENTLY"
+    },
+    {
+     "doc": "pg18/sql-createindex",
+     "section": "SQL-CREATEINDEX-CONCURRENTLY"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.7
+   },
+   "top": [
+    {
+     "doc": "pg18/sql-reindex",
+     "anchor": "SQL-REINDEX-CONCURRENTLY",
+     "heading": "REINDEX > Notes > Rebuilding Indexes Concurrently",
+     "score": 0.0135
+    },
+    {
+     "doc": "pg18/sql-createindex",
+     "anchor": "SQL-CREATEINDEX-CONCURRENTLY",
+     "heading": "CREATE INDEX > Parameters > Building Indexes Concurrently",
+     "score": 0.0089
+    }
+   ]
+  },
+  {
+   "id": "q080",
+   "type": "multi_section",
+   "question": "What lock does VACUUM FULL take, and what does that lock block?",
+   "gold": [
+    {
+     "doc": "pg16/sql-vacuum",
+     "section": "id-1.9.3.184.6"
+    },
+    {
+     "doc": "pg16/explicit-locking",
+     "section": "LOCKING-TABLES"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.7
+   },
+   "top": []
+  },
+  {
+   "id": "q081",
+   "type": "multi_section",
+   "question": "Which isolation levels can fail with serialization errors, and how should an application handle them?",
+   "gold": [
+    {
+     "doc": "pg17/transaction-iso",
+     "section": "XACT-REPEATABLE-READ"
+    },
+    {
+     "doc": "pg17/transaction-iso",
+     "section": "XACT-SERIALIZABLE"
+    },
+    {
+     "doc": "pg17/mvcc-serialization-failure-handling",
+     "section": "MVCC-SERIALIZATION-FAILURE-HANDLING"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 0.3333333333333333,
+    "recall@8": 0.3333333333333333,
+    "recall@10": 0.3333333333333333,
+    "recall@20": 0.3333333333333333,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": [
+    {
+     "doc": "pg17/mvcc-serialization-failure-handling",
+     "anchor": "MVCC-SERIALIZATION-FAILURE-HANDLING",
+     "heading": "13.5. Serialization Failure Handling",
+     "score": 0.0166
+    }
+   ]
+  },
+  {
+   "id": "q082",
+   "type": "multi_section",
+   "question": "How do I test whether one jsonb document contains another, and how do I index that test?",
+   "gold": [
+    {
+     "doc": "pg18/datatype-json",
+     "section": "JSON-CONTAINMENT"
+    },
+    {
+     "doc": "pg18/datatype-json",
+     "section": "JSON-INDEXING"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q083",
+   "type": "multi_section",
+   "question": "What must be set up so that a base backup can be used for point-in-time recovery?",
+   "gold": [
+    {
+     "doc": "pg16/continuous-archiving",
+     "section": "BACKUP-ARCHIVING-WAL"
+    },
+    {
+     "doc": "pg16/continuous-archiving",
+     "section": "BACKUP-BASE-BACKUP"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q084",
+   "type": "multi_section",
+   "question": "How can I keep a tsvector column up to date automatically and index it?",
+   "gold": [
+    {
+     "doc": "pg17/textsearch-tables",
+     "section": "TEXTSEARCH-TABLES-INDEX"
+    },
+    {
+     "doc": "pg17/textsearch-features",
+     "section": "TEXTSEARCH-UPDATE-TRIGGERS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 0.5,
+    "recall@8": 0.5,
+    "recall@10": 0.5,
+    "recall@20": 0.5,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "lexical": 0.7
+   },
+   "top": [
+    {
+     "doc": "pg17/textsearch-tables",
+     "anchor": "TEXTSEARCH-TABLES-INDEX",
+     "heading": "12.2. Tables and Indexes > 12.2.2. Creating Indexes",
+     "score": 0.0363
+    }
+   ]
+  },
+  {
+   "id": "q087",
+   "type": "multi_section",
+   "question": "In Read Committed mode, what happens when an UPDATE hits a row another transaction has locked with SELECT FOR UPDATE?",
+   "gold": [
+    {
+     "doc": "pg17/transaction-iso",
+     "section": "XACT-READ-COMMITTED"
+    },
+    {
+     "doc": "pg17/explicit-locking",
+     "section": "LOCKING-ROWS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q088",
+   "type": "version_specific",
+   "question": "How do I take an incremental backup in PostgreSQL 17?",
+   "gold": [
+    {
+     "doc": "pg17/continuous-archiving",
+     "section": "BACKUP-INCREMENTAL-BACKUP"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q090",
+   "type": "version_specific",
+   "question": "What does JSON_TABLE do in PostgreSQL 17?",
+   "gold": [
+    {
+     "doc": "pg17/functions-json",
+     "section": "FUNCTIONS-SQLJSON-TABLE"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q092",
+   "type": "version_specific",
+   "question": "In PostgreSQL 18, how can UPDATE ... RETURNING show the values a row had before the update?",
+   "gold": [
+    {
+     "doc": "pg18/sql-update",
+     "section": "id-1.9.3.183.5"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q093",
+   "type": "version_specific",
+   "question": "In PostgreSQL 18, can a multicolumn B-tree index be used when the query has no condition on its first column?",
+   "gold": [
+    {
+     "doc": "pg18/indexes-multicolumn",
+     "section": "INDEXES-MULTICOLUMN"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q094",
+   "type": "version_specific",
+   "question": "In PostgreSQL 17, how do I make COPY FROM skip rows whose values cannot be converted instead of failing?",
+   "gold": [
+    {
+     "doc": "pg17/sql-copy",
+     "section": "id-1.9.3.55.6"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q096",
+   "type": "version_specific",
+   "question": "What does EXPLAIN's SERIALIZE option measure in PostgreSQL 17?",
+   "gold": [
+    {
+     "doc": "pg17/sql-explain",
+     "section": "id-1.9.3.148.8"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.7
+   },
+   "top": []
+  },
+  {
+   "id": "q098",
+   "type": "version_specific",
+   "question": "In PostgreSQL 18, how do I dump optimizer statistics with pg_dump?",
+   "gold": [
+    {
+     "doc": "pg18/app-pgdump",
+     "section": "PG-DUMP-OPTIONS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q099",
+   "type": "version_specific",
+   "question": "In PostgreSQL 17, which privilege lets a role that does not own a table vacuum it?",
+   "gold": [
+    {
+     "doc": "pg17/sql-vacuum",
+     "section": "id-1.9.3.184.8"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.5
+   },
+   "top": []
+  },
+  {
+   "id": "q100",
+   "type": "version_specific",
+   "question": "In PostgreSQL 17, which SQL/JSON function tests whether a JSON path expression returns any item?",
+   "gold": [
+    {
+     "doc": "pg17/functions-json",
+     "section": "SQLJSON-QUERY-FUNCTIONS"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  },
+  {
+   "id": "q102",
+   "type": "version_specific",
+   "question": "In PostgreSQL 16, which predicate tests whether a string is valid JSON?",
+   "gold": [
+    {
+     "doc": "pg16/functions-json",
+     "section": "FUNCTIONS-JSON-PROCESSING"
+    }
+   ],
+   "first_hit_rank": null,
+   "scores": {
+    "hit@5": 0.0,
+    "hit@8": 0.0,
+    "hit@10": 0.0,
+    "hit@20": 0.0,
+    "recall@5": 0.0,
+    "recall@8": 0.0,
+    "recall@10": 0.0,
+    "recall@20": 0.0,
+    "mrr@10": 0.0
+   },
+   "timings_ms": {
+    "lexical": 0.6
+   },
+   "top": []
+  }
+ ]
+}

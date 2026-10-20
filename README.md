@@ -4,12 +4,13 @@ Question answering over your documents that cites the section behind every claim
 the evidence is missing, and proves every retrieval change with a measured eval. Ingestion
 runs as jobs on [Hopper](../hopper), my own job queue.
 
-> **Status: weeks 1–3 of 7.** Corpus, golden set, schema, ingestion (in-process and through
-> Hopper), and naive, lexical and hybrid retrieval with metadata filters are done. Reranking,
-> answers with citations, refusals, tenancy, the CI eval gate and deployment come next. Nothing
+> **Status: week 4 of 7, in progress.** Corpus, golden set, schema, ingestion (in-process and
+> through Hopper), four retrieval strategies with metadata filters, and the answer engine
+> (structured output, citation checker, two refusal gates) are done. The query API and demo page,
+> tenancy, the CI eval gate and deployment come next. Nothing
 > below is claimed beyond what a test or a measured number shows.
 
-## Retrieval: three strategies on the dev split
+## Retrieval: four strategies on the dev split
 
 Golden set **v1**, dev split, 71 answerable questions (15 unanswerable not scored for retrieval),
 95% bootstrap intervals. `make eval` reproduces it; the committed copy is
@@ -20,6 +21,7 @@ Golden set **v1**, dev split, 71 answerable questions (15 unanswerable not score
 | naive (dense, bge-small) | 0.887 [0.82, 0.96] | 0.930 [0.87, 0.99] | 0.958 [0.91, 0.99] | 0.747 [0.66, 0.83] |
 | lexical (OR full-text) | 0.817 [0.72, 0.90] | 0.873 [0.79, 0.94] | 0.852 [0.77, 0.93] | 0.607 [0.51, 0.69] |
 | hybrid (RRF, k = 60) | 0.887 [0.82, 0.96] | 0.958 [0.90, 1.00] | 0.951 [0.89, 0.99] | 0.738 [0.65, 0.82] |
+| **hybrid_rerank** (cross-encoder, top 30) | 0.887 [0.80, 0.96] | **0.986** [0.96, 1.00] | 0.979 [0.94, 1.00] | **0.841** [0.76, 0.91] |
 
 | Question type | n | naive hit@5 | hybrid hit@5 | naive MRR@10 | hybrid MRR@10 |
 |---|---|---|---|---|---|
@@ -29,11 +31,16 @@ Golden set **v1**, dev split, 71 answerable questions (15 unanswerable not score
 | paraphrase | 8 | 1.000 | 0.875 | 0.771 | 0.719 |
 | multi-section | 7 | 1.000 | 1.000 | 1.000 | 0.905 |
 
-**Hybrid beats lexical** (paired bootstrap, MRR@10 +0.131 [+0.062, +0.203]) **but ties naive**
+**Reranking is the first real gain:** hybrid_rerank (top 50) minus naive, paired bootstrap,
+MRR@10 +0.086 [+0.018, +0.163] and hit@8 +0.056 [+0.014, +0.113]. Reranking the top 30 instead of
+50 keeps the quality at 60% of the latency (p95 1.27 s against 1.98 s on the dev laptop's CPU):
+ADR-[0003](docs/adr/0003-cross-encoder-rerank.md).
+
+**Hybrid alone beats lexical** (MRR@10 +0.131 [+0.062, +0.203]) **but ties naive**
 (hit@8 +0.028 [−0.028, +0.085], MRR@10 −0.009 [−0.093, +0.078]). It fixes exact identifiers
 (`IS JSON`, `JSON_EXISTS`, `ON_ERROR`: version-specific hit@5 0.70 → 1.00) and demotes chunks
 that dense ranks first but lexical misses (paraphrases). Equal-weight RRF lets two medium ranks
-beat one first place; the reranker (week 4) is the planned fix. Full analysis, and AND versus
+beat one first place, which is what the reranker fixes. Full analysis, and AND versus
 OR lexical queries: ADR-[0002](docs/adr/0002-rrf-fusion.md). **The golden set is drafted, not
 yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
 
@@ -52,6 +59,11 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
 | Filters (version, date range, sources; unknown keys rejected) inside both retrievers, so a filtered top k is never short | [`test_filters.py`](tests/unit/test_filters.py), `test_retrieval.py` |
 | Filtered HNSW keeps recall: forced index versus exact scan on 86 version-filtered dev questions, overlap at 50 mean **0.999**, min 0.92, no short lists | `make eval-overlap` |
 | A second tenant with identical documents never appears in the first tenant's results, for every strategy | `test_retrieval.py` |
+| Cross-encoder rerank of the fused top 30 on sift-models, scores mapped to 0–1 | [`test_rerank.py`](tests/unit/test_rerank.py), `make rerank-latency` |
+| Answers as validated JSON from numbered sources; malformed JSON or a failed citation check gets one retry, then a refusal | [`test_answer.py`](tests/unit/test_answer.py) |
+| Citation checker in code: unknown source ids, quotes not in their chunk (whitespace and small punctuation changes tolerated), sentences without a citation | [`test_citations.py`](tests/unit/test_citations.py) |
+| Gate 1 refusal: best rerank score below τ = 0.19 refuses without calling the LLM; τ swept on dev (wrongly refuses 3 of 71 answerable, 4.2%) | `make eval-tau` |
+| Gemini client over REST (key in a header, never the URL; 429/5xx/timeouts are retryable errors) and a stub LLM for tests and load tests | [`test_llm.py`](tests/unit/test_llm.py) |
 | Ingestion as Hopper jobs: the whole corpus in **~85 s**, every job on its first attempt; 1, 2 and 4 embed workers measured (bound by the model server) | [benchmark](loadtest/results/2026-10-12-ingest/summary.md), ADR-[0006](docs/adr/0006-ingestion-on-hopper.md) |
 | Re-uploading an unchanged file: zero jobs, zero embedding calls | [`test_pipeline.py`](tests/integration/test_pipeline.py) |
 | Embedding cache: identical text across versions embedded once (1,903 chunks, 1,007 model calls) | same |
@@ -69,7 +81,9 @@ make up              # Hopper + Sift in one Compose project (first start downloa
 make hopper-tenant   # Sift's tenant in Hopper: API key, signing secret, internal-host allowlist
 make corpus          # fetch the raw docs listed in corpus/manifest.jsonl (once)
 make ingest          # the whole corpus through Hopper; make ingest-sample for 10 pages
-make eval            # naive, lexical and hybrid on the dev split
+make eval            # all four strategies on the dev split
+make eval-tau        # sweep the gate-1 refusal threshold on dev
+make rerank-latency  # cross-encoder p50/p95 at 50 and 30 pairs
 make eval-compare A=eval/results/<a>.json B=eval/results/<b>.json   # paired bootstrap
 make eval-overlap    # filtered HNSW versus exact search
 make test            # unit + integration (needs Postgres from make up)
@@ -106,6 +120,10 @@ database and Sift's.
 - **On 1,903 chunks Postgres does not use the HNSW index:** it scans and sorts, which is
   exact, so today's naive numbers are exact-search numbers. The overlap check forces the index
   to prove it keeps recall under filters once the table is big enough for the planner to use it.
+- **Gate 1 alone refuses only 4 of 15 unanswerable dev questions.** Most ask about a feature in
+  a version that lacks it ("JSON_TABLE in 16"); the reranker scores the neighbouring sections
+  above 0.95. Gate 2 (the model reading the sources) has to catch those; it is measured with the
+  answer eval next.
 - **No upload HTTP API yet:** the tenant must come from an API key, which arrives with tenancy
   in week 5. Until then a CLI submits files.
 - **The `pdf` extra (Docling) is not in the Docker image yet:** about 400 MB more. PDFs in the
@@ -116,10 +134,10 @@ database and Sift's.
 ```
 corpus/      fetch.py, manifest.jsonl, README (raw/ is git-ignored)
 eval/        golden/v1.jsonl + CHANGELOG, golden_check.py, metrics.py, run.py, compare.py,
-             overlap.py, baselines/, results/
+             overlap.py, tau.py, baselines/, results/
 src/sift/    config, db, hopper (client), ingest/ (parsers, chunker, pipeline, service, corpus CLI),
              models_svc/ (encoder, /embed, /rerank), retrieval/ (dense, lexical, fuse,
-             filters, search), common/ (from Hopper)
+             filters, rerank, search), answer/ (prompt, llm, citations, refusal, generate), common/ (from Hopper)
 migrations/  0001: every table and index
 tests/       unit/, integration/ (real pgvector Postgres), e2e/ (the running stack)
 docs/        ai-usage.md, adr/

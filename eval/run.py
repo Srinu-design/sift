@@ -37,6 +37,7 @@ from sift.config import get_settings
 from sift.db import create_engine
 from sift.ingest import chunker, pipeline
 from sift.retrieval.filters import Filters
+from sift.retrieval.rerank import local_reranker
 from sift.retrieval.search import DEPTH, STRATEGIES, search
 
 HERE = Path(__file__).resolve().parent
@@ -99,6 +100,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             text("SELECT index_version FROM collections WHERE id = :c"), {"c": collection_id}
         )
 
+    reranker = local_reranker() if args.strategy == "hybrid_rerank" else None
     per_question: list[dict[str, Any]] = []
     for q, vec in zip(answerable, vectors, strict=True):
         filters = Filters.model_validate(q.get("filters") or {})
@@ -113,6 +115,8 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             k=DEPTH,
             depth=DEPTH,
             lexical_mode=args.lexical_mode,
+            reranker=reranker,
+            rerank_depth=args.rerank_depth,
         )
         hits = res.hits
         ranked = [
@@ -165,9 +169,11 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
     }
     strategy_label = (
         f"{args.strategy}-and"
-        if args.lexical_mode == "and" and args.strategy in ("lexical", "hybrid")
+        if args.lexical_mode == "and" and args.strategy != "naive"
         else args.strategy
     )
+    if args.strategy == "hybrid_rerank" and args.rerank_depth != get_settings().rerank_depth:
+        strategy_label += f"-r{args.rerank_depth}"
     types = sorted({r["type"] for r in per_question})
     settings = get_settings()
     return {
@@ -183,6 +189,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             "chunker": chunker.NAME,
             "index_version": index_version,
             "depth": DEPTH,
+            "rerank_depth": args.rerank_depth,
             "lexical_mode": args.lexical_mode,
         },
         "questions": len(questions),
@@ -219,6 +226,12 @@ def main() -> int:
     )
     p.add_argument("--strategy", choices=STRATEGIES, default="naive")
     p.add_argument("--lexical-mode", choices=["or", "and"], default="or")
+    p.add_argument(
+        "--rerank-depth",
+        type=int,
+        default=get_settings().rerank_depth,
+        help="fused hits sent to the reranker",
+    )
     p.add_argument("--split", choices=["dev", "test", "all"], default="dev")
     p.add_argument("--golden", type=Path, default=HERE / "golden/v1.jsonl")
     p.add_argument("--tenant", default="pgdocs")

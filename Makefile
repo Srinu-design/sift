@@ -8,7 +8,7 @@ COMPOSE := docker compose -f docker/compose.yaml --env-file .env
 EVAL := uv run --extra models python -m eval.run
 
 .PHONY: env up down logs corpus migrate hopper-tenant ingest-local ingest-sample ingest ingest-bench eval \
-	eval-baseline eval-compare eval-overlap golden-check golden-review test test-e2e lint fmt
+	eval-baseline eval-compare eval-overlap eval-tau rerank-latency golden-check golden-review test test-e2e lint fmt
 
 env:
 	@test -f .env || cp .env.example .env
@@ -48,7 +48,7 @@ ingest-sample:
 ingest:
 	uv run python -m sift.ingest.corpus --via hopper --wait
 
-STRATEGIES := naive lexical hybrid
+STRATEGIES := naive lexical hybrid hybrid_rerank
 
 # Retrieval eval of every strategy on the dev split. Results land in eval/results/.
 eval:
@@ -61,6 +61,14 @@ eval-baseline:
 # Paired bootstrap of two results files: make eval-compare A=eval/results/x.json B=eval/results/y.json
 eval-compare:
 	uv run python -m eval.compare $(A) $(B)
+
+# Gate-1 threshold: the largest tau that wrongly refuses at most 5% of answerable dev questions.
+eval-tau:
+	uv run --extra models python -m eval.tau --split dev
+
+# Cross-encoder latency at 50 and 30 pairs through sift-models (make up first).
+rerank-latency:
+	uv run python loadtest/rerank_latency.py
 
 # Filtered dev questions: HNSW (iterative scan) against exact search, overlap at 50.
 eval-overlap:

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -36,6 +37,27 @@ class Settings(BaseSettings):
     ingest_url: str = "http://sift-ingest:8000"
     # Hopper-Signature timestamps older (or newer) than this are rejected as replays.
     signature_tolerance_seconds: int = Field(default=300, ge=1)
+
+    # Rerank the fused top 30: same dev quality as 50 at 60% of the latency (ADR-0003).
+    rerank_depth: int = 30
+    context_k: int = 8
+    # Gate 1: refuse below this best rerank score. `make eval-tau` on dev, 2026-10-20: the
+    # largest tau that wrongly refuses at most 5% of answerable questions (ADR-0008).
+    refusal_tau: float = 0.19
+
+    # Answer LLM settings (Gemini over REST, or deterministic stub for tests and load tests).
+    llm_provider: Literal["gemini", "stub"] = "stub"
+    gemini_api_key: SecretStr = SecretStr("")
+    gemini_url: str = "https://generativelanguage.googleapis.com"
+    answer_model: str = "gemini-2.5-flash"
+    llm_timeout_seconds: float = Field(default=60.0, gt=0)
+    llm_thinking_budget: int | None = None
+    stub_delay_ms: int = Field(default=0, ge=0)
+
+    # LLM price table (USD per 1M tokens): free tier costs 0.0; set paid rates and date checked.
+    llm_price_in_per_mtok: float = 0.0
+    llm_price_out_per_mtok: float = 0.0
+    llm_prices_checked_on: str = ""
 
 
 @lru_cache

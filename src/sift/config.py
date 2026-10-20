@@ -49,7 +49,9 @@ class Settings(BaseSettings):
     llm_provider: Literal["gemini", "stub"] = "stub"
     gemini_api_key: SecretStr = SecretStr("")
     gemini_url: str = "https://generativelanguage.googleapis.com"
-    answer_model: str = "gemini-2.5-flash"
+    # Checked 2026-10-20 on the free tier: 2.5-flash is closed to new keys, 3.8-flash hung past
+    # 150 s, 3.5-flash answered 503; 3.5-flash-lite returned valid cited JSON in 1.6 s.
+    answer_model: str = "gemini-3.5-flash-lite"
     llm_timeout_seconds: float = Field(default=60.0, gt=0)
     llm_thinking_budget: int | None = None
     stub_delay_ms: int = Field(default=0, ge=0)
@@ -58,6 +60,10 @@ class Settings(BaseSettings):
     llm_price_in_per_mtok: float = 0.0
     llm_price_out_per_mtok: float = 0.0
     llm_prices_checked_on: str = ""
+
+    # shortcut: one dev tenant, no auth; API keys and tenancy replace this in week 5.
+    dev_tenant: str = "pgdocs"
+    dev_collection: str = "pgdocs"
 
 
 @lru_cache

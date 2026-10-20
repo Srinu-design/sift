@@ -8,7 +8,7 @@ COMPOSE := docker compose -f docker/compose.yaml --env-file .env
 EVAL := uv run --extra models python -m eval.run
 
 .PHONY: env up down logs corpus migrate hopper-tenant ingest-local ingest-sample ingest ingest-bench eval \
-	eval-baseline eval-compare eval-overlap eval-tau rerank-latency golden-check golden-review test test-e2e lint fmt
+	eval-baseline eval-compare eval-overlap eval-tau eval-answers rerank-latency golden-check golden-review test test-e2e lint fmt
 
 env:
 	@test -f .env || cp .env.example .env
@@ -69,6 +69,10 @@ eval-tau:
 # Cross-encoder latency at 50 and 30 pairs through sift-models (make up first).
 rerank-latency:
 	uv run python loadtest/rerank_latency.py
+
+# Answers with the real model on dev (resumable; LLM_PROVIDER and GEMINI_API_KEY from .env).
+eval-answers:
+	uv run --extra models python -m eval.answers --split dev
 
 # Filtered dev questions: HNSW (iterative scan) against exact search, overlap at 50.
 eval-overlap:

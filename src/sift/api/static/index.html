@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sift</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <main class="container">
+    <header class="site-header">
+      <h1>Sift</h1>
+      <p class="subtitle">Answers from the PostgreSQL 16-18 docs, with a citation for every claim, or a refusal.</p>
+    </header>
+
+    <section class="examples" aria-label="Example questions">
+      <span class="examples-label">Try an example:</span>
+      <div class="example-buttons">
+        <button type="button" class="example-btn" data-question="Can CREATE INDEX CONCURRENTLY run inside a transaction block?">
+          Can CREATE INDEX CONCURRENTLY run inside a transaction block?
+        </button>
+        <button type="button" class="example-btn" data-question="How do I take an incremental backup in PostgreSQL 17?">
+          How do I take an incremental backup in PostgreSQL 17?
+        </button>
+        <button type="button" class="example-btn" data-question="What is the recommended shared_buffers size for a server with 64 GB of RAM?">
+          What is the recommended shared_buffers size for a server with 64 GB of RAM?
+        </button>
+      </div>
+    </section>
+
+    <form id="query-form" class="query-form">
+      <div class="field">
+        <label for="question">Question</label>
+        <textarea id="question" name="question" rows="3" maxlength="1000" required placeholder="Ask a question about PostgreSQL 16, 17, or 18..."></textarea>
+      </div>
+
+      <div class="controls">
+        <div class="field">
+          <label for="strategy">Strategy</label>
+          <select id="strategy" name="strategy">
+            <option value="hybrid_rerank" selected>hybrid_rerank</option>
+            <option value="hybrid">hybrid</option>
+            <option value="naive">naive</option>
+            <option value="lexical">lexical</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="version">Version</label>
+          <select id="version" name="version">
+            <option value="" selected>Any</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button type="submit" id="ask-btn">Ask</button>
+        </div>
+      </div>
+    </form>
+
+    <section id="results" class="results" aria-live="polite"></section>
+  </main>
+</body>
+</html>

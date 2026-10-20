@@ -53,6 +53,20 @@ services:
       sift-migrate: { condition: service_completed_successfully }
       sift-models: { condition: service_healthy }
 
+  # The query API and the demo page. No auth until week 5: published on localhost only.
+  sift-api:
+    <<: *sift
+    command: ["uvicorn", "sift.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports: ["127.0.0.1:${API_PORT:-8200}:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    depends_on:
+      sift-migrate: { condition: service_completed_successfully }
+      sift-models: { condition: service_healthy }
+
   # Hopper workers for Sift's embedding queue only, sized to sift-models: 2 x 1 slot keeps
   # one batch encoding and one waiting, and killing one still leaves the other draining.
   hopper-embed-worker:

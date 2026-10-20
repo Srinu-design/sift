@@ -4,10 +4,10 @@ Question answering over your documents that cites the section behind every claim
 the evidence is missing, and proves every retrieval change with a measured eval. Ingestion
 runs as jobs on [Hopper](../hopper), my own job queue.
 
-> **Status: week 4 of 7, in progress.** Corpus, golden set, schema, ingestion (in-process and
-> through Hopper), four retrieval strategies with metadata filters, and the answer engine
-> (structured output, citation checker, two refusal gates) are done. The query API and demo page,
-> tenancy, the CI eval gate and deployment come next. Nothing
+> **Status: weeks 1–4 of 7.** Corpus, golden set, schema, ingestion (in-process and through
+> Hopper), four retrieval strategies with metadata filters, cited answers with two refusal
+> gates, the query API and a demo page are done. Tenancy, the judge, the CI eval gate, caching
+> and deployment come next. Nothing
 > below is claimed beyond what a test or a measured number shows.
 
 ## Retrieval: four strategies on the dev split
@@ -44,6 +44,26 @@ beat one first place, which is what the reranker fixes. Full analysis, and AND v
 OR lexical queries: ADR-[0002](docs/adr/0002-rrf-fusion.md). **The golden set is drafted, not
 yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
 
+## Answers: cited, or refused (dev split)
+
+`make eval-answers`, 86 dev questions, `hybrid_rerank`, gemini-3.5-flash-lite, prompt `answer-v1`:
+
+| | answered | refused |
+|---|---|---|
+| answerable (71) | 68 | 3 (all gate 1) |
+| unanswerable (15) | 2 | 13 (gate 1: 4, gate 2: 9) |
+
+- **Refusal recall 0.87, wrong refusals 4.2%.** Gate 1 (rerank score below τ = 0.19) is mostly
+  a cost saver: questions about a feature missing from the asked version score 0.95+. The model
+  (gate 2) catches 9 of the 11 it lets through and never refused an answerable question.
+  ADR-[0008](docs/adr/0008-two-gate-refusal.md).
+- The 2 answered unanswerable questions are faithful partial answers, not inventions.
+- **Citation accuracy 0.75** (cited sources overlapping a gold section); 88% of answers cite at
+  least one gold section. Of the 24 off-gold citations, 13 are on the gold page (another version's
+  copy or a sibling section): the judge in week 5 decides whether they support the claim.
+- 3 of 79 model calls needed the one retry; none ended as a citation failure. LLM p50 2.0 s,
+  p95 11.6 s on the free tier. About 3,000 tokens in per question.
+
 ## What works now
 
 | Feature | Proof |
@@ -64,6 +84,8 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
 | Citation checker in code: unknown source ids, quotes not in their chunk (whitespace and small punctuation changes tolerated), sentences without a citation | [`test_citations.py`](tests/unit/test_citations.py) |
 | Gate 1 refusal: best rerank score below τ = 0.19 refuses without calling the LLM; τ swept on dev (wrongly refuses 3 of 71 answerable, 4.2%) | `make eval-tau` |
 | Gemini client over REST (key in a header, never the URL; 429/5xx/timeouts are retryable errors) and a stub LLM for tests and load tests | [`test_llm.py`](tests/unit/test_llm.py) |
+| `POST /v1/query`: strategy, filters (unknown keys 422), cited answer or refusal with "you may want to read", per-stage timings, a `query_logs` row per query; 503 with no internals when a dependency is down | [`test_api.py`](tests/integration/test_api.py) |
+| Demo page at `/`: strategy and version pickers, clickable citations; no inline script, strict CSP, model output rendered as text only | `make up`, then http://127.0.0.1:8200 |
 | Ingestion as Hopper jobs: the whole corpus in **~85 s**, every job on its first attempt; 1, 2 and 4 embed workers measured (bound by the model server) | [benchmark](loadtest/results/2026-10-12-ingest/summary.md), ADR-[0006](docs/adr/0006-ingestion-on-hopper.md) |
 | Re-uploading an unchanged file: zero jobs, zero embedding calls | [`test_pipeline.py`](tests/integration/test_pipeline.py) |
 | Embedding cache: identical text across versions embedded once (1,903 chunks, 1,007 model calls) | same |
@@ -84,6 +106,7 @@ make ingest          # the whole corpus through Hopper; make ingest-sample for 1
 make eval            # all four strategies on the dev split
 make eval-tau        # sweep the gate-1 refusal threshold on dev
 make rerank-latency  # cross-encoder p50/p95 at 50 and 30 pairs
+make eval-answers    # cited answers and refusals with the real model (GEMINI_API_KEY in .env)
 make eval-compare A=eval/results/<a>.json B=eval/results/<b>.json   # paired bootstrap
 make eval-overlap    # filtered HNSW versus exact search
 make test            # unit + integration (needs Postgres from make up)
@@ -124,6 +147,8 @@ database and Sift's.
   a version that lacks it ("JSON_TABLE in 16"); the reranker scores the neighbouring sections
   above 0.95. Gate 2 (the model reading the sources) has to catch those; it is measured with the
   answer eval next.
+- **The query API has no auth yet** (one dev tenant, port published on localhost only): API
+  keys and row-level security arrive in week 5.
 - **No upload HTTP API yet:** the tenant must come from an API key, which arrives with tenancy
   in week 5. Until then a CLI submits files.
 - **The `pdf` extra (Docling) is not in the Docker image yet:** about 400 MB more. PDFs in the
@@ -134,10 +159,11 @@ database and Sift's.
 ```
 corpus/      fetch.py, manifest.jsonl, README (raw/ is git-ignored)
 eval/        golden/v1.jsonl + CHANGELOG, golden_check.py, metrics.py, run.py, compare.py,
-             overlap.py, tau.py, baselines/, results/
+             overlap.py, tau.py, answers.py, baselines/, results/
 src/sift/    config, db, hopper (client), ingest/ (parsers, chunker, pipeline, service, corpus CLI),
              models_svc/ (encoder, /embed, /rerank), retrieval/ (dense, lexical, fuse,
-             filters, rerank, search), answer/ (prompt, llm, citations, refusal, generate), common/ (from Hopper)
+             filters, rerank, search), answer/ (prompt, llm, citations, refusal, generate),
+             api/ (query API, demo page), common/ (from Hopper)
 migrations/  0001: every table and index
 tests/       unit/, integration/ (real pgvector Postgres), e2e/ (the running stack)
 docs/        ai-usage.md, adr/

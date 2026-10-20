@@ -1,0 +1,23 @@
+{
+  "run_at": "2026-10-20T10:18:30+00:00",
+  "host": "Zenbook-Q420VA",
+  "cpu_count": 20,
+  "rerank_model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+  "runs": 30,
+  "results": {
+    "50": {
+      "pairs": 50,
+      "runs": 30,
+      "p50_ms": 1769.45,
+      "p95_ms": 1976.84,
+      "mean_ms": 1781.84
+    },
+    "30": {
+      "pairs": 30,
+      "runs": 30,
+      "p50_ms": 1187.98,
+      "p95_ms": 1269.01,
+      "mean_ms": 1194.91
+    }
+  }
+}

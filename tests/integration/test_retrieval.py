@@ -15,6 +15,10 @@ from tests.conftest import FakeEmbedder
 from tests.integration.test_pipeline import ingest
 
 
+async def fake_reranker(question: str, passages: list[str]) -> list[float]:
+    return [1.0 / (i + 1) for i in range(len(passages))]  # keeps the fused order
+
+
 async def _add_doc(
     engine: AsyncEngine,
     embedder: FakeEmbedder,
@@ -182,6 +186,7 @@ async def test_filters_across_all_strategies(engine: AsyncEngine, embedder: Fake
                 question="wal_level replication",
                 query_vector=q_vec,
                 filters=flt,
+                reranker=fake_reranker,
             )
             assert {h.source_uri for h in res.hits} == expected_uris
 
@@ -212,6 +217,7 @@ async def test_tenant_isolation_all_strategies(engine: AsyncEngine, embedder: Fa
             strategy=strategy,
             question="checkpoint_completion_target",
             query_vector=q_vec,
+            reranker=fake_reranker,
         )
         t1_ids = {h.chunk_id for h in res.hits}
         assert len(t1_ids) == 1

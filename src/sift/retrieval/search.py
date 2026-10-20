@@ -1,4 +1,4 @@
-"""Unified retrieval entrypoint supporting naive, lexical, and hybrid strategies."""
+"""Unified retrieval entrypoint supporting naive, lexical, hybrid, and hybrid_rerank."""
 
 import asyncio
 import time
@@ -13,16 +13,17 @@ from sift.retrieval.filters import Filters
 from sift.retrieval.fuse import rrf
 from sift.retrieval.hit import Hit
 from sift.retrieval.lexical import lexical
+from sift.retrieval.rerank import Reranker, rerank
 
-Strategy = Literal["naive", "lexical", "hybrid"]  # hybrid_rerank arrives next week
-STRATEGIES: tuple[Strategy, ...] = ("naive", "lexical", "hybrid")
+Strategy = Literal["naive", "lexical", "hybrid", "hybrid_rerank"]
+STRATEGIES: tuple[Strategy, ...] = ("naive", "lexical", "hybrid", "hybrid_rerank")
 DEPTH = 50  # what each retriever returns before fusion
 
 
 @dataclass(frozen=True, slots=True)
 class SearchResult:
     hits: list[Hit]
-    timings_ms: dict[str, float]  # per stage: "dense", "lexical", "fuse" (only the stages that ran)
+    timings_ms: dict[str, float]  # per stage: "dense", "lexical", "fuse", "rerank"
 
 
 async def search(
@@ -36,6 +37,8 @@ async def search(
     filters: Filters | None = None,
     k: int = 8,
     depth: int = DEPTH,
+    rerank_depth: int = DEPTH,
+    reranker: Reranker | None = None,
     lexical_mode: Literal["or", "and"] = "or",
 ) -> SearchResult:
     async def _dense(vec: list[float], limit: int) -> tuple[list[Hit], float]:
@@ -70,6 +73,9 @@ async def search(
     if query_vector is None:
         raise ValueError(f"query_vector is required for strategy {strategy!r}")
 
+    if strategy == "hybrid_rerank" and reranker is None:
+        raise ValueError("reranker is required for strategy 'hybrid_rerank'")
+
     if strategy == "naive":
         hits, dense_ms = await _dense(query_vector, k)
         return SearchResult(hits=hits, timings_ms={"dense": dense_ms})
@@ -82,9 +88,15 @@ async def search(
     by_id: dict[int, Hit] = {h.chunk_id: h for h in lex_hits}
     by_id.update({h.chunk_id: h for h in dense_hits})
     fused = rrf([[h.chunk_id for h in dense_hits], [h.chunk_id for h in lex_hits]])
-    hits = [replace(by_id[cid], score=score) for cid, score in fused[:k]]
+    limit = rerank_depth if strategy == "hybrid_rerank" else k
+    hits = [replace(by_id[cid], score=score) for cid, score in fused[:limit]]
     fuse_ms = round((time.perf_counter() - t0) * 1000.0, 1)
-    return SearchResult(
-        hits=hits,
-        timings_ms={"dense": dense_ms, "lexical": lex_ms, "fuse": fuse_ms},
-    )
+    timings: dict[str, float] = {"dense": dense_ms, "lexical": lex_ms, "fuse": fuse_ms}
+
+    if strategy == "hybrid_rerank":
+        assert reranker is not None
+        t1 = time.perf_counter()
+        hits = await rerank(question, hits, reranker, k)
+        timings["rerank"] = round((time.perf_counter() - t1) * 1000.0, 1)
+
+    return SearchResult(hits=hits, timings_ms=timings)

@@ -12,12 +12,15 @@ metrics count answerable questions only; refusal metrics arrive with answering (
 import argparse
 import asyncio
 import json
+import math
 import subprocess
 import sys
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from pydantic import ValidationError
 from sqlalchemy import text
 
 from eval.metrics import (
@@ -33,25 +36,33 @@ from eval.metrics import (
 from sift.config import get_settings
 from sift.db import create_engine
 from sift.ingest import chunker, pipeline
-from sift.retrieval.dense import dense
+from sift.retrieval.filters import Filters
+from sift.retrieval.search import DEPTH, STRATEGIES, search
 
 HERE = Path(__file__).resolve().parent
 KS = (5, 8, 10, 20)
-DEPTH = 50  # what each retriever returns; metrics read prefixes of it
-SUPPORTED_FILTERS = {"version"}  # dates and sources arrive with week 3's filters
 
 
 def metric_names() -> list[str]:
     return [f"hit@{k}" for k in KS] + [f"recall@{k}" for k in KS] + ["mrr@10"]
 
 
+def percentile(values: Sequence[float], q: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    idx = max(0, math.ceil(q * len(ordered)) - 1)
+    return round(ordered[idx], 1)
+
+
 def load_golden(path: Path, split: str, tenant: str) -> list[dict[str, Any]]:
     rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     rows = [r for r in rows if r["tenant"] == tenant and (split == "all" or r["split"] == split)]
     for r in rows:
-        unknown = set(r.get("filters") or {}) - SUPPORTED_FILTERS
-        if unknown:
-            raise SystemExit(f"{r['id']}: filters not supported yet: {sorted(unknown)}")
+        try:
+            Filters.model_validate(r.get("filters") or {})
+        except ValidationError as exc:
+            raise SystemExit(f"{r['id']}: {exc}") from exc
     return rows
 
 
@@ -73,9 +84,14 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         m["url"]: m["doc"]
         for m in map(json.loads, (HERE.parent / "corpus/manifest.jsonl").read_text().splitlines())
     }
-    from sift.models_svc.encoder import encoder
+    vectors: list[list[float] | None]
+    if args.strategy == "lexical":
+        vectors = [None] * len(answerable)
+    else:
+        from sift.models_svc.encoder import encoder
 
-    vectors = encoder().embed([q["question"] for q in answerable], "query")
+        vectors = list(encoder().embed([q["question"] for q in answerable], "query"))
+
     engine = create_engine(get_settings())
     tenant_id, collection_id = await pipeline.ensure_collection(engine, args.tenant, args.tenant)
     async with engine.connect() as conn:
@@ -85,15 +101,20 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
 
     per_question: list[dict[str, Any]] = []
     for q, vec in zip(answerable, vectors, strict=True):
-        filters = q.get("filters") or {}
-        hits = await dense(
+        filters = Filters.model_validate(q.get("filters") or {})
+        res = await search(
             engine,
             tenant_id=tenant_id,
             collection_id=collection_id,
+            strategy=args.strategy,
+            question=q["question"],
             query_vector=vec,
-            version=filters.get("version"),
+            filters=filters,
             k=DEPTH,
+            depth=DEPTH,
+            lexical_mode=args.lexical_mode,
         )
+        hits = res.hits
         ranked = [
             Retrieved(
                 doc_of_url.get(h.source_uri, h.source_uri), h.anchor_path, h.page_start, h.page_end
@@ -112,6 +133,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
                 "gold": q["gold"],
                 "first_hit_rank": first_hit_rank(ranked, golds),
                 "scores": scores,
+                "timings_ms": res.timings_ms,
                 "top": [
                     {
                         "doc": r.doc,
@@ -133,10 +155,23 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             out[name] = {"mean": round(mean(values), 4), "ci95": [round(low, 4), round(high, 4)]}
         return out
 
+    stages = list(per_question[0]["timings_ms"]) if per_question else []
+    timings_ms = {
+        stage: {
+            "p50": percentile([r["timings_ms"][stage] for r in per_question], 0.50),
+            "p95": percentile([r["timings_ms"][stage] for r in per_question], 0.95),
+        }
+        for stage in stages
+    }
+    strategy_label = (
+        f"{args.strategy}-and"
+        if args.lexical_mode == "and" and args.strategy in ("lexical", "hybrid")
+        else args.strategy
+    )
     types = sorted({r["type"] for r in per_question})
     settings = get_settings()
     return {
-        "strategy": args.strategy,
+        "strategy": strategy_label,
         "split": args.split,
         "golden": golden_path.stem,
         "tenant": args.tenant,
@@ -148,9 +183,11 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             "chunker": chunker.NAME,
             "index_version": index_version,
             "depth": DEPTH,
+            "lexical_mode": args.lexical_mode,
         },
         "questions": len(questions),
         "unanswerable_skipped": len(questions) - len(answerable),
+        "timings_ms": timings_ms,
         "overall": summarise(per_question),
         "by_type": {t: summarise([r for r in per_question if r["type"] == t]) for t in types},
         "per_question": per_question,
@@ -180,7 +217,8 @@ def main() -> int:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    p.add_argument("--strategy", choices=["naive"], default="naive")  # week 3 adds the rest
+    p.add_argument("--strategy", choices=STRATEGIES, default="naive")
+    p.add_argument("--lexical-mode", choices=["or", "and"], default="or")
     p.add_argument("--split", choices=["dev", "test", "all"], default="dev")
     p.add_argument("--golden", type=Path, default=HERE / "golden/v1.jsonl")
     p.add_argument("--tenant", default="pgdocs")

@@ -8,7 +8,7 @@ COMPOSE := docker compose -f docker/compose.yaml --env-file .env
 EVAL := uv run --extra models python -m eval.run
 
 .PHONY: env up down logs corpus migrate hopper-tenant ingest-local ingest-sample ingest ingest-bench eval \
-	eval-baseline golden-check golden-review test test-e2e lint fmt
+	eval-baseline eval-compare eval-overlap golden-check golden-review test test-e2e lint fmt
 
 env:
 	@test -f .env || cp .env.example .env
@@ -48,13 +48,23 @@ ingest-sample:
 ingest:
 	uv run python -m sift.ingest.corpus --via hopper --wait
 
-# Retrieval eval on the dev split. Results land in eval/results/.
+STRATEGIES := naive lexical hybrid
+
+# Retrieval eval of every strategy on the dev split. Results land in eval/results/.
 eval:
-	$(EVAL) --strategy naive --split dev
+	for s in $(STRATEGIES); do $(EVAL) --strategy $$s --split dev || exit 1; done
 
 # Deliberate: rewrites eval/baselines/retrieval.json, which a reviewer sees in the diff.
 eval-baseline:
-	$(EVAL) --strategy naive --split dev --write-baseline
+	for s in $(STRATEGIES); do $(EVAL) --strategy $$s --split dev --write-baseline || exit 1; done
+
+# Paired bootstrap of two results files: make eval-compare A=eval/results/x.json B=eval/results/y.json
+eval-compare:
+	uv run python -m eval.compare $(A) $(B)
+
+# Filtered dev questions: HNSW (iterative scan) against exact search, overlap at 50.
+eval-overlap:
+	uv run --extra models python -m eval.overlap --split dev
 
 # Whole-corpus ingestion with 1, 2 and 4 embed workers (empties the local embedding cache).
 ingest-bench:

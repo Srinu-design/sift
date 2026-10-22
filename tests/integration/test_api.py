@@ -4,15 +4,20 @@ import json
 from typing import Literal
 
 import httpx
+from pydantic import SecretStr
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from sift.answer.llm import LLMResult, LLMUnavailable, StubLLM
 from sift.answer.prompt import PROMPT_VERSION
 from sift.api.app import create_app
+from sift.auth import keys
+from sift.config import Settings
 from sift.ingest import pipeline
 from tests.conftest import FakeEmbedder
 from tests.integration.test_pipeline import ingest, page
+
+PEPPER = b"test-pepper"
 
 
 class CountingLLM:
@@ -34,7 +39,20 @@ class CountingLLM:
         return await self._stub.generate(system, turns)
 
 
-async def _seed_pgdocs(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
+def _test_settings(engine: AsyncEngine, **overrides: object) -> Settings:
+    url = engine.url.render_as_string(hide_password=False)
+    base: dict[str, object] = {
+        "database_url": url,
+        "api_key_pepper": SecretStr("test-pepper"),
+        "api_db_role": "sift_app",
+        "demo_tenant": "pgdocs",
+        "demo_collection": "pgdocs",
+    }
+    base.update(overrides)
+    return Settings.model_validate(base)
+
+
+async def _seed_pgdocs(engine: AsyncEngine, embedder: FakeEmbedder) -> str:
     tenant_id, collection_id = await pipeline.ensure_collection(engine, "pgdocs", "pgdocs")
     sub = await pipeline.submit(
         engine,
@@ -47,6 +65,16 @@ async def _seed_pgdocs(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
         doc_version="17",
     )
     await ingest(engine, sub.version_id, embedder)
+    nk = keys.generate(PEPPER)
+    async with engine.begin() as conn:
+        await conn.execute(
+            text(
+                "INSERT INTO api_keys (tenant_id, prefix, key_hash, name) "
+                "VALUES (:t, :p, :h, 'test')"
+            ),
+            {"t": tenant_id, "p": nk.prefix, "h": nk.key_hash},
+        )
+    return nk.plaintext
 
 
 def _make_models_http(
@@ -81,19 +109,33 @@ def _make_models_http(
 
 
 async def test_hybrid_rerank_query_and_log_row(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
-    await _seed_pgdocs(engine, embedder)
+    api_key = await _seed_pgdocs(engine, embedder)
     async with _make_models_http(embedder) as models_http:
-        app = create_app(engine=engine, http=models_http, llm=StubLLM())
+        app = create_app(
+            settings=_test_settings(engine),
+            engine=engine,
+            http=models_http,
+            llm=StubLLM(),
+        )
         async with (
             app.router.lifespan_context(app),
             httpx.AsyncClient(
                 transport=httpx.ASGITransport(app=app), base_url="http://test"
             ) as client,
         ):
+            r_no_key = await client.post(
+                "/v1/query",
+                json={"collection": "pgdocs", "question": "Paragraph 0 of section 0"},
+            )
+            assert r_no_key.status_code == 401
+
             resp = await client.post(
                 "/v1/query",
-                headers={"X-Request-ID": "req_test_01"},
-                json={"question": "Paragraph 0 of section 0"},
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "X-Request-ID": "req_test_01",
+                },
+                json={"collection": "pgdocs", "question": "Paragraph 0 of section 0"},
             )
 
     assert resp.status_code == 200
@@ -133,10 +175,15 @@ async def test_hybrid_rerank_query_and_log_row(engine: AsyncEngine, embedder: Fa
 
 
 async def test_lexical_strategy_skips_embed(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
-    await _seed_pgdocs(engine, embedder)
+    api_key = await _seed_pgdocs(engine, embedder)
     embed_calls: list[int] = []
     async with _make_models_http(embedder, embed_calls=embed_calls) as models_http:
-        app = create_app(engine=engine, http=models_http, llm=StubLLM())
+        app = create_app(
+            settings=_test_settings(engine),
+            engine=engine,
+            http=models_http,
+            llm=StubLLM(),
+        )
         async with (
             app.router.lifespan_context(app),
             httpx.AsyncClient(
@@ -145,7 +192,12 @@ async def test_lexical_strategy_skips_embed(engine: AsyncEngine, embedder: FakeE
         ):
             resp = await client.post(
                 "/v1/query",
-                json={"question": "Paragraph 0 section", "strategy": "lexical"},
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={
+                    "collection": "pgdocs",
+                    "question": "Paragraph 0 section",
+                    "strategy": "lexical",
+                },
             )
 
     assert resp.status_code == 200
@@ -154,9 +206,15 @@ async def test_lexical_strategy_skips_embed(engine: AsyncEngine, embedder: FakeE
 
 
 async def test_unknown_keys_rejected_with_422(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
-    await _seed_pgdocs(engine, embedder)
+    api_key = await _seed_pgdocs(engine, embedder)
+    headers = {"Authorization": f"Bearer {api_key}"}
     async with _make_models_http(embedder) as models_http:
-        app = create_app(engine=engine, http=models_http, llm=StubLLM())
+        app = create_app(
+            settings=_test_settings(engine),
+            engine=engine,
+            http=models_http,
+            llm=StubLLM(),
+        )
         async with (
             app.router.lifespan_context(app),
             httpx.AsyncClient(
@@ -165,11 +223,17 @@ async def test_unknown_keys_rejected_with_422(engine: AsyncEngine, embedder: Fak
         ):
             r_top = await client.post(
                 "/v1/query",
-                json={"question": "Paragraph 0", "bogus": 123},
+                headers=headers,
+                json={"collection": "pgdocs", "question": "Paragraph 0", "bogus": 123},
             )
             r_flt = await client.post(
                 "/v1/query",
-                json={"question": "Paragraph 0", "filters": {"unknown_filter": "17"}},
+                headers=headers,
+                json={
+                    "collection": "pgdocs",
+                    "question": "Paragraph 0",
+                    "filters": {"unknown_filter": "17"},
+                },
             )
 
     assert r_top.status_code == 422
@@ -177,21 +241,28 @@ async def test_unknown_keys_rejected_with_422(engine: AsyncEngine, embedder: Fak
 
 
 async def test_low_rerank_score_refuses_at_retrieval_gate_without_calling_llm(
-    engine: AsyncEngine, embedder: FakeEmbedder, monkeypatch: object
+    engine: AsyncEngine, embedder: FakeEmbedder
 ) -> None:
-    await _seed_pgdocs(engine, embedder)
+    api_key = await _seed_pgdocs(engine, embedder)
     counting_llm = CountingLLM()
     async with _make_models_http(embedder, top_rerank_score=0.01) as models_http:
-        app = create_app(engine=engine, http=models_http, llm=counting_llm)
-        async with app.router.lifespan_context(app):
-            app.state.settings = app.state.settings.model_copy(update={"refusal_tau": 0.19})
-            async with httpx.AsyncClient(
+        app = create_app(
+            settings=_test_settings(engine, refusal_tau=0.19),
+            engine=engine,
+            http=models_http,
+            llm=counting_llm,
+        )
+        async with (
+            app.router.lifespan_context(app),
+            httpx.AsyncClient(
                 transport=httpx.ASGITransport(app=app), base_url="http://test"
-            ) as client:
-                resp = await client.post(
-                    "/v1/query",
-                    json={"question": "Paragraph 0 of section 0"},
-                )
+            ) as client,
+        ):
+            resp = await client.post(
+                "/v1/query",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={"collection": "pgdocs", "question": "Paragraph 0 of section 0"},
+            )
 
     assert resp.status_code == 200
     data = resp.json()
@@ -203,9 +274,15 @@ async def test_low_rerank_score_refuses_at_retrieval_gate_without_calling_llm(
 async def test_llm_and_models_unavailable_return_503(
     engine: AsyncEngine, embedder: FakeEmbedder
 ) -> None:
-    await _seed_pgdocs(engine, embedder)
+    api_key = await _seed_pgdocs(engine, embedder)
+    headers = {"Authorization": f"Bearer {api_key}"}
     async with _make_models_http(embedder) as models_http:
-        app = create_app(engine=engine, http=models_http, llm=CountingLLM(fail=True))
+        app = create_app(
+            settings=_test_settings(engine),
+            engine=engine,
+            http=models_http,
+            llm=CountingLLM(fail=True),
+        )
         async with (
             app.router.lifespan_context(app),
             httpx.AsyncClient(
@@ -214,7 +291,8 @@ async def test_llm_and_models_unavailable_return_503(
         ):
             r_llm = await client.post(
                 "/v1/query",
-                json={"question": "Paragraph 0 of section 0"},
+                headers=headers,
+                json={"collection": "pgdocs", "question": "Paragraph 0 of section 0"},
             )
 
     assert r_llm.status_code == 503
@@ -222,7 +300,12 @@ async def test_llm_and_models_unavailable_return_503(
     assert r_llm.json() == {"detail": "answer model unavailable"}
 
     async with _make_models_http(embedder, fail_status=500) as failing_models_http:
-        app2 = create_app(engine=engine, http=failing_models_http, llm=StubLLM())
+        app2 = create_app(
+            settings=_test_settings(engine),
+            engine=engine,
+            http=failing_models_http,
+            llm=StubLLM(),
+        )
         async with (
             app2.router.lifespan_context(app2),
             httpx.AsyncClient(
@@ -231,7 +314,8 @@ async def test_llm_and_models_unavailable_return_503(
         ):
             r_mod = await client.post(
                 "/v1/query",
-                json={"question": "Paragraph 0 of section 0"},
+                headers=headers,
+                json={"collection": "pgdocs", "question": "Paragraph 0 of section 0"},
             )
 
     assert r_mod.status_code == 503
@@ -241,7 +325,12 @@ async def test_llm_and_models_unavailable_return_503(
 async def test_index_csp_and_health_endpoints(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
     await _seed_pgdocs(engine, embedder)
     async with _make_models_http(embedder) as models_http:
-        app = create_app(engine=engine, http=models_http, llm=StubLLM())
+        app = create_app(
+            settings=_test_settings(engine),
+            engine=engine,
+            http=models_http,
+            llm=StubLLM(),
+        )
         async with (
             app.router.lifespan_context(app),
             httpx.AsyncClient(

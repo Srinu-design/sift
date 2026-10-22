@@ -7,7 +7,7 @@ export
 COMPOSE := docker compose -f docker/compose.yaml --env-file .env
 EVAL := uv run --extra models python -m eval.run
 
-.PHONY: env up down logs corpus migrate hopper-tenant ingest-local ingest-sample ingest ingest-bench eval \
+.PHONY: env up down logs corpus migrate hopper-tenant api-key ingest-local ingest-sample ingest ingest-bench eval \
 	eval-baseline eval-compare eval-overlap eval-tau eval-answers rerank-latency golden-check golden-review test test-e2e lint fmt
 
 env:
@@ -49,6 +49,10 @@ ingest:
 	uv run python -m sift.ingest.corpus --via hopper --wait
 
 STRATEGIES := naive lexical hybrid hybrid_rerank
+
+# A new API key for a tenant, printed once: make api-key TENANT=pgdocs
+api-key:
+	uv run python -m sift.admin create-key $(TENANT)
 
 # Retrieval eval of every strategy on the dev split. Results land in eval/results/.
 eval:

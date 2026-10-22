@@ -61,9 +61,15 @@ class Settings(BaseSettings):
     llm_price_out_per_mtok: float = 0.0
     llm_prices_checked_on: str = ""
 
-    # shortcut: one dev tenant, no auth; API keys and tenancy replace this in week 5.
-    dev_tenant: str = "pgdocs"
-    dev_collection: str = "pgdocs"
+    # Tenancy. API keys are stored as HMAC-SHA256(pepper, secret); without the pepper a leaked
+    # table cannot be checked against. The API runs as sift_app, so row-level security applies.
+    api_key_pepper: SecretStr = SecretStr("")
+    api_db_role: str | None = "sift_app"
+    max_upload_bytes: int = Field(default=20_000_000, ge=1)
+    # The public demo page queries this tenant without a key; None turns /demo off.
+    demo_tenant: str | None = "pgdocs"
+    demo_collection: str = "pgdocs"
+    demo_rate_per_minute: int = Field(default=10, ge=1)  # per client IP
 
 
 @lru_cache

@@ -165,7 +165,7 @@
     resultsEl.appendChild(loading);
 
     try {
-      const response = await fetch("/v1/query", {
+      const response = await fetch("/demo/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

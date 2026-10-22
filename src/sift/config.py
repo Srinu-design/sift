@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     signature_tolerance_seconds: int = Field(default=300, ge=1)
 
     # Rerank the fused top 30: same dev quality as 50 at 60% of the latency (ADR-0003).
-    rerank_depth: int = 30
+    rerank_depth: int = 10
     context_k: int = 8
     # Gate 1: refuse below this best rerank score. `make eval-tau` on dev, 2026-10-20: the
     # largest tau that wrongly refuses at most 5% of answerable questions (ADR-0008).

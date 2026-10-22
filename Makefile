@@ -8,7 +8,7 @@ COMPOSE := docker compose -f docker/compose.yaml --env-file .env
 EVAL := uv run --extra models python -m eval.run
 
 .PHONY: env up down logs corpus migrate hopper-tenant api-key ingest-local ingest-sample ingest ingest-sebi ingest-bench eval \
-	eval-baseline eval-compare eval-overlap eval-tau eval-answers rerank-latency golden-check golden-review test test-e2e lint fmt
+	eval-baseline eval-compare eval-overlap eval-tau eval-answers eval-judge label kappa rerank-latency golden-check golden-review test test-e2e lint fmt
 
 env:
 	@test -f .env || cp .env.example .env
@@ -82,6 +82,19 @@ rerank-latency:
 # Answers with the real model on dev (resumable; LLM_PROVIDER and GEMINI_API_KEY from .env).
 eval-answers:
 	uv run --extra models python -m eval.answers --split dev
+
+# The LLM judge on the dev answers (faithfulness, correctness), then your hand labels and kappa.
+eval-judge:
+	uv run python -m eval.judge eval/results/answers-dev-v1-hybrid_rerank-answer-v2.jsonl \
+		--golden eval/golden/v1.jsonl
+
+label:
+	uv run python -m eval.label eval/results/answers-dev-v1-hybrid_rerank-answer-v2.jsonl \
+		--golden eval/golden/v1.jsonl
+
+kappa:
+	uv run python -m eval.kappa --labels eval/labels/human-v1.jsonl \
+		--judged eval/results/answers-dev-v1-hybrid_rerank-answer-v2-judge-v1.jsonl
 
 # Filtered dev questions: HNSW (iterative scan) against exact search, overlap at 50.
 eval-overlap:

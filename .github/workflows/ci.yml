@@ -19,10 +19,6 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy
 
-  # Unit and integration tests against a real pgvector Postgres (same image as Compose).
-  # The models are faked in tests; the tokenizer (a small file) comes from Hugging Face.
-  # PDF tests skip here (no pdf extra) and e2e tests need the full stack: run them locally.
-  # The retrieval eval gate arrives in week 5, with the corpus snapshot as a CI artifact.
   test:
     runs-on: ubuntu-latest
     services:
@@ -40,3 +36,70 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - run: uv sync --frozen
       - run: uv run pytest -q
+
+  eval-retrieval:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg16
+        env: { POSTGRES_USER: hopper, POSTGRES_PASSWORD: hopper, POSTGRES_DB: hopper }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U hopper" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://hopper:hopper@127.0.0.1:5432/sift
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --frozen --extra models
+
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: .cache/huggingface
+          key: hf-${{ hashFiles('src/sift/config.py') }}
+
+      - name: Create database and migrate
+        run: uv run python -m sift.db && uv run alembic upgrade head
+
+      - name: Cache ingested pgdocs index
+        id: index
+        uses: actions/cache@v4
+        with:
+          path: .cache/index/pgdocs.sql.gz
+          key: index-${{ hashFiles('corpus/manifest.jsonl', 'src/sift/ingest/**', 'migrations/**', 'src/sift/config.py') }}
+
+      - name: Build and dump index on cache miss
+        if: steps.index.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download corpus-v1 --repo ${{ github.repository }} --pattern 'corpus-raw-v1.tar.gz'
+          tar -xzf corpus-raw-v1.tar.gz -C corpus/
+          uv run python corpus/verify.py corpus/manifest.jsonl
+          uv run --extra models python -m sift.ingest.corpus --via local
+          mkdir -p .cache/index && PGPASSWORD=hopper pg_dump -h 127.0.0.1 -U hopper -d sift --data-only --table=tenants --table=collections --table=documents --table=document_versions --table=chunks --table=embedding_cache | gzip > .cache/index/pgdocs.sql.gz
+
+      - name: Restore index on cache hit
+        if: steps.index.outputs.cache-hit == 'true'
+        run: |
+          gunzip -c .cache/index/pgdocs.sql.gz | PGPASSWORD=hopper psql -h 127.0.0.1 -U hopper -d sift -v ON_ERROR_STOP=1 -q
+
+      - name: Run retrieval eval and gate
+        run: |
+          mkdir -p .cache
+          rm -f .cache/eval_files.txt
+          for s in naive lexical hybrid hybrid_rerank; do
+            uv run --extra models python -m eval.run --strategy $s --split dev
+            ls -t eval/results/*-$s-dev-v1.json | head -1 >> .cache/eval_files.txt
+          done
+          uv run python -m eval.gate $(cat .cache/eval_files.txt)
+
+      - name: Upload retrieval eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-retrieval
+          path: eval/results/

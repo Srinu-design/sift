@@ -1,0 +1,104 @@
+name: eval-nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  eval-full:
+    if: github.event_name != 'pull_request' || github.event.label.name == 'run-full-eval'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg16
+        env: { POSTGRES_USER: hopper, POSTGRES_PASSWORD: hopper, POSTGRES_DB: hopper }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U hopper" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://hopper:hopper@127.0.0.1:5432/sift
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      LLM_PROVIDER: gemini
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --frozen --extra models
+
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: .cache/huggingface
+          key: hf-${{ hashFiles('src/sift/config.py') }}
+
+      - name: Create database and migrate
+        run: uv run python -m sift.db && uv run alembic upgrade head
+
+      - name: Cache ingested pgdocs index
+        id: index
+        uses: actions/cache@v4
+        with:
+          path: .cache/index/pgdocs.sql.gz
+          key: index-${{ hashFiles('corpus/manifest.jsonl', 'src/sift/ingest/**', 'migrations/**', 'src/sift/config.py') }}
+
+      - name: Build and dump index on cache miss
+        if: steps.index.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download corpus-v1 --repo ${{ github.repository }} --pattern 'corpus-raw-v1.tar.gz'
+          tar -xzf corpus-raw-v1.tar.gz -C corpus/
+          uv run python corpus/verify.py corpus/manifest.jsonl
+          uv run --extra models python -m sift.ingest.corpus --via local
+          mkdir -p .cache/index && PGPASSWORD=hopper pg_dump -h 127.0.0.1 -U hopper -d sift --data-only --table=tenants --table=collections --table=documents --table=document_versions --table=chunks --table=embedding_cache | gzip > .cache/index/pgdocs.sql.gz
+
+      - name: Restore index on cache hit
+        if: steps.index.outputs.cache-hit == 'true'
+        run: |
+          gunzip -c .cache/index/pgdocs.sql.gz | PGPASSWORD=hopper psql -h 127.0.0.1 -U hopper -d sift -v ON_ERROR_STOP=1 -q
+
+      - name: Run answer evaluation
+        run: |
+          uv run --extra models python -m eval.answers --split dev --max-calls 120 --out .cache/nightly/answers.jsonl
+
+      - name: Run LLM judge evaluation
+        run: |
+          uv run python -m eval.judge .cache/nightly/answers.jsonl --golden eval/golden/v1.jsonl --max-calls 120
+
+      - name: Write summaries to GitHub step summary
+        if: always()
+        run: |
+          ans_summary=$(ls -t eval/results/*-answers-dev-v1-hybrid_rerank.json 2>/dev/null | head -1 || true)
+          judge_summary=$(ls -t eval/results/*-judge-answers-dev-v1-hybrid_rerank-answer-v2.json 2>/dev/null | head -1 || true)
+          {
+            echo "## Nightly Answer & Judge Evaluation"
+            if [ -n "$ans_summary" ]; then
+              echo "### Answer Summary (\`$ans_summary\`)"
+              echo "\`\`\`json"
+              cat "$ans_summary"
+              echo "\`\`\`"
+            fi
+            if [ -n "$judge_summary" ]; then
+              echo "### Judge Summary (\`$judge_summary\`)"
+              echo "\`\`\`json"
+              cat "$judge_summary"
+              echo "\`\`\`"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload full eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-nightly
+          path: |
+            eval/results/
+            .cache/nightly/

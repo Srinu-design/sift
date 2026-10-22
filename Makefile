@@ -7,7 +7,7 @@ export
 COMPOSE := docker compose -f docker/compose.yaml --env-file .env
 EVAL := uv run --extra models python -m eval.run
 
-.PHONY: env up down logs corpus migrate hopper-tenant api-key ingest-local ingest-sample ingest ingest-bench eval \
+.PHONY: env up down logs corpus migrate hopper-tenant api-key ingest-local ingest-sample ingest ingest-sebi ingest-bench eval \
 	eval-baseline eval-compare eval-overlap eval-tau eval-answers rerank-latency golden-check golden-review test test-e2e lint fmt
 
 env:
@@ -47,6 +47,11 @@ ingest-sample:
 
 ingest:
 	uv run python -m sift.ingest.corpus --via hopper --wait
+
+# Tenant B: SEBI circulars as PDFs, in-process (Docling is not in the Docker image yet).
+ingest-sebi:
+	uv run --extra models --extra pdf python -m sift.ingest.corpus --via local \
+		--manifest corpus/sebi_manifest.jsonl --tenant sebi --collection circulars
 
 STRATEGIES := naive lexical hybrid hybrid_rerank
 

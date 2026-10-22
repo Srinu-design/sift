@@ -1,0 +1,1239 @@
+{
+ "strategy": "naive",
+ "split": "dev",
+ "golden": "v2-sebi",
+ "tenant": "sebi",
+ "run_at": "2026-10-22T20:16:10+00:00",
+ "commit": "74f6949",
+ "setup": {
+  "embed_model": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+  "rerank_model": "cross-encoder/ms-marco-MiniLM-L6-v2@233902d25c44",
+  "chunker": "headings-400-15",
+  "index_version": 26,
+  "depth": 50,
+  "rerank_depth": 30,
+  "lexical_mode": "or"
+ },
+ "questions": 12,
+ "unanswerable_skipped": 2,
+ "timings_ms": {
+  "dense": {
+   "p50": 2.2,
+   "p95": 16.2
+  }
+ },
+ "overall": {
+  "n": 10,
+  "hit@5": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "hit@8": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "hit@10": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "hit@20": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "recall@5": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "recall@8": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "recall@10": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "recall@20": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "mrr@10": {
+   "mean": 0.8833,
+   "ci95": [
+    0.7,
+    1.0
+   ]
+  }
+ },
+ "by_type": {
+  "factoid": {
+   "n": 6,
+   "hit@5": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@8": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@20": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@5": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@8": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@20": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "mrr@10": {
+    "mean": 0.8056,
+    "ci95": [
+     0.5833,
+     1.0
+    ]
+   }
+  },
+  "injected": {
+   "n": 2,
+   "hit@5": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@8": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@20": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@5": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@8": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@20": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "mrr@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   }
+  },
+  "paraphrase": {
+   "n": 1,
+   "hit@5": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@8": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@20": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@5": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@8": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@20": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "mrr@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   }
+  },
+  "procedural": {
+   "n": 1,
+   "hit@5": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@8": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "hit@20": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@5": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@8": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "recall@20": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "mrr@10": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   }
+  }
+ },
+ "per_question": [
+  {
+   "id": "s001",
+   "type": "factoid",
+   "question": "When do the Credit Risk-o-Meter disclosure provisions come into force?",
+   "gold": [
+    {
+     "doc": "sebi/1791436170839",
+     "page": 2
+    }
+   ],
+   "first_hit_rank": 2,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.5
+   },
+   "timings_ms": {
+    "dense": 16.2
+   },
+   "top": [
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "Subject: Introduction of Credit Risk-o-Meter as an additional disclosure mechanism for debt securities",
+     "score": 0.8291
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "Subject: Introduction of Credit Risk-o-Meter as an additional disclosure mechanism for debt securities",
+     "score": 0.8201
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "Disclosure of 'Credit Risk-o-Meter' in respect of Debt Securities",
+     "score": 0.8013
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "Subject: Introduction of Credit Risk-o-Meter as an additional disclosure mechanism for debt securities",
+     "score": 0.7883
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "Annexure -A",
+     "score": 0.7529
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "2.13. Data Source for Credit ratings by OBPPs:",
+     "score": 0.7468
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "2.11. Disclaimers:",
+     "score": 0.7374
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "Annexure -A",
+     "score": 0.7197
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "2.11. Disclaimers:",
+     "score": 0.7019
+    },
+    {
+     "doc": "sebi/1791436170839",
+     "anchor": null,
+     "heading": "Credit Risk-o-Meter",
+     "score": 0.6991
+    }
+   ]
+  },
+  {
+   "id": "s003",
+   "type": "paraphrase",
+   "question": "Do foreign portfolio investors still have to get their power of attorney notarised?",
+   "gold": [
+    {
+     "doc": "sebi/1787224027885",
+     "page": 2
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "dense": 3.0
+   },
+   "top": [
+    {
+     "doc": "sebi/1787224027885",
+     "anchor": null,
+     "heading": "Subject: Acceptance of digitally signed Power of Attorney from FPIs",
+     "score": 0.6975
+    },
+    {
+     "doc": "sebi/1787224027885",
+     "anchor": null,
+     "heading": "Subject: Acceptance of digitally signed Power of Attorney from FPIs",
+     "score": 0.6769
+    },
+    {
+     "doc": "sebi/1787285998826",
+     "anchor": null,
+     "heading": "Sub: Enabling sharing of information by KYC Registration Agencies (KRAs) with entities regulated by International Financial Services Centres Authority.",
+     "score": 0.6727
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "S3I i faas Securities and Exchange Board of India",
+     "score": 0.6679
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part H - Additional Requirements for a Pooled Investment Vehicle / Private Equity Sponsor",
+     "score": 0.6579
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "Note:",
+     "score": 0.6545
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "ANNEXURE-B: DRAFT OF THE AFFIDAVIT",
+     "score": 0.6529
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "4.1 Cases where nomination has been made",
+     "score": 0.6485
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "S3I i faas Securities and Exchange Board of India",
+     "score": 0.6477
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "S\u4e093I 3fafats Securities and Exchange Board of India",
+     "score": 0.6455
+    }
+   ]
+  },
+  {
+   "id": "s004",
+   "type": "factoid",
+   "question": "By what date must existing Angel Funds meet the Accredited Investor mandate?",
+   "gold": [
+    {
+     "doc": "sebi/1788788875715",
+     "page": 2
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "dense": 2.3
+   },
+   "top": [
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "Sub: Relaxation in timeline with respect to Accredited Investor mandate for Angel Funds",
+     "score": 0.842
+    },
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "Sub: Relaxation in timeline with respect to Accredited Investor mandate for Angel Funds",
+     "score": 0.8253
+    },
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "\"Angel Funds registered with SEBI on or before September 10, 2025 shall comply with the following -",
+     "score": 0.7973
+    },
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "\"Angel Funds registered with SEBI on or before September 10, 2025 shall comply with the following -",
+     "score": 0.7907
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.7744
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.7183
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part H - Additional Requirements for a Pooled Investment Vehicle / Private Equity Sponsor",
+     "score": 0.7176
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.715
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.7119
+    },
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "All Alternative Investment Funds (AIFs)",
+     "score": 0.7102
+    }
+   ]
+  },
+  {
+   "id": "s005",
+   "type": "factoid",
+   "question": "Until the deadline, to how many non-accredited investors may an existing Angel Fund offer investment opportunities?",
+   "gold": [
+    {
+     "doc": "sebi/1788788875715",
+     "page": 2
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "dense": 2.9
+   },
+   "top": [
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "Sub: Relaxation in timeline with respect to Accredited Investor mandate for Angel Funds",
+     "score": 0.7478
+    },
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "\"Angel Funds registered with SEBI on or before September 10, 2025 shall comply with the following -",
+     "score": 0.7378
+    },
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "Sub: Relaxation in timeline with respect to Accredited Investor mandate for Angel Funds",
+     "score": 0.7238
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.7122
+    },
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "\"Angel Funds registered with SEBI on or before September 10, 2025 shall comply with the following -",
+     "score": 0.6948
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part H - Additional Requirements for a Pooled Investment Vehicle / Private Equity Sponsor",
+     "score": 0.6852
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.6808
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.6636
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.6543
+    },
+    {
+     "doc": "sebi/1784633350069",
+     "anchor": null,
+     "heading": "Subject: Certification Requirements for Distribution of Specialized Investment Funds (SIFs)",
+     "score": 0.651
+    }
+   ]
+  },
+  {
+   "id": "s007",
+   "type": "factoid",
+   "question": "Where must stock brokers show SEBI's investor awareness messages from November 1, 2026?",
+   "gold": [
+    {
+     "doc": "sebi/1790852162769",
+     "page": 2
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "dense": 2.1
+   },
+   "top": [
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "Subject: Display of \"investor awareness message(s)\" by stock brokers on their trading apps and websites, under Project Jagrook",
+     "score": 0.8588
+    },
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "Subject: Display of \"investor awareness message(s)\" by stock brokers on their trading apps and websites, under Project Jagrook",
+     "score": 0.7966
+    },
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "4.2 Trading apps of Stock Brokers:",
+     "score": 0.7858
+    },
+    {
+     "doc": "sebi/1787914585756",
+     "anchor": null,
+     "heading": "HO/47/11/11(1)2026-MRD-POD3/I/19839/2026 August 28, 2026",
+     "score": 0.7089
+    },
+    {
+     "doc": "sebi/1787224027885",
+     "anchor": null,
+     "heading": "CIRCULAR",
+     "score": 0.7035
+    },
+    {
+     "doc": "sebi/1787914585756",
+     "anchor": null,
+     "heading": "HO/47/11/11(1)2026-MRD-POD3/I/19839/2026 August 28, 2026",
+     "score": 0.6818
+    },
+    {
+     "doc": "sebi/1787285998826",
+     "anchor": null,
+     "heading": "Sub: Enabling sharing of information by KYC Registration Agencies (KRAs) with entities regulated by International Financial Services Centres Authority.",
+     "score": 0.6794
+    },
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "4.2 Trading apps of Stock Brokers:",
+     "score": 0.6767
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Sub: Revision of Application Form for Mutual Fund Registration",
+     "score": 0.6763
+    },
+    {
+     "doc": "sebi/1788788875715",
+     "anchor": null,
+     "heading": "Sub: Relaxation in timeline with respect to Accredited Investor mandate for Angel Funds",
+     "score": 0.6697
+    }
+   ]
+  },
+  {
+   "id": "s008",
+   "type": "factoid",
+   "question": "Under which SEBI investor awareness initiative must stock brokers display investor-centric messages?",
+   "gold": [
+    {
+     "doc": "sebi/1790852162769",
+     "page": 1
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "dense": 2.2
+   },
+   "top": [
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "Subject: Display of \"investor awareness message(s)\" by stock brokers on their trading apps and websites, under Project Jagrook",
+     "score": 0.8498
+    },
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "Subject: Display of \"investor awareness message(s)\" by stock brokers on their trading apps and websites, under Project Jagrook",
+     "score": 0.8076
+    },
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "4.2 Trading apps of Stock Brokers:",
+     "score": 0.7249
+    },
+    {
+     "doc": "sebi/1787914585756",
+     "anchor": null,
+     "heading": "HO/47/11/11(1)2026-MRD-POD3/I/19839/2026 August 28, 2026",
+     "score": 0.7041
+    },
+    {
+     "doc": "sebi/1786705729757",
+     "anchor": null,
+     "heading": "In case of the securities mentioned at 5.2.6 above,",
+     "score": 0.6811
+    },
+    {
+     "doc": "sebi/1792079571420",
+     "anchor": null,
+     "heading": "Subject: Review of certain aspects of the Closing Auction Session, market timings and settlement methodology for derivatives contracts",
+     "score": 0.681
+    },
+    {
+     "doc": "sebi/1791806752815",
+     "anchor": null,
+     "heading": "Commodity' and satisfies the following criteria:",
+     "score": 0.6773
+    },
+    {
+     "doc": "sebi/1784633350069",
+     "anchor": null,
+     "heading": "Subject: Certification Requirements for Distribution of Specialized Investment Funds (SIFs)",
+     "score": 0.6726
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Sub: Revision of Application Form for Mutual Fund Registration",
+     "score": 0.6712
+    },
+    {
+     "doc": "sebi/1791374560264",
+     "anchor": null,
+     "heading": "Sub: Exemption from the requirement of mandatory merchant banker appointment for debt issued through private placement by certain listed issuers",
+     "score": 0.6708
+    }
+   ]
+  },
+  {
+   "id": "s010",
+   "type": "factoid",
+   "question": "What does the IT Resilience Index for market infrastructure institutions measure?",
+   "gold": [
+    {
+     "doc": "sebi/1787568759364",
+     "page": 2
+    }
+   ],
+   "first_hit_rank": 3,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 0.3333333333333333
+   },
+   "timings_ms": {
+    "dense": 2.0
+   },
+   "top": [
+    {
+     "doc": "sebi/1787568759364",
+     "anchor": null,
+     "heading": "A. Background",
+     "score": 0.8406
+    },
+    {
+     "doc": "sebi/1787568759364",
+     "anchor": null,
+     "heading": "B. IT Resilience Index (ITRI) for MIIs",
+     "score": 0.7918
+    },
+    {
+     "doc": "sebi/1787568759364",
+     "anchor": null,
+     "heading": "B. IT Resilience Index (ITRI) for MIIs",
+     "score": 0.7628
+    },
+    {
+     "doc": "sebi/1787568759364",
+     "anchor": null,
+     "heading": "B. IT Resilience Index (ITRI) for MIIs",
+     "score": 0.7287
+    },
+    {
+     "doc": "sebi/1787568759364",
+     "anchor": null,
+     "heading": "CIRCULAR",
+     "score": 0.6599
+    },
+    {
+     "doc": "sebi/1787568759364",
+     "anchor": null,
+     "heading": "D. Continuous Monitoring of Service Delivery to Market Participants",
+     "score": 0.6578
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part C - Annexures to be Provided in Respect of the AMC",
+     "score": 0.6257
+    },
+    {
+     "doc": "sebi/1787568759364",
+     "anchor": null,
+     "heading": "C. Early Warning System through ITRI",
+     "score": 0.6227
+    },
+    {
+     "doc": "sebi/1787568759364",
+     "anchor": null,
+     "heading": "D. Continuous Monitoring of Service Delivery to Market Participants",
+     "score": 0.6196
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part C - Annexures to be Provided in Respect of the AMC",
+     "score": 0.6164
+    }
+   ]
+  },
+  {
+   "id": "s012",
+   "type": "procedural",
+   "question": "Which documents must an AIF file along with the placement memorandum of a regular scheme?",
+   "gold": [
+    {
+     "doc": "sebi/1785412195539",
+     "page": 2
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "dense": 1.9
+   },
+   "top": [
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.4. Modalities for filing of PPM and launch of Regular schemes:",
+     "score": 0.6957
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.4. Modalities for filing of PPM and launch of Regular schemes:",
+     "score": 0.6921
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "CIRCULAR",
+     "score": 0.6809
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.6706
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "Documentation Grid",
+     "score": 0.6587
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "Part E - Declaration and Responsibility Clause",
+     "score": 0.6572
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "6.1 Modes and procedure for submission of claim",
+     "score": 0.6568
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part H - Additional Requirements for a Pooled Investment Vehicle / Private Equity Sponsor",
+     "score": 0.6568
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.6546
+    },
+    {
+     "doc": "sebi/1784869499027",
+     "anchor": null,
+     "heading": "4.2.2.2 Requirements under simplified documentation category",
+     "score": 0.6516
+    }
+   ]
+  },
+  {
+   "id": "s016",
+   "type": "injected",
+   "question": "Within how many working days must an investor grievance be acknowledged, according to the grievance handling note?",
+   "gold": [
+    {
+     "doc": "fixture/injected-grievance-note",
+     "section": "NOTE-ACK"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "dense": 2.2
+   },
+   "top": [
+    {
+     "doc": "fixture/injected-grievance-note",
+     "anchor": "NOTE-ACK",
+     "heading": "Sift test fixture: investor grievance handling note > Acknowledgement",
+     "score": 0.8872
+    },
+    {
+     "doc": "fixture/injected-grievance-note",
+     "anchor": "NOTE-RESOLVE",
+     "heading": "Sift test fixture: investor grievance handling note > Resolution",
+     "score": 0.8596
+    },
+    {
+     "doc": "fixture/injected-grievance-note",
+     "anchor": "NOTE-RECORDS",
+     "heading": "Sift test fixture: investor grievance handling note > Records",
+     "score": 0.7816
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part G - Procedures and Policies",
+     "score": 0.7005
+    },
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "Subject: Display of \"investor awareness message(s)\" by stock brokers on their trading apps and websites, under Project Jagrook",
+     "score": 0.6896
+    },
+    {
+     "doc": "sebi/1790852162769",
+     "anchor": null,
+     "heading": "4.2 Trading apps of Stock Brokers:",
+     "score": 0.6853
+    },
+    {
+     "doc": "sebi/1792079571420",
+     "anchor": null,
+     "heading": "4.2. Timings of CAS:",
+     "score": 0.6706
+    },
+    {
+     "doc": "sebi/1784632576164",
+     "anchor": null,
+     "heading": "Date: July 21, 2026",
+     "score": 0.6703
+    },
+    {
+     "doc": "sebi/1785412195539",
+     "anchor": null,
+     "heading": "2.5.2.2. Angel Funds:",
+     "score": 0.6679
+    },
+    {
+     "doc": "sebi/1786705393789",
+     "anchor": null,
+     "heading": "conditions specified in Note 12 and adequate disclosures in this regard.",
+     "score": 0.6676
+    }
+   ]
+  },
+  {
+   "id": "s018",
+   "type": "injected",
+   "question": "How long must the intermediary keep its register of grievances, according to the grievance handling note?",
+   "gold": [
+    {
+     "doc": "fixture/injected-grievance-note",
+     "section": "NOTE-RECORDS"
+    }
+   ],
+   "first_hit_rank": 1,
+   "scores": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "hit@10": 1.0,
+    "hit@20": 1.0,
+    "recall@5": 1.0,
+    "recall@8": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "mrr@10": 1.0
+   },
+   "timings_ms": {
+    "dense": 2.4
+   },
+   "top": [
+    {
+     "doc": "fixture/injected-grievance-note",
+     "anchor": "NOTE-RECORDS",
+     "heading": "Sift test fixture: investor grievance handling note > Records",
+     "score": 0.8843
+    },
+    {
+     "doc": "fixture/injected-grievance-note",
+     "anchor": "NOTE-RESOLVE",
+     "heading": "Sift test fixture: investor grievance handling note > Resolution",
+     "score": 0.8055
+    },
+    {
+     "doc": "fixture/injected-grievance-note",
+     "anchor": "NOTE-ACK",
+     "heading": "Sift test fixture: investor grievance handling note > Acknowledgement",
+     "score": 0.7902
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part G - Procedures and Policies",
+     "score": 0.7122
+    },
+    {
+     "doc": "sebi/1792653412567",
+     "anchor": null,
+     "heading": "Part I - Annexures to be Provided by the Sponsor (Stage I)",
+     "score": 0.6475
+    },
+    {
+     "doc": "sebi/1786705729757",
+     "anchor": null,
+     "heading": "5.2.6. Bonds issued under section 54EC of the Income Tax Act, 1961 or Section 85 of Income-tax Act, 2025",
+     "score": 0.6329
+    },
+    {
+     "doc": "sebi/1786705393789",
+     "anchor": null,
+     "heading": "Impact on cash flows leading up to the year of the Major Maintenance",
+     "score": 0.6275
+    },
+    {
+     "doc": "sebi/1786705393789",
+     "anchor": null,
+     "heading": "conditions specified in Note 12 and adequate disclosures in this regard.",
+     "score": 0.6236
+    },
+    {
+     "doc": "sebi/1785493077212",
+     "anchor": null,
+     "heading": "Reference:",
+     "score": 0.6232
+    },
+    {
+     "doc": "sebi/1784632576164",
+     "anchor": null,
+     "heading": "Date: July 21, 2026",
+     "score": 0.6215
+    }
+   ]
+  }
+ ]
+}

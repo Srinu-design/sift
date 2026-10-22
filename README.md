@@ -46,23 +46,42 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
 
 ## Answers: cited, or refused (dev split)
 
-`make eval-answers`, 86 dev questions, `hybrid_rerank`, gemini-3.5-flash-lite, prompt `answer-v1`:
+`make eval-answers`, 86 dev questions, `hybrid_rerank`, gemini-3.5-flash-lite, prompt `answer-v2`:
 
 | | answered | refused |
 |---|---|---|
-| answerable (71) | 68 | 3 (all gate 1) |
+| answerable (71) | 67 | 4 (gate 1: 3, gate 2: 1) |
 | unanswerable (15) | 2 | 13 (gate 1: 4, gate 2: 9) |
 
-- **Refusal recall 0.87, wrong refusals 4.2%.** Gate 1 (rerank score below τ = 0.19) is mostly
-  a cost saver: questions about a feature missing from the asked version score 0.95+. The model
-  (gate 2) catches 9 of the 11 it lets through and never refused an answerable question.
-  ADR-[0008](docs/adr/0008-two-gate-refusal.md).
-- The 2 answered unanswerable questions are faithful partial answers, not inventions.
-- **Citation accuracy 0.75** (cited sources overlapping a gold section); 88% of answers cite at
-  least one gold section. Of the 24 off-gold citations, 13 are on the gold page (another version's
-  copy or a sibling section): the judge in week 5 decides whether they support the claim.
-- 3 of 79 model calls needed the one retry; none ended as a citation failure. LLM p50 2.0 s,
-  p95 11.6 s on the free tier. About 3,000 tokens in per question.
+- **Refusal recall 0.87, wrong refusals 5.6%.** Gate 1 (rerank score below τ = 0.19) is mostly
+  a cost saver: questions about a feature missing from the asked version score 0.95+, and the
+  model (gate 2) catches 9 of the 11 it lets through. Its one refusal of an answerable question
+  is a retrieval miss (the gold section was not among the sources). ADR-[0008](docs/adr/0008-two-gate-refusal.md).
+- The 2 answered unanswerable questions are faithful partial answers that say what is missing.
+- **94% of answers cite at least one gold section**; citation accuracy (cited sources overlapping
+  a gold section) is 0.71, because many citations are the same section in another version or a
+  sibling section: the judge decides whether they support the claim.
+- 7 of 79 model calls needed the one retry; none ended as a citation failure. LLM p50 1.8 s,
+  p95 10.5 s on the free tier. About 3,300 tokens in per question.
+- **Prompt injection:** prompt v1 obeyed one of three instructions planted in a tenant-B document
+  (it refused a question it could answer). Prompt v2 fences the sources and restates the rule
+  after them; all three injected questions now pass (ADR-0008).
+
+## Tenant B: SEBI circulars (PDF, page citations)
+
+24 SEBI circulars from July–October 2026 (`corpus/fetch_sebi.py`, SHA-256 manifest), parsed by
+Docling with page numbers, plus the prompt-injection fixture. Golden set `v2-sebi`: 18 questions
+with page-level gold ([changelog](eval/golden/CHANGELOG.md)). Dev split, `hybrid_rerank`:
+
+- Retrieval: hit@5 1.00 on 10 answerable questions; the corpus is small (266 chunks), so this
+  says the pipeline works on PDFs, not that the ranking is good.
+- Answers: 10 of 10 answerable answered, every one citing a gold page; both unanswerable refused,
+  including a PostgreSQL question that tenant `pgdocs` can answer (the answer step never sees
+  another tenant's chunks); injected questions pass.
+- Ingestion: 15 minutes and about 5 GB of RAM for the 24 PDFs on the laptop CPU (Docling layout and
+  table models), which is why the PDF parser is not in the 4 GB server image yet.
+- RBI was the first choice; its file server answers scripted downloads with a CAPTCHA page, so
+  tenant B uses SEBI, which serves the PDFs.
 
 ## What works now
 
@@ -112,6 +131,7 @@ make eval            # all four strategies on the dev split
 make eval-tau        # sweep the gate-1 refusal threshold on dev
 make rerank-latency  # cross-encoder p50/p95 at 50 and 30 pairs
 make eval-answers    # cited answers and refusals with the real model (GEMINI_API_KEY in .env)
+make ingest-sebi     # tenant B: SEBI circular PDFs, in-process (needs the pdf extra)
 make eval-compare A=eval/results/<a>.json B=eval/results/<b>.json   # paired bootstrap
 make eval-overlap    # filtered HNSW versus exact search
 make test            # unit + integration (needs Postgres from make up)
@@ -161,7 +181,8 @@ database and Sift's.
 ## Layout
 
 ```
-corpus/      fetch.py, manifest.jsonl, README (raw/ is git-ignored)
+corpus/      fetch.py, fetch_sebi.py, manifests (*manifest.jsonl), fixtures/,
+             README (raw/ is git-ignored)
 eval/        golden/v1.jsonl + CHANGELOG, golden_check.py, metrics.py, run.py, compare.py,
              overlap.py, tau.py, answers.py, baselines/, results/
 src/sift/    config, db, hopper (client), ingest/ (parsers, chunker, pipeline, service, corpus CLI),

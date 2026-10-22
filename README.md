@@ -6,8 +6,8 @@ runs as jobs on [Hopper](../hopper), my own job queue.
 
 > **Status: weeks 1–4 of 7.** Corpus, golden set, schema, ingestion (in-process and through
 > Hopper), four retrieval strategies with metadata filters, cited answers with two refusal
-> gates, the query API and a demo page are done. Tenancy, the judge, the CI eval gate, caching
-> and deployment come next. Nothing
+> gates, the query API and a demo page, and tenancy (API keys, row-level security) are done.
+> The second tenant, the judge, the CI eval gate, caching and deployment come next. Nothing
 > below is claimed beyond what a test or a measured number shows.
 
 ## Retrieval: four strategies on the dev split
@@ -86,6 +86,10 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
 | Gemini client over REST (key in a header, never the URL; 429/5xx/timeouts are retryable errors) and a stub LLM for tests and load tests | [`test_llm.py`](tests/unit/test_llm.py) |
 | `POST /v1/query`: strategy, filters (unknown keys 422), cited answer or refusal with "you may want to read", per-stage timings, a `query_logs` row per query; 503 with no internals when a dependency is down | [`test_api.py`](tests/integration/test_api.py) |
 | Demo page at `/`: strategy and version pickers, clickable citations; no inline script, strict CSP, model output rendered as text only | `make up`, then http://127.0.0.1:8200 |
+| API keys (`sift_live_...`, HMAC with a pepper, one 401 for every bad key); tenant always from the key | [`test_api_keys.py`](tests/unit/test_api_keys.py) |
+| Row-level security as a second layer: the API runs as non-owner `sift_app`; tenant B sees 0 of A's chunks even with `WHERE tenant_id = A`; an unset tenant sees nothing | [`test_tenancy.py`](tests/integration/test_tenancy.py), ADR-[0012](docs/adr/0012-tenant-isolation.md) |
+| Tenant B asks A's text word for word under all four strategies: none of A's chunks; A's document id is a 404 for B | same |
+| Collections and uploads over the API (`POST /v1/collections/{id}/documents`, raw body, 20 MB cap) ingested through Hopper | same |
 | Ingestion as Hopper jobs: the whole corpus in **~85 s**, every job on its first attempt; 1, 2 and 4 embed workers measured (bound by the model server) | [benchmark](loadtest/results/2026-10-12-ingest/summary.md), ADR-[0006](docs/adr/0006-ingestion-on-hopper.md) |
 | Re-uploading an unchanged file: zero jobs, zero embedding calls | [`test_pipeline.py`](tests/integration/test_pipeline.py) |
 | Embedding cache: identical text across versions embedded once (1,903 chunks, 1,007 model calls) | same |
@@ -101,6 +105,7 @@ Hopper must be cloned next to this repo (`../hopper`, branch `sift-ingest-suppor
 ```bash
 make up              # Hopper + Sift in one Compose project (first start downloads the models)
 make hopper-tenant   # Sift's tenant in Hopper: API key, signing secret, internal-host allowlist
+make api-key TENANT=pgdocs   # a Sift API key for a tenant, printed once (needs API_KEY_PEPPER)
 make corpus          # fetch the raw docs listed in corpus/manifest.jsonl (once)
 make ingest          # the whole corpus through Hopper; make ingest-sample for 10 pages
 make eval            # all four strategies on the dev split
@@ -147,10 +152,9 @@ database and Sift's.
   a version that lacks it ("JSON_TABLE in 16"); the reranker scores the neighbouring sections
   above 0.95. Gate 2 (the model reading the sources) has to catch those; it is measured with the
   answer eval next.
-- **The query API has no auth yet** (one dev tenant, port published on localhost only): API
-  keys and row-level security arrive in week 5.
-- **No upload HTTP API yet:** the tenant must come from an API key, which arrives with tenancy
-  in week 5. Until then a CLI submits files.
+- **Ingestion, evals and the admin CLI run as the tables' owner**, which bypasses row-level
+  security by design: they are internal paths (Hopper's signed jobs, a shell). Only the API runs
+  as `sift_app` (ADR-0012).
 - **The `pdf` extra (Docling) is not in the Docker image yet:** about 400 MB more. PDFs in the
   container get a clear 422 until week 5 (tenant B) adds it.
 
@@ -163,8 +167,9 @@ eval/        golden/v1.jsonl + CHANGELOG, golden_check.py, metrics.py, run.py, c
 src/sift/    config, db, hopper (client), ingest/ (parsers, chunker, pipeline, service, corpus CLI),
              models_svc/ (encoder, /embed, /rerank), retrieval/ (dense, lexical, fuse,
              filters, rerank, search), answer/ (prompt, llm, citations, refusal, generate),
-             api/ (query API, demo page), common/ (from Hopper)
-migrations/  0001: every table and index
+             api/ (query API, demo page), auth/ (API keys),
+             admin.py (tenants, keys, collections), common/ (from Hopper)
+migrations/  0001: every table and index; 0002: API keys, sift_app role, row-level security
 tests/       unit/, integration/ (real pgvector Postgres), e2e/ (the running stack)
 docs/        ai-usage.md, adr/
 ```

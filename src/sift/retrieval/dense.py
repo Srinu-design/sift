@@ -11,7 +11,7 @@ from uuid import UUID
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from sift.db import vector_literal
+from sift.db import set_tenant, vector_literal
 from sift.retrieval.filters import FILTER_SQL, Filters
 from sift.retrieval.hit import Hit
 
@@ -53,6 +53,7 @@ async def dense(
         **(filters or Filters()).params(),
     }
     async with engine.begin() as conn:
+        await set_tenant(conn, tenant_id)
         if scan == "exact":
             await conn.execute(text("SET LOCAL enable_indexscan = off"))
         else:

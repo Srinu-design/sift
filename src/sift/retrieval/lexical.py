@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from sift.db import set_tenant
 from sift.retrieval.filters import FILTER_SQL, Filters
 from sift.retrieval.hit import Hit
 
@@ -51,6 +52,7 @@ async def lexical(
         **(filters or Filters()).params(),
     }
     async with engine.connect() as conn:
+        await set_tenant(conn, tenant_id)
         rows = (await conn.execute(text(LEXICAL), params)).all()
     rows = sorted(rows, key=lambda r: (-r.score, r.id))
     return [

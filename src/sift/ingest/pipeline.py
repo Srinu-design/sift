@@ -20,6 +20,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
 from sift.config import get_settings
+from sift.db import set_tenant
 from sift.ingest import chunker, parsers
 
 EMBED_BATCH = 64
@@ -116,6 +117,7 @@ async def submit(
         tmp.write_bytes(data)
         tmp.replace(path)  # atomic: a reader never sees half a file
     async with engine.begin() as conn:
+        await set_tenant(conn, tenant_id)
         document_id = await conn.scalar(
             text(UPSERT_DOCUMENT),
             {

@@ -3,6 +3,8 @@
     python -m sift.ingest.corpus --via local     # week 1: every step in this process
     python -m sift.ingest.corpus --via hopper    # week 2: parse/embed/activate as Hopper jobs
     python -m sift.ingest.corpus --via hopper --versions 17 --limit 10 --wait
+    python -m sift.ingest.corpus --via local --manifest corpus/sebi_manifest.jsonl \
+        --tenant sebi --collection circulars    # tenant B: PDFs (needs the pdf extra)
 
 --wait polls until every submitted version is ready (or failed) and prints the time taken.
 """
@@ -13,6 +15,7 @@ import json
 import sys
 import time
 from collections import Counter
+from datetime import date
 from pathlib import Path
 from typing import Any
 from uuid import UUID
@@ -24,6 +27,7 @@ from sift.config import get_settings
 from sift.db import create_engine
 from sift.hopper import HopperBusy, enqueue_step
 from sift.ingest import pipeline
+from sift.ingest.parsers import ParseError
 
 TENANT = COLLECTION = "pgdocs"
 
@@ -63,7 +67,10 @@ async def run(args: argparse.Namespace) -> int:
                 data=(root / row["path"]).read_bytes(),
                 source_uri=row["url"],
                 source=row["source"],
-                doc_version=row["version"],
+                doc_version=row.get("version"),
+                published_on=date.fromisoformat(row["published_on"])
+                if row.get("published_on")
+                else None,
             )
             statuses[s.status] += 1
             if not s.needs_parse:
@@ -71,7 +78,13 @@ async def run(args: argparse.Namespace) -> int:
             submitted.append(s.version_id)
             v = s.version_id
             if embed is not None:  # in-process, the same steps the jobs run
-                for b in range(await pipeline.parse_version(engine, v)):
+                try:
+                    batches = await pipeline.parse_version(engine, v)
+                except ParseError as exc:  # the version is marked failed; go on, as Hopper does
+                    print(f"  failed {row['path']}: {exc}", file=sys.stderr)
+                    statuses["parse_failed"] += 1
+                    continue
+                for b in range(batches):
                     await pipeline.embed_batch(engine, v, b, embed)
                 await pipeline.activate(engine, v)
             else:

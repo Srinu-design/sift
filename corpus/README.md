@@ -46,3 +46,22 @@ added is picked up without editing a list.
   returns the right section from the wrong version. That is what the filter is for.
 - Reference pages (`sql-*`, `app-*`) have long "Parameters" sections, so a section-level gold
   label there is coarser than on chapter pages.
+
+## Tenant B: SEBI circulars
+
+`uv run python corpus/fetch_sebi.py` snapshots the circulars on SEBI's current listing page into
+`raw/sebi/*.pdf` and `sebi_manifest.jsonl` (url, title, date, SHA-256). SEBI circulars are public
+regulatory documents. RBI notifications were the first choice, but rbi.org.in answers scripted
+downloads with a CAPTCHA page, which this project does not work around.
+
+## Fixtures
+
+`fixtures/injected-grievance-note.html` is a synthetic test document (not issued by any regulator)
+with instructions planted in its text, ingested into tenant `sebi` to test prompt injection
+(`fixture_manifest.jsonl`).
+
+## CI
+
+The raw PostgreSQL pages are published as the release asset `corpus-raw-v1.tar.gz`
+(release `corpus-v1`), so CI rebuilds the index from exactly this snapshot, never from the
+live site, whose pages change with every minor release.

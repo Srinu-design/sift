@@ -67,6 +67,15 @@ def load_golden(path: Path, split: str, tenant: str) -> list[dict[str, Any]]:
     return rows
 
 
+def docs_by_url() -> dict[str, str]:
+    """Golden doc id for every corpus url, from every tenant's manifest."""
+    return {
+        m["url"]: m["doc"]
+        for path in sorted((HERE.parent / "corpus").glob("*manifest.jsonl"))
+        for m in map(json.loads, path.read_text().splitlines())
+    }
+
+
 def git_commit() -> str | None:
     try:
         out = subprocess.run(
@@ -81,10 +90,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
     golden_path: Path = args.golden
     questions = load_golden(golden_path, args.split, args.tenant)
     answerable = [q for q in questions if q["answerable"]]
-    doc_of_url = {
-        m["url"]: m["doc"]
-        for m in map(json.loads, (HERE.parent / "corpus/manifest.jsonl").read_text().splitlines())
-    }
+    doc_of_url = docs_by_url()
     vectors: list[list[float] | None]
     if args.strategy == "lexical":
         vectors = [None] * len(answerable)
@@ -94,7 +100,9 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         vectors = list(encoder().embed([q["question"] for q in answerable], "query"))
 
     engine = create_engine(get_settings())
-    tenant_id, collection_id = await pipeline.ensure_collection(engine, args.tenant, args.tenant)
+    tenant_id, collection_id = await pipeline.ensure_collection(
+        engine, args.tenant, args.collection or args.tenant
+    )
     async with engine.connect() as conn:
         index_version = await conn.scalar(
             text("SELECT index_version FROM collections WHERE id = :c"), {"c": collection_id}
@@ -235,6 +243,7 @@ def main() -> int:
     p.add_argument("--split", choices=["dev", "test", "all"], default="dev")
     p.add_argument("--golden", type=Path, default=HERE / "golden/v1.jsonl")
     p.add_argument("--tenant", default="pgdocs")
+    p.add_argument("--collection", help="defaults to the tenant name")
     p.add_argument("--write-baseline", action="store_true")
     args = p.parse_args()
     report = asyncio.run(run(args))

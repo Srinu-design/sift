@@ -45,6 +45,7 @@ class GeminiLLM:
         base_url: str,
         timeout: float,
         thinking_budget: int | None = None,
+        response_schema: dict[str, object] | None = None,  # the judge sends its own
     ) -> None:
         self._http = http
         self._api_key = api_key
@@ -52,6 +53,7 @@ class GeminiLLM:
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
         self._thinking_budget = thinking_budget
+        self._response_schema = response_schema or RESPONSE_SCHEMA
 
     async def generate(
         self,
@@ -62,7 +64,7 @@ class GeminiLLM:
         gen_config: dict[str, object] = {
             "temperature": 0,
             "responseMimeType": "application/json",
-            "responseSchema": RESPONSE_SCHEMA,
+            "responseSchema": self._response_schema,
         }
         if self._thinking_budget is not None:
             gen_config["thinkingConfig"] = {"thinkingBudget": self._thinking_budget}

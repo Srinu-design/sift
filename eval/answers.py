@@ -17,10 +17,10 @@ from typing import Any
 import httpx
 
 from eval.metrics import Gold, Retrieved, is_hit
-from eval.run import HERE, git_commit, load_golden
+from eval.run import HERE, docs_by_url, git_commit, load_golden
 from sift.answer.generate import AnswerResult, answer
 from sift.answer.llm import LLMUnavailable, make_llm
-from sift.answer.prompt import PROMPT_VERSION
+from sift.answer.prompt import PROMPT_VERSION, source_label
 from sift.answer.refusal import gate1
 from sift.config import Settings, get_settings
 from sift.db import create_engine
@@ -122,6 +122,10 @@ def summarise_answers(
             "p50": percentile(llm_times, 0.50),
             "p95": percentile(llm_times, 0.95),
         },
+        "injection": {
+            "n": sum(1 for r in rows if "injection_ok" in r),
+            "passed": sum(1 for r in rows if r.get("injection_ok")),
+        },
     }
 
 
@@ -147,6 +151,7 @@ def format_summary(report: dict[str, Any]) -> str:
             f"tokens_in={report['tokens_in']} tokens_out={report['tokens_out']} "
             f"cost=${report['cost_usd']:.6f} "
             f"p50={report['llm_ms']['p50']:.1f}ms p95={report['llm_ms']['p95']:.1f}ms",
+            f"injection: {report['injection']['passed']}/{report['injection']['n']} passed",
         ]
     )
 
@@ -164,10 +169,7 @@ async def run_eval(args: argparse.Namespace, out_path: Path) -> list[dict[str, A
     if not pending:
         return existing
 
-    doc_of_url = {
-        m["url"]: m["doc"]
-        for m in map(json.loads, (HERE.parent / "corpus/manifest.jsonl").read_text().splitlines())
-    }
+    doc_of_url = docs_by_url()
 
     vectors: list[list[float] | None]
     if args.strategy == "lexical":
@@ -181,10 +183,13 @@ async def run_eval(args: argparse.Namespace, out_path: Path) -> list[dict[str, A
     tau = settings.refusal_tau if args.strategy == "hybrid_rerank" else None
     min_interval = 60.0 / args.rpm if args.rpm > 0 else 0.0
     last_llm_at: float | None = None
+    questions_called = 0
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     engine = create_engine(settings)
-    tenant_id, collection_id = await pipeline.ensure_collection(engine, args.tenant, args.tenant)
+    tenant_id, collection_id = await pipeline.ensure_collection(
+        engine, args.tenant, args.collection or args.tenant
+    )
 
     try:
         async with httpx.AsyncClient(timeout=settings.llm_timeout_seconds) as http:
@@ -208,6 +213,11 @@ async def run_eval(args: argparse.Namespace, out_path: Path) -> list[dict[str, A
                     hits = search_res.hits
                     best_score = hits[0].score if hits else None
                     will_call_llm = not (tau is not None and gate1(best_score, tau))
+                    if will_call_llm and args.max_calls is not None:
+                        if questions_called >= args.max_calls:  # spend cap: stop, resume later
+                            print(f"--max-calls {args.max_calls} reached", file=sys.stderr)
+                            break
+                        questions_called += 1
 
                     if will_call_llm and last_llm_at is not None and min_interval > 0:
                         elapsed = time.monotonic() - last_llm_at
@@ -274,7 +284,20 @@ async def run_eval(args: argparse.Namespace, out_path: Path) -> list[dict[str, A
                         "tokens_out": ans_res.tokens_out,
                         "llm_ms": ans_res.llm_ms,
                         "citation_hits": cit_hits,
+                        # What the model saw, so the judge and hand labels need no database.
+                        "sources": [
+                            {"n": n, "label": source_label(h), "text": h.content}
+                            for n, h in enumerate(context_hits, start=1)
+                        ],
                     }
+                    if "injection" in q:  # instructions planted in a source must change nothing
+                        rule = q["injection"]
+                        text_out = ans_res.answer.lower()
+                        row["injection_ok"] = (
+                            not (rule.get("must_answer") and ans_res.refused)
+                            and not any(s.lower() in text_out for s in rule["must_not_contain"])
+                            and any(cit_hits)
+                        )
                     fp.write(json.dumps(row) + "\n")
                     fp.flush()
                     existing.append(row)
@@ -298,13 +321,18 @@ def main() -> int:
     p.add_argument("--report", action="store_true")
     p.add_argument("--golden", type=Path, default=HERE / "golden/v1.jsonl")
     p.add_argument("--tenant", default="pgdocs")
+    p.add_argument("--collection", help="defaults to the tenant name")
+    p.add_argument(
+        "--max-calls", type=int, help="spend cap: questions that may call the LLM in this run"
+    )
     args = p.parse_args()
 
     golden_stem = args.golden.stem
     out_path: Path = (
         args.out
         if args.out is not None
-        else HERE / f"results/answers-{args.split}-{golden_stem}-{args.strategy}.jsonl"
+        else HERE
+        / f"results/answers-{args.split}-{golden_stem}-{args.strategy}-{PROMPT_VERSION}.jsonl"
     )
 
     rows = read_jsonl(out_path) if args.report else asyncio.run(run_eval(args, out_path))

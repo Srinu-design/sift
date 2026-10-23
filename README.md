@@ -88,6 +88,13 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
   history and the next step: a fresh, stratified set of labels.
 - The judge is not the stronger model the guide asks for (free-tier quotas; see the ADR).
 
+## Ablations (dev, one change at a time)
+
+[docs/eval-report.md](docs/eval-report.md): 400-token chunks with 15% overlap stay (500 tokens and
+no overlap lose MRR significantly; 200 doubles the chunks for no significant gain). The version
+filter is the biggest single factor (without it MRR falls 0.84 -> 0.53). A bigger reranker,
+bge-reranker-v2-m3, lifts hit@5 from 0.887 to 0.986 but takes 34 s per query on CPU.
+
 ## Load, cost and monitoring
 
 `make load-query` (k6, stub LLM, laptop CPU; full table in [docs/benchmarks.md](docs/benchmarks.md)):

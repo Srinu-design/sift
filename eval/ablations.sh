@@ -13,9 +13,9 @@ ingest() {  # $1: collection, then env assignments for the chunker
 variant() {  # $1: collection, rest: chunker env
   local collection=$1; shift
   ingest "$collection" "$@"
-  env "$@" eval_run --collection "$collection" | tee -a eval/results/ablations.log
+  env "$@" uv run --extra models python -m eval.run --strategy hybrid_rerank --split dev \
+    --collection "$collection" | tee -a eval/results/ablations.log
 }
-export -f eval_run ingest
 : > eval/results/ablations.log
 variant pgdocs-c200 CHUNK_TARGET_TOKENS=200 CHUNK_OVERLAP_TOKENS=30
 # 800 (the guide's third size) cannot exist: bge-small reads 512 tokens and the chunker refuses

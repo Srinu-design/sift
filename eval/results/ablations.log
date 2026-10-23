@@ -1,0 +1,54 @@
+hybrid_rerank | golden v1 | split dev | 71 answerable (+15 unanswerable skipped) | headings-200-15 | BAAI/bge-small-en-v1.5@5c38ec7c405e
+                   n                 hit@5                 hit@8             recall@10                mrr@10
+overall           71   0.944 [0.89, 0.99]   0.986 [0.96, 1.00]   0.979 [0.94, 1.00]   0.802 [0.73, 0.87]
+factoid           31   0.935 [0.84, 1.00]   0.968 [0.90, 1.00]   0.968 [0.90, 1.00]   0.815 [0.70, 0.91]
+multi_section      7   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.929 [0.79, 1.00]   1.000 [1.00, 1.00]
+paraphrase         8   0.875 [0.62, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.771 [0.54, 1.00]
+procedural        15   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.780 [0.59, 0.92]
+version_specific  10   0.900 [0.70, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.683 [0.48, 0.88]
+per-question results: eval/results/20261023T100700Z-hybrid_rerank-dev-v1.json
+hybrid_rerank | golden v1 | split dev | 71 answerable (+15 unanswerable skipped) | headings-500-15 | BAAI/bge-small-en-v1.5@5c38ec7c405e
+                   n                 hit@5                 hit@8             recall@10                mrr@10
+overall           71   0.930 [0.86, 0.99]   0.958 [0.90, 1.00]   0.993 [0.98, 1.00]   0.796 [0.72, 0.87]
+factoid           31   0.935 [0.84, 1.00]   0.935 [0.84, 1.00]   1.000 [1.00, 1.00]   0.829 [0.71, 0.93]
+multi_section      7   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.929 [0.79, 1.00]   0.929 [0.79, 1.00]
+paraphrase         8   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.854 [0.67, 1.00]
+procedural        15   0.933 [0.80, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.745 [0.56, 0.91]
+version_specific  10   0.800 [0.60, 1.00]   0.900 [0.70, 1.00]   1.000 [1.00, 1.00]   0.631 [0.40, 0.87]
+per-question results: eval/results/20261023T101014Z-hybrid_rerank-dev-v1.json
+hybrid_rerank | golden v1 | split dev | 71 answerable (+15 unanswerable skipped) | headings-400-0 | BAAI/bge-small-en-v1.5@5c38ec7c405e
+                   n                 hit@5                 hit@8             recall@10                mrr@10
+overall           71   0.901 [0.83, 0.97]   0.986 [0.96, 1.00]   0.979 [0.94, 1.00]   0.809 [0.73, 0.88]
+factoid           31   0.935 [0.84, 1.00]   0.968 [0.90, 1.00]   0.968 [0.90, 1.00]   0.860 [0.75, 0.95]
+multi_section      7   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.929 [0.79, 1.00]   0.905 [0.71, 1.00]
+paraphrase         8   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.900 [0.70, 1.00]
+procedural        15   0.800 [0.60, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.694 [0.50, 0.87]
+version_specific  10   0.800 [0.50, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.682 [0.43, 0.92]
+per-question results: eval/results/20261023T101257Z-hybrid_rerank-dev-v1.json
+hybrid_rerank | golden v1 | split dev | 71 answerable (+15 unanswerable skipped) | headings-400-15-nohead | BAAI/bge-small-en-v1.5@5c38ec7c405e
+                   n                 hit@5                 hit@8             recall@10                mrr@10
+overall           71   0.887 [0.80, 0.96]   0.986 [0.96, 1.00]   0.979 [0.94, 1.00]   0.841 [0.76, 0.91]
+factoid           31   0.903 [0.77, 1.00]   0.968 [0.90, 1.00]   0.968 [0.90, 1.00]   0.892 [0.78, 0.98]
+multi_section      7   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.929 [0.79, 1.00]   0.929 [0.79, 1.00]
+paraphrase         8   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.906 [0.72, 1.00]
+procedural        15   0.800 [0.60, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.732 [0.53, 0.91]
+version_specific  10   0.800 [0.60, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.731 [0.51, 0.92]
+per-question results: eval/results/20261023T101622Z-hybrid_rerank-dev-v1.json
+hybrid_rerank-nofilter | golden v1 | split dev | 71 answerable (+15 unanswerable skipped) | headings-400-15 | BAAI/bge-small-en-v1.5@5c38ec7c405e
+                   n                 hit@5                 hit@8             recall@10                mrr@10
+overall           71   0.859 [0.77, 0.93]   0.859 [0.77, 0.93]   0.847 [0.75, 0.92]   0.531 [0.45, 0.61]
+factoid           31   0.871 [0.74, 0.97]   0.871 [0.74, 0.97]   0.871 [0.74, 0.97]   0.556 [0.45, 0.68]
+multi_section      7   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.881 [0.74, 1.00]   0.691 [0.50, 0.93]
+paraphrase         8   0.875 [0.62, 1.00]   0.875 [0.62, 1.00]   0.875 [0.62, 1.00]   0.521 [0.31, 0.75]
+procedural        15   0.800 [0.60, 1.00]   0.800 [0.60, 1.00]   0.800 [0.60, 1.00]   0.391 [0.23, 0.55]
+version_specific  10   0.800 [0.60, 1.00]   0.800 [0.60, 1.00]   0.800 [0.60, 1.00]   0.558 [0.33, 0.78]
+per-question results: eval/results/20261023T101756Z-hybrid_rerank-nofilter-dev-v1.json
+hybrid_rerank | golden v1 | split dev | 71 answerable (+15 unanswerable skipped) | headings-400-15 | BAAI/bge-small-en-v1.5@5c38ec7c405e
+                   n                 hit@5                 hit@8             recall@10                mrr@10
+overall           71   0.986 [0.96, 1.00]   0.986 [0.96, 1.00]   0.979 [0.94, 1.00]   0.854 [0.78, 0.92]
+factoid           31   0.968 [0.90, 1.00]   0.968 [0.90, 1.00]   0.968 [0.90, 1.00]   0.909 [0.81, 0.98]
+multi_section      7   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.929 [0.79, 1.00]   0.798 [0.57, 1.00]
+paraphrase         8   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.838 [0.61, 1.00]
+procedural        15   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.822 [0.68, 0.93]
+version_specific  10   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   1.000 [1.00, 1.00]   0.787 [0.57, 0.93]
+per-question results: eval/results/20261023T110921Z-hybrid_rerank-dev-v1.json

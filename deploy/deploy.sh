@@ -70,7 +70,9 @@ case "${1:-}" in
 esac
 
 git -C "$SRC" fetch -q origin || { log "git fetch failed"; exit 2; }
-sha=$(git -C "$SRC" rev-parse --verify -q "$1^{commit}" || git -C "$SRC" rev-parse --verify -q "origin/$1^{commit}") \
+# origin/<ref> first: the clone's own branches are never updated, so a bare "main" would
+# resolve to whatever main was when the host cloned (a stale build once filled the disk).
+sha=$(git -C "$SRC" rev-parse --verify -q "origin/$1^{commit}" || git -C "$SRC" rev-parse --verify -q "$1^{commit}") \
   || { log "unknown ref $1"; exit 2; }
 log "release $sha ($1)"
 git -C "$SRC" checkout -q --detach "$sha"

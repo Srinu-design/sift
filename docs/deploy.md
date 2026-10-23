@@ -91,6 +91,11 @@ smoke pass: top 5 anchors ['SQL-CREATEINDEX-CONCURRENTLY', …]
 cached dependency layer (disk unchanged). Health checks alone would have shipped this bug: only a
 check of *what retrieval returns* catches it.
 
+**A second disk scare, same day:** `deploy.sh main` resolved the host clone's *local* `main`
+(still the commit from clone time, with the old 2 GB image layout) before `origin/main`, and its
+build filled the disk again. The live release was untouched (exit 2: the build fails before any
+swap); space was freed at once. `deploy.sh` now resolves `origin/<ref>` first.
+
 ## Turning on real answers
 
 The host runs with the stub LLM until the owner adds the Gemini key (keys are entered by the

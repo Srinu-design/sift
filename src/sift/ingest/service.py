@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy.exc import DBAPIError
 
+from sift import metrics
 from sift.common.logging import configure_logging
 from sift.config import get_settings
 from sift.db import create_engine
@@ -53,7 +54,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.secret = base64.urlsafe_b64decode(secret)
     app.state.engine = create_engine(settings)
     app.state.http = httpx.AsyncClient(timeout=settings.models_timeout_seconds)
+    stop_metrics = metrics.serve(settings.metrics_port)
     yield
+    stop_metrics()
     await app.state.http.aclose()
     await app.state.engine.dispose()
 

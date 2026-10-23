@@ -3,3 +3,19 @@
 services:
   postgres:
     image: pgvector/pgvector:0.8.6-pg16
+
+  # Hopper's Prometheus config with Sift's scrape jobs added (alerts.yml stays Hopper's).
+  prometheus:
+    volumes:
+      - ../../sift/deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  # Grafana reads provisioning from a Sift-owned path that mounts Hopper's data source and
+  # dashboard unchanged next to Sift's dashboard (Hopper's own path is a read-only mount).
+  grafana:
+    environment:
+      GF_PATHS_PROVISIONING: /etc/sift-grafana
+    volumes:
+      - ../deploy/grafana/provisioning/datasources:/etc/sift-grafana/datasources:ro
+      - ../../sift/deploy/grafana/dashboards.yml:/etc/sift-grafana/dashboards/dashboards.yml:ro
+      - ../deploy/grafana/provisioning/dashboards:/etc/sift-grafana/hopper-dashboards:ro
+      - ../../sift/deploy/grafana/dashboards:/etc/sift-grafana/sift-dashboards:ro

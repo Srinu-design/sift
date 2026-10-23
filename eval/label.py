@@ -83,7 +83,11 @@ def main() -> int:
                 "Faithful? every claim supported by the sources: [y]es / [p]artly / [n]o: ",
                 FAITHFUL,
             )
-            correct = ask("Correct vs the reference? [1] / [h]alf / [0] / [s]kip: ", CORRECT)
+            correct = ask(
+                "Correct? Grade against what the QUESTION asks (reference detail it did not ask"
+                " for is optional): [1] / [h]alf / [0] / [s]kip: ",
+                CORRECT,
+            )
             note = input("Note (optional): ").strip()
             label = {
                 "id": row["id"],

@@ -554,6 +554,7 @@ def create_app(
         structlog.contextvars.bind_contextvars(request_id=req_id)
 
         response = await call_next(request)
+        metrics.HTTP_RESPONSES.labels(status=f"{response.status_code // 100}xx").inc()
         response.headers["X-Request-ID"] = req_id
         response.headers["Content-Security-Policy"] = CSP_POLICY
         response.headers["X-Content-Type-Options"] = "nosniff"

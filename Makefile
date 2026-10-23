@@ -8,7 +8,7 @@ COMPOSE := docker compose -f docker/compose.yaml --env-file .env
 EVAL := uv run --extra models python -m eval.run
 
 .PHONY: env up down logs corpus migrate hopper-tenant api-key ingest-local ingest-sample ingest ingest-sebi ingest-bench eval \
-	eval-baseline eval-compare eval-overlap eval-tau eval-answers eval-judge label kappa rerank-latency golden-check golden-review test test-e2e lint fmt
+	eval-baseline eval-compare eval-overlap eval-tau eval-answers eval-judge label kappa load-query ablations rerank-latency golden-check golden-review test test-e2e lint fmt
 
 env:
 	@test -f .env || cp .env.example .env
@@ -94,7 +94,15 @@ label:
 
 kappa:
 	uv run python -m eval.kappa --labels eval/labels/human-v1.jsonl \
-		--judged eval/results/answers-dev-v1-hybrid_rerank-answer-v2-judge-v1.jsonl
+		--judged eval/results/answers-dev-v1-hybrid_rerank-answer-v2-judge-v2.jsonl
+
+# Query load test with the stub LLM, cache off and on (16 minutes). Needs make up.
+load-query:
+	loadtest/query_bench.sh
+
+# Retrieval ablations on dev, one change at a time (about an hour on a laptop CPU).
+ablations:
+	eval/ablations.sh
 
 # Filtered dev questions: HNSW (iterative scan) against exact search, overlap at 50.
 eval-overlap:

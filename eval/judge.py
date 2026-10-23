@@ -22,7 +22,7 @@ from eval.run import HERE, git_commit
 from sift.answer.llm import LLM, GeminiLLM, LLMUnavailable
 from sift.config import get_settings
 
-JUDGE_VERSION = "judge-v1"
+JUDGE_VERSION = "judge-v2"  # v2: correctness graded against what the question asks
 VALID_CORRECTNESS = (0.0, 0.5, 1.0)
 
 JUDGE_SCHEMA: dict[str, object] = {
@@ -61,13 +61,14 @@ Evaluate the candidate answer on two rubrics:
    - Supported means a reader could verify the claim from the provided source text alone.
      Do not use outside knowledge or assumptions.
 
-2. Correctness against the reference answer:
-   - Score 1 if the candidate answer states every key fact of the reference answer and
-     nothing that contradicts it.
-   - Score 0.5 if the candidate answer gets part of the reference right, misses a key
-     fact, or adds a minor error.
-   - Score 0 if the candidate answer is wrong, contradicts the reference, or answers a
-     different question.
+2. Correctness, graded against what the QUESTION asks (the reference answer shows the
+   expected facts; detail in it that the question did not ask for is optional):
+   - Score 1 if the candidate answers everything the question asks, correctly, and says
+     nothing that contradicts the reference.
+   - Score 0.5 if it answers only part of what the question asks (for example one of two
+     parts, or a "how do I" answer missing a step without which the method does not work),
+     or adds a minor error.
+   - Score 0 if it is wrong, contradicts the reference, or answers a different question.
    - If the question is unanswerable (no reference answer is provided), set `correctness`
      to null and explain briefly in `correctness_reason`.
 

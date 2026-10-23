@@ -11,6 +11,7 @@
 """
 
 import hashlib
+import os
 import re
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -21,10 +22,14 @@ from tokenizers import Tokenizer
 from sift.config import get_settings
 from sift.ingest.parsers import Block, ParseError
 
-TARGET_TOKENS = 400
-OVERLAP_TOKENS = 60  # 15% of TARGET
+# Ablation knobs (week 6), environment only: the defaults are the measured choice (ADR-0004).
+TARGET_TOKENS = int(os.environ.get("CHUNK_TARGET_TOKENS", "400"))
+OVERLAP_TOKENS = int(os.environ.get("CHUNK_OVERLAP_TOKENS", "60"))  # 15% of TARGET
+EMBED_HEADING = os.environ.get("CHUNK_EMBED_HEADING", "1") != "0"
 MAX_TOKENS = 512  # bge-small-en-v1.5's limit, special tokens included
-NAME = f"headings-{TARGET_TOKENS}-{round(100 * OVERLAP_TOKENS / TARGET_TOKENS)}"
+NAME = f"headings-{TARGET_TOKENS}-{round(100 * OVERLAP_TOKENS / TARGET_TOKENS)}" + (
+    "" if EMBED_HEADING else "-nohead"
+)
 
 _SENTENCE_END = re.compile(r"(?<=[.!?:;])\s+")
 
@@ -48,7 +53,7 @@ def count_tokens(text: str, special: bool = True) -> int:
 
 def embed_text(heading: str, content: str) -> str:
     """What the model embeds: the heading carries context ("this option") the content lacks."""
-    return f"{heading}\n{content}"
+    return f"{heading}\n{content}" if EMBED_HEADING else content
 
 
 @dataclass(frozen=True, slots=True)

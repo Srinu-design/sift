@@ -111,7 +111,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
     reranker = local_reranker() if args.strategy == "hybrid_rerank" else None
     per_question: list[dict[str, Any]] = []
     for q, vec in zip(answerable, vectors, strict=True):
-        filters = Filters.model_validate(q.get("filters") or {})
+        filters = Filters() if args.no_filters else Filters.model_validate(q.get("filters") or {})
         res = await search(
             engine,
             tenant_id=tenant_id,
@@ -180,6 +180,8 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         if args.lexical_mode == "and" and args.strategy != "naive"
         else args.strategy
     )
+    if args.no_filters:
+        strategy_label += "-nofilter"
     if args.strategy == "hybrid_rerank" and args.rerank_depth != get_settings().rerank_depth:
         strategy_label += f"-r{args.rerank_depth}"
     types = sorted({r["type"] for r in per_question})
@@ -244,6 +246,7 @@ def main() -> int:
     p.add_argument("--golden", type=Path, default=HERE / "golden/v1.jsonl")
     p.add_argument("--tenant", default="pgdocs")
     p.add_argument("--collection", help="defaults to the tenant name")
+    p.add_argument("--no-filters", action="store_true", help="ablation: ignore question filters")
     p.add_argument("--write-baseline", action="store_true")
     args = p.parse_args()
     report = asyncio.run(run(args))

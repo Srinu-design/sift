@@ -70,29 +70,37 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
 ## Generation quality: the LLM judge (dev split)
 
 `make eval-judge`: every answered dev question judged by `gemini-3.1-flash-lite` at temperature
-0 (`eval/judge.py`, judge-v1), against the sources the answer model saw:
+0 (`eval/judge.py`, rubric judge-v2), against the sources the answer model saw:
 
 | | n | faithfulness | answer correctness |
 |---|---|---|---|
-| overall | 69 | 1.000 (152 of 152 claims supported) | 0.851 [0.79, 0.91] |
-| procedural | 14 | 1.000 | 0.786 [0.64, 0.93] |
-| factoid | 30 | 1.000 | 0.867 [0.78, 0.95] |
+| overall | 69 | 1.000 (every claim supported) | 0.895 [0.84, 0.94] |
+| factoid | 30 | 1.000 | 0.967 |
+| procedural | 14 | 1.000 | 0.786 |
 
-- **Faithfulness is 1.000 because the answers stay inside their sources**, not because the
-  judge waves everything through: planting one false sentence in each of 5 answers, the judge
-  flagged all 5 (faithfulness 0.50–0.67 for those answers).
-- Correctness: 47 answers fully right, 20 half right (usually a missing detail), none wrong.
-- **Validation against 40 hand labels** (`make label`, `make kappa`,
-  `eval/labels/human-v1.jsonl`): faithfulness agrees on 40 of 40, but every label on both sides
-  was "faithful", so kappa says nothing there (one class). **Correctness agrees on 32 of 40,
-  Cohen's kappa 0.584: under the 0.6 bar, so the 0.851 is not trusted yet.** The 8 disagreements
-  go both ways (judge stricter on 3 answers that answered exactly what was asked, laxer on 5 that
-  left out a detail of the reference): the rubric's "every key fact of the reference" is ambiguous.
-  Next: a judge-v2 rubric that grades against what the question asks, checked on a fresh set of
-  labels rather than these 40 (tuning on them would overfit the prompt to them).
-- The judge is not the stronger model the guide asks for: on the free tier the pro models have no
-  quota, `gemini-3.5-flash` allows 20 requests a day and Gemma 4 kept failing, so it is an older
-  version of the answer model's own family.
+- **Faithfulness is 1.000 because the answers stay inside their sources**: a false sentence
+  planted in each of 5 answers was flagged 5 out of 5 times.
+- **Correctness is not validated yet.** Against 40 hand labels (`make label`, `make kappa`) the
+  judge agrees on 34 of 40, but Cohen's kappa is 0.489, under the 0.6 bar: 35 of the 40 labels
+  are "fully correct", so chance agreement is high and kappa stays low. The rubric was also
+  clarified after the first round of labels (grade against what the question asks), so the
+  number is measured on the data that shaped it. ADR-[0010](docs/adr/0010-llm-judge.md) has the
+  history and the next step: a fresh, stratified set of labels.
+- The judge is not the stronger model the guide asks for (free-tier quotas; see the ADR).
+
+## Load, cost and monitoring
+
+`make load-query` (k6, stub LLM, laptop CPU; full table in [docs/benchmarks.md](docs/benchmarks.md)):
+**0.5 requests/s with p95 under 3 s without the answer cache, 1 request/s with it** (48% hits
+under a uniform mix of the dev questions). The cross-encoder saturates first: one rerank takes
+about a second of the whole CPU and sift-models runs one model call at a time. Postgres search
+stays under ~60 ms at every rate. About 3,000 tokens in and 180 out per answered query
+(~3.0 M / 0.18 M per 1,000 queries; free tier today, so $0).
+
+Prometheus scrapes sift-api and sift-ingest next to Hopper; Grafana has a **Sift** dashboard
+(p50/p95 per stage, cost per query, cache hit rate, refusals by gate, errors and budget 429s,
+tokens, Hopper's ingestion backlog) next to Hopper's (`deploy/grafana/`,
+`docker/hopper.override.yaml`; Hopper's files are mounted unchanged).
 
 ## Tenant B: SEBI circulars (PDF, page citations)
 
@@ -158,6 +166,7 @@ make eval            # all four strategies on the dev split
 make eval-tau        # sweep the gate-1 refusal threshold on dev
 make rerank-latency  # cross-encoder p50/p95 at 50 and 30 pairs
 make eval-answers    # cited answers and refusals with the real model (GEMINI_API_KEY in .env)
+make load-query      # k6 load test with the stub LLM, cache off and on
 make ingest-sebi     # tenant B: SEBI circular PDFs, in-process (needs the pdf extra)
 make eval-compare A=eval/results/<a>.json B=eval/results/<b>.json   # paired bootstrap
 make eval-overlap    # filtered HNSW versus exact search

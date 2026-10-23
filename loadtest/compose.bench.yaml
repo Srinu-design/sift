@@ -1,0 +1,11 @@
+# Load-test overrides for sift-api (loadtest/query_bench.sh): a stub LLM with a fixed delay, so
+# the run measures Sift's own pipeline without paying; limits and budget out of the way.
+services:
+  sift-api:
+    environment:
+      LLM_PROVIDER: stub
+      STUB_DELAY_MS: "800"
+      QUERY_RATE_PER_SEC: "1000"
+      QUERY_BURST: "1000"
+      DAILY_BUDGET_USD: "1000000"
+      ANSWER_CACHE_ENABLED: ${ANSWER_CACHE_ENABLED:-true}

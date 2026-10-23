@@ -1,0 +1,18 @@
+# Grafana dashboards for the Sift + Hopper stack. Hopper's dashboard folder is mounted
+# unchanged; Sift's sits next to it. Edit the JSON in the repo, not in the UI.
+apiVersion: 1
+providers:
+  - name: hopper
+    folder: Hopper
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /etc/sift-grafana/hopper-dashboards
+  - name: sift
+    folder: Sift
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /etc/sift-grafana/sift-dashboards

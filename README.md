@@ -82,11 +82,17 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
   judge waves everything through: planting one false sentence in each of 5 answers, the judge
   flagged all 5 (faithfulness 0.50–0.67 for those answers).
 - Correctness: 47 answers fully right, 20 half right (usually a missing detail), none wrong.
-- **Not yet validated:** the guide requires 40 hand labels and Cohen's kappa >= 0.6 before
-  trusting a judge number (`make label`, then `make kappa`). The judge is also not the stronger
-  model the guide asks for: on the free tier the pro models have no quota, `gemini-3.5-flash`
-  allows 20 requests a day and Gemma 4 kept failing, so it is an older version of the answer
-  model's own family.
+- **Validation against 40 hand labels** (`make label`, `make kappa`,
+  `eval/labels/human-v1.jsonl`): faithfulness agrees on 40 of 40, but every label on both sides
+  was "faithful", so kappa says nothing there (one class). **Correctness agrees on 32 of 40,
+  Cohen's kappa 0.584: under the 0.6 bar, so the 0.851 is not trusted yet.** The 8 disagreements
+  go both ways (judge stricter on 3 answers that answered exactly what was asked, laxer on 5 that
+  left out a detail of the reference): the rubric's "every key fact of the reference" is ambiguous.
+  Next: a judge-v2 rubric that grades against what the question asks, checked on a fresh set of
+  labels rather than these 40 (tuning on them would overfit the prompt to them).
+- The judge is not the stronger model the guide asks for: on the free tier the pro models have no
+  quota, `gemini-3.5-flash` allows 20 requests a day and Gemma 4 kept failing, so it is an older
+  version of the answer model's own family.
 
 ## Tenant B: SEBI circulars (PDF, page citations)
 

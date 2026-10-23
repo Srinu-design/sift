@@ -74,6 +74,19 @@ class Settings(BaseSettings):
     demo_collection: str = "pgdocs"
     demo_rate_per_minute: int = Field(default=10, ge=1)  # per client IP
 
+    # Ops (week 6). Redis holds the query-embedding and answer caches, the rate limiter's
+    # buckets and each tenant's daily spend; every use fails open while Redis is down.
+    redis_url: str = "redis://127.0.0.1:6379/1"  # db 1: Hopper uses db 0
+    redis_retry_seconds: float = Field(default=5.0, gt=0)
+    metrics_port: int = Field(default=9100, ge=0, le=65535)  # 0 serves nothing (tests)
+    query_embedding_ttl_seconds: int = Field(default=86_400, ge=1)
+    answer_cache_enabled: bool = True
+    answer_cache_ttl_seconds: int = Field(default=86_400, ge=1)
+    query_rate_per_sec: float = Field(default=2.0, gt=0)  # per tenant, /v1/query
+    query_burst: int = Field(default=10, ge=1)
+    # Per-tenant daily LLM spend; over it, /v1/query answers 429 until UTC midnight. None: no cap.
+    daily_budget_usd: float | None = Field(default=1.0, gt=0)
+
 
 @lru_cache
 def get_settings() -> Settings:

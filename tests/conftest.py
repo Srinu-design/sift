@@ -9,6 +9,7 @@ from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import pytest
+import redis.asyncio as redis_asyncio
 from sqlalchemy import text
 from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
@@ -21,6 +22,9 @@ os.environ.setdefault("HOPPER_URL", "http://hopper.test")
 os.environ.setdefault("MODELS_URL", "http://models.test")
 os.environ.setdefault("HOPPER_API_KEY", "hop_test_key")
 os.environ.setdefault("HOPPER_SIGNING_SECRET", "dGVzdC1zaWduaW5nLXNlY3JldC1ub3QtYS1zZWNyZXQ=")
+# Redis db 15 is the tests' own; the redis_client fixture empties it around every test.
+os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:6379/15")
+os.environ.setdefault("METRICS_PORT", "0")
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -68,6 +72,17 @@ async def engine(migrated_template: str) -> AsyncIterator[AsyncEngine]:
     finally:
         await eng.dispose()
         await _admin(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+
+
+@pytest.fixture
+async def redis_client() -> AsyncIterator["redis_asyncio.Redis"]:
+    client = redis_asyncio.from_url(os.environ["REDIS_URL"])
+    await client.flushdb()
+    try:
+        yield client
+    finally:
+        await client.flushdb()
+        await client.aclose()
 
 
 class FakeEmbedder:

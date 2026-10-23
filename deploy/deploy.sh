@@ -39,6 +39,13 @@ start() {  # $1 sha: replace the services and smoke test them
   return "${PIPESTATUS[0]}"
 }
 
+cleanup() {  # keep the live and previous images only: each is ~2 GB on a 19 GB disk
+  local keep=("$(cat "$ROOT/current" 2>/dev/null)" "$(cat "$ROOT/previous" 2>/dev/null)")
+  docker image ls sift --format '{{.Tag}}' | grep -vxF -e "${keep[0]:-none}" -e "${keep[1]:-none}" \
+    | xargs -r -I{} docker image rm -f "sift:{}" >/dev/null 2>&1 || true
+  docker builder prune -f >/dev/null 2>&1 || true   # dangling build cache only
+}
+
 rollback() {
   local prev
   prev=$(cat "$ROOT/previous" 2>/dev/null) || { log "no previous release to roll back to"; return 3; }
@@ -46,6 +53,7 @@ rollback() {
   if start "$prev"; then
     echo "$prev" > "$ROOT/current"
     log "rolled back to $prev"
+    cleanup
     return 1
   fi
   log "ROLLBACK FAILED: $prev did not pass the smoke test either"
@@ -73,6 +81,7 @@ if start "$sha"; then
   [[ -n "$live" && "$live" != "$sha" ]] && echo "$live" > "$ROOT/previous"
   echo "$sha" > "$ROOT/current"
   log "deployed $sha"
+  cleanup
   exit 0
 fi
 log "release $sha failed"

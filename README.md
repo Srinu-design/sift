@@ -67,6 +67,27 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
   (it refused a question it could answer). Prompt v2 fences the sources and restates the rule
   after them; all three injected questions now pass (ADR-0008).
 
+## Generation quality: the LLM judge (dev split)
+
+`make eval-judge`: every answered dev question judged by `gemini-3.1-flash-lite` at temperature
+0 (`eval/judge.py`, judge-v1), against the sources the answer model saw:
+
+| | n | faithfulness | answer correctness |
+|---|---|---|---|
+| overall | 69 | 1.000 (152 of 152 claims supported) | 0.851 [0.79, 0.91] |
+| procedural | 14 | 1.000 | 0.786 [0.64, 0.93] |
+| factoid | 30 | 1.000 | 0.867 [0.78, 0.95] |
+
+- **Faithfulness is 1.000 because the answers stay inside their sources**, not because the
+  judge waves everything through: planting one false sentence in each of 5 answers, the judge
+  flagged all 5 (faithfulness 0.50–0.67 for those answers).
+- Correctness: 47 answers fully right, 20 half right (usually a missing detail), none wrong.
+- **Not yet validated:** the guide requires 40 hand labels and Cohen's kappa >= 0.6 before
+  trusting a judge number (`make label`, then `make kappa`). The judge is also not the stronger
+  model the guide asks for: on the free tier the pro models have no quota, `gemini-3.5-flash`
+  allows 20 requests a day and Gemma 4 kept failing, so it is an older version of the answer
+  model's own family.
+
 ## Tenant B: SEBI circulars (PDF, page citations)
 
 24 SEBI circulars from July–October 2026 (`corpus/fetch_sebi.py`, SHA-256 manifest), parsed by

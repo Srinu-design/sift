@@ -52,9 +52,11 @@ class Settings(BaseSettings):
     # Checked 2026-10-20 on the free tier: 2.5-flash is closed to new keys, 3.8-flash hung past
     # 150 s, 3.5-flash answered 503; 3.5-flash-lite returned valid cited JSON in 1.6 s.
     answer_model: str = "gemini-3.5-flash-lite"
-    # The judge must be a different, stronger model than the answerer (week 5). Checked
-    # 2026-10-23: pro models have no free-tier quota; 3.5-flash answers (with 503s at busy times).
-    judge_model: str = "gemini-3.5-flash"
+    # The judge must be a different model from the answerer, validated against hand labels
+    # (kappa). Checked 2026-10-23 on the free tier: pro models have no quota, 3.5-flash allows 20
+    # requests a day, Gemma 4 31B kept failing with 500/503; 3.1-flash-lite (an older version of
+    # the answerer's family, so not stronger) answers the judge schema reliably.
+    judge_model: str = "gemini-3.1-flash-lite"
     llm_timeout_seconds: float = Field(default=60.0, gt=0)
     llm_thinking_budget: int | None = None
     stub_delay_ms: int = Field(default=0, ge=0)
@@ -73,6 +75,19 @@ class Settings(BaseSettings):
     demo_tenant: str | None = "pgdocs"
     demo_collection: str = "pgdocs"
     demo_rate_per_minute: int = Field(default=10, ge=1)  # per client IP
+
+    # Ops (week 6). Redis holds the query-embedding and answer caches, the rate limiter's
+    # buckets and each tenant's daily spend; every use fails open while Redis is down.
+    redis_url: str = "redis://127.0.0.1:6379/1"  # db 1: Hopper uses db 0
+    redis_retry_seconds: float = Field(default=5.0, gt=0)
+    metrics_port: int = Field(default=9100, ge=0, le=65535)  # 0 serves nothing (tests)
+    query_embedding_ttl_seconds: int = Field(default=86_400, ge=1)
+    answer_cache_enabled: bool = True
+    answer_cache_ttl_seconds: int = Field(default=86_400, ge=1)
+    query_rate_per_sec: float = Field(default=2.0, gt=0)  # per tenant, /v1/query
+    query_burst: int = Field(default=10, ge=1)
+    # Per-tenant daily LLM spend; over it, /v1/query answers 429 until UTC midnight. None: no cap.
+    daily_budget_usd: float | None = Field(default=1.0, gt=0)
 
 
 @lru_cache

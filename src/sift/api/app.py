@@ -3,15 +3,15 @@
 import json
 import re
 import time
-from collections import defaultdict, deque
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import date, datetime
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID, uuid4
 
 import httpx
+import redis.asyncio as redis_asyncio
 import structlog
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse
@@ -21,12 +21,17 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from sift import metrics
 from sift.answer.citations import Citation
 from sift.answer.generate import answer
 from sift.answer.llm import LLM, LLMUnavailable, make_llm
 from sift.answer.prompt import PROMPT_VERSION
+from sift.answer.refusal import gate1
 from sift.auth.api_keys import ApiKeyAuthenticator, current_tenant
+from sift.cache import REDIS_DOWN, AnswerCache, QueryEmbeddingCache, SpendBudget, answer_key
 from sift.common.logging import configure_logging
+from sift.common.ratelimit.limiter import RateLimiter
+from sift.common.ratelimit.redis_health import RedisHealth
 from sift.config import Settings, get_settings
 from sift.db import create_engine, set_tenant
 from sift.hopper import HopperBusy, enqueue_step
@@ -145,27 +150,151 @@ async def _embed_question(
     return vec, round((time.perf_counter() - t0) * 1000.0, 1)
 
 
+async def _write_query_log(
+    db_engine: AsyncEngine,
+    *,
+    tenant_id: UUID,
+    collection_id: UUID,
+    request_id: str,
+    strategy: str,
+    cache_hit: bool,
+    refused: bool,
+    refusal_gate: str | None,
+    top_rerank_score: float | None,
+    timings_ms: dict[str, float],
+    tokens_in: int,
+    tokens_out: int,
+    cost_usd: float,
+    prompt_version: str,
+    model: str | None,
+) -> None:
+    try:
+        async with db_engine.begin() as conn:
+            await set_tenant(conn, tenant_id)
+            await conn.execute(
+                text(INSERT_QUERY_LOG),
+                {
+                    "tenant_id": tenant_id,
+                    "collection_id": collection_id,
+                    "request_id": request_id,
+                    "strategy": strategy,
+                    "cache_hit": cache_hit,
+                    "refused": refused,
+                    "refusal_gate": refusal_gate,
+                    "top_rerank_score": top_rerank_score,
+                    "timings_ms": json.dumps(timings_ms),
+                    "tokens_in": tokens_in,
+                    "tokens_out": tokens_out,
+                    "cost_usd": cost_usd,
+                    "prompt_version": prompt_version,
+                    "model": model,
+                },
+            )
+    except DBAPIError as exc:
+        raise HTTPException(status_code=503, detail="database unavailable") from exc
+
+
 async def _execute_query(
     request: Request,
     *,
     tenant_id: UUID,
     collection_id: UUID,
+    index_version: int,
     body: DemoQueryIn,
 ) -> QueryOut:
+    t_total = time.perf_counter()
     settings: Settings = request.app.state.settings
     db_engine: AsyncEngine = request.app.state.engine
     http_client: httpx.AsyncClient = request.app.state.http
     llm_client: LLM = request.app.state.llm
+    qemb_cache: QueryEmbeddingCache = request.app.state.query_embedding_cache
+    ans_cache: AnswerCache = request.app.state.answer_cache
+    budget: SpendBudget = request.app.state.budget
     req_id: str = request.state.request_id
+
+    cache_model = settings.answer_model if settings.llm_provider == "gemini" else "stub"
+    ans_key = answer_key(
+        tenant_id=tenant_id,
+        collection_id=collection_id,
+        index_version=index_version,
+        strategy=body.strategy,
+        filters=body.filters,
+        k=body.k,
+        prompt_version=PROMPT_VERSION,
+        model=cache_model,
+        question=body.question,
+    )
+
+    if settings.answer_cache_enabled:
+        cached = await ans_cache.get(ans_key)
+        if cached is not None:
+            total_ms = round((time.perf_counter() - t_total) * 1000.0, 1)
+            hit_timings: dict[str, float] = {
+                "embed": 0.0,
+                "dense": 0.0,
+                "lexical": 0.0,
+                "fuse": 0.0,
+                "rerank": 0.0,
+                "llm": 0.0,
+                "total": total_ms,
+            }
+            hit_out = QueryOut.model_validate(
+                {
+                    **cached,
+                    "cache_hit": True,
+                    "timings_ms": hit_timings,
+                    "cost_usd": 0.0,
+                    "request_id": req_id,
+                }
+            )
+            await _write_query_log(
+                db_engine,
+                tenant_id=tenant_id,
+                collection_id=collection_id,
+                request_id=req_id,
+                strategy=body.strategy,
+                cache_hit=True,
+                refused=hit_out.refused,
+                refusal_gate=hit_out.refusal_gate,
+                top_rerank_score=None,
+                timings_ms=hit_timings,
+                tokens_in=0,
+                tokens_out=0,
+                cost_usd=0.0,
+                prompt_version=hit_out.prompt_version,
+                model=cache_model,
+            )
+            metrics.QUERY_SECONDS.labels(stage="total").observe(total_ms / 1000.0)
+            metrics.QUERIES.labels(strategy=body.strategy).inc()
+            logger.info(
+                "query",
+                request_id=req_id,
+                strategy=body.strategy,
+                cache_hit=True,
+                refused=hit_out.refused,
+                refusal_gate=hit_out.refusal_gate,
+                timings_ms=hit_timings,
+                tokens_in=0,
+                tokens_out=0,
+                cost_usd=0.0,
+            )
+            return hit_out
 
     try:
         if body.strategy == "lexical":
             query_vec: list[float] | None = None
             embed_ms = 0.0
         else:
-            query_vec, embed_ms = await _embed_question(
-                http_client, settings.models_url, body.question
-            )
+            t_embed = time.perf_counter()
+            cached_vec = await qemb_cache.get(body.question)
+            if cached_vec is not None:
+                query_vec = cached_vec
+                embed_ms = round((time.perf_counter() - t_embed) * 1000.0, 1)
+            else:
+                query_vec, embed_ms = await _embed_question(
+                    http_client, settings.models_url, body.question
+                )
+                await qemb_cache.put(body.question, query_vec)
 
         reranker = (
             remote_reranker(http_client, settings.models_url)
@@ -191,6 +320,18 @@ async def _execute_query(
         raise HTTPException(status_code=503, detail="database unavailable") from exc
 
     tau = settings.refusal_tau if body.strategy == "hybrid_rerank" else None
+    best_score = float(search_res.hits[0].score) if search_res.hits else None
+    will_call_llm = bool(search_res.hits) and (tau is None or not gate1(best_score, tau))
+    if will_call_llm:
+        retry = await budget.check(tenant_id)
+        if retry is not None:
+            metrics.BUDGET_REJECTIONS.inc()
+            raise HTTPException(
+                status_code=429,
+                detail="budget_exceeded",
+                headers={"Retry-After": str(retry)},
+            )
+
     try:
         ans_res = await answer(
             body.question,
@@ -206,6 +347,7 @@ async def _execute_query(
             headers={"Retry-After": "10"},
         ) from exc
 
+    total_ms = round((time.perf_counter() - t_total) * 1000.0, 1)
     timings_ms: dict[str, float] = {
         "embed": embed_ms,
         "dense": search_res.timings_ms.get("dense", 0.0),
@@ -213,6 +355,7 @@ async def _execute_query(
         "fuse": search_res.timings_ms.get("fuse", 0.0),
         "rerank": search_res.timings_ms.get("rerank", 0.0),
         "llm": ans_res.llm_ms,
+        "total": total_ms,
     }
     cost_usd = round(
         (
@@ -222,41 +365,47 @@ async def _execute_query(
         / 1_000_000.0,
         6,
     )
-    top_rerank_score = (
-        float(search_res.hits[0].score)
-        if body.strategy == "hybrid_rerank" and search_res.hits
-        else None
+    await budget.add(tenant_id, cost_usd)
+
+    top_rerank_score = best_score if body.strategy == "hybrid_rerank" else None
+
+    await _write_query_log(
+        db_engine,
+        tenant_id=tenant_id,
+        collection_id=collection_id,
+        request_id=req_id,
+        strategy=body.strategy,
+        cache_hit=False,
+        refused=ans_res.refused,
+        refusal_gate=ans_res.refusal_gate,
+        top_rerank_score=top_rerank_score,
+        timings_ms=timings_ms,
+        tokens_in=ans_res.tokens_in,
+        tokens_out=ans_res.tokens_out,
+        cost_usd=cost_usd,
+        prompt_version=PROMPT_VERSION,
+        model=ans_res.model,
     )
 
-    try:
-        async with db_engine.begin() as conn:
-            await set_tenant(conn, tenant_id)
-            await conn.execute(
-                text(INSERT_QUERY_LOG),
-                {
-                    "tenant_id": tenant_id,
-                    "collection_id": collection_id,
-                    "request_id": req_id,
-                    "strategy": body.strategy,
-                    "cache_hit": False,
-                    "refused": ans_res.refused,
-                    "refusal_gate": ans_res.refusal_gate,
-                    "top_rerank_score": top_rerank_score,
-                    "timings_ms": json.dumps(timings_ms),
-                    "tokens_in": ans_res.tokens_in,
-                    "tokens_out": ans_res.tokens_out,
-                    "cost_usd": cost_usd,
-                    "prompt_version": PROMPT_VERSION,
-                    "model": ans_res.model,
-                },
-            )
-    except DBAPIError as exc:
-        raise HTTPException(status_code=503, detail="database unavailable") from exc
+    if body.strategy != "lexical":
+        metrics.QUERY_SECONDS.labels(stage="embed").observe(embed_ms / 1000.0)
+    for stage_name, stage_ms in search_res.timings_ms.items():
+        metrics.QUERY_SECONDS.labels(stage=stage_name).observe(stage_ms / 1000.0)
+    if will_call_llm:
+        metrics.QUERY_SECONDS.labels(stage="llm").observe(ans_res.llm_ms / 1000.0)
+    metrics.QUERY_SECONDS.labels(stage="total").observe(total_ms / 1000.0)
+    metrics.LLM_TOKENS.labels(direction="in").inc(ans_res.tokens_in)
+    metrics.LLM_TOKENS.labels(direction="out").inc(ans_res.tokens_out)
+    metrics.QUERY_COST.inc(cost_usd)
+    if ans_res.refused and ans_res.refusal_gate is not None:
+        metrics.REFUSALS.labels(gate=ans_res.refusal_gate).inc()
+    metrics.QUERIES.labels(strategy=body.strategy).inc()
 
     logger.info(
         "query",
         request_id=req_id,
         strategy=body.strategy,
+        cache_hit=False,
         refused=ans_res.refused,
         refusal_gate=ans_res.refusal_gate,
         refusal_reason=ans_res.refusal_reason,
@@ -269,7 +418,7 @@ async def _execute_query(
     client_reason = (
         CITATION_FAILURE_REASON if ans_res.refusal_gate == "citation" else ans_res.refusal_reason
     )
-    return QueryOut(
+    out = QueryOut(
         answer=ans_res.answer,
         refused=ans_res.refused,
         refusal_gate=ans_res.refusal_gate,
@@ -283,6 +432,13 @@ async def _execute_query(
         request_id=req_id,
         prompt_version=PROMPT_VERSION,
     )
+    if settings.answer_cache_enabled and ans_res.refusal_gate != "citation":
+        payload = out.model_dump(
+            mode="json",
+            exclude={"request_id", "timings_ms", "cache_hit"},
+        )
+        await ans_cache.put(ans_key, payload)
+    return out
 
 
 def create_app(
@@ -291,6 +447,7 @@ def create_app(
     engine: AsyncEngine | None = None,
     http: httpx.AsyncClient | None = None,
     llm: LLM | None = None,
+    redis: redis_asyncio.Redis | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -303,6 +460,7 @@ def create_app(
 
         own_engine = engine is None
         own_http = http is None
+        own_redis = redis is None
         active_engine = (
             engine
             if engine is not None
@@ -314,6 +472,12 @@ def create_app(
             else httpx.AsyncClient(timeout=active_settings.models_timeout_seconds)
         )
         active_llm = llm if llm is not None else make_llm(active_settings, active_http)
+        active_redis: redis_asyncio.Redis = (
+            redis if redis is not None else redis_asyncio.from_url(active_settings.redis_url)
+        )
+        health = RedisHealth(active_settings.redis_retry_seconds)
+        embed_model_tag = f"{active_settings.embed_model}@{active_settings.embed_revision[:12]}"
+        stop_metrics = metrics.serve(active_settings.metrics_port)
 
         demo_ids: tuple[UUID, UUID] | None = None
         if active_settings.demo_tenant is not None:
@@ -344,14 +508,33 @@ def create_app(
         app.state.engine = active_engine
         app.state.http = active_http
         app.state.llm = active_llm
+        app.state.redis = active_redis
+        app.state.redis_health = health
+        app.state.limiter = RateLimiter(active_redis, namespace="sift", health=health)
+        app.state.query_embedding_cache = QueryEmbeddingCache(
+            active_redis,
+            health,
+            model=embed_model_tag,
+            ttl_seconds=active_settings.query_embedding_ttl_seconds,
+        )
+        app.state.answer_cache = AnswerCache(
+            active_redis,
+            health,
+            ttl_seconds=active_settings.answer_cache_ttl_seconds,
+        )
+        app.state.budget = SpendBudget(
+            active_redis,
+            health,
+            daily_usd=active_settings.daily_budget_usd,
+        )
         app.state.api_keys = ApiKeyAuthenticator(active_engine, pepper_str.encode())
         app.state.demo_ids = demo_ids
-        # shortcut: per process and in memory; the Redis rate limiter replaces it in week 6.
-        demo_requests: dict[str, deque[float]] = defaultdict(deque)
-        app.state.demo_requests = demo_requests
         try:
             yield
         finally:
+            stop_metrics()
+            if own_redis:
+                await active_redis.aclose()
             if own_http:
                 await active_http.aclose()
             if own_engine:
@@ -386,6 +569,8 @@ def create_app(
         db_engine: AsyncEngine = request.app.state.engine
         http_client: httpx.AsyncClient = request.app.state.http
         cfg: Settings = request.app.state.settings
+        redis_client: Any = request.app.state.redis
+        health: RedisHealth = request.app.state.redis_health
 
         try:
             async with db_engine.connect() as conn:
@@ -399,7 +584,13 @@ def create_app(
         except httpx.HTTPError as exc:
             raise HTTPException(status_code=503, detail="model service unavailable") from exc
 
-        return {"status": "ok"}
+        try:
+            await redis_client.ping()
+        except REDIS_DOWN as exc:
+            health.failed("readyz_ping", exc)
+            return {"status": "ok", "redis": "down"}
+
+        return {"status": "ok", "redis": "ok"}
 
     @app.get("/", response_model=None)
     async def index() -> FileResponse:
@@ -411,23 +602,47 @@ def create_app(
         request: Request,
         tenant_id: Annotated[UUID, Depends(current_tenant)],
     ) -> QueryOut:
+        cfg: Settings = request.app.state.settings
+        limiter: RateLimiter = request.app.state.limiter
+        decision = await limiter.take(
+            f"query:{tenant_id}",
+            capacity=cfg.query_burst,
+            rate=cfg.query_rate_per_sec,
+        )
+        if not decision.allowed:
+            raise HTTPException(
+                status_code=429,
+                detail="rate limit",
+                headers={
+                    "Retry-After": str(decision.retry_after_seconds),
+                    "X-RateLimit-Limit": str(decision.limit),
+                    "X-RateLimit-Remaining": str(decision.remaining),
+                },
+            )
+
         db_engine: AsyncEngine = request.app.state.engine
         try:
             async with db_engine.connect() as conn:
-                collection_id = await conn.scalar(
-                    text("SELECT id FROM collections WHERE tenant_id = :t AND name = :c"),
-                    {"t": tenant_id, "c": body.collection},
-                )
+                row = (
+                    await conn.execute(
+                        text(
+                            "SELECT id, index_version FROM collections "
+                            "WHERE tenant_id = :t AND name = :c"
+                        ),
+                        {"t": tenant_id, "c": body.collection},
+                    )
+                ).one_or_none()
         except DBAPIError as exc:
             raise HTTPException(status_code=503, detail="database unavailable") from exc
 
-        if collection_id is None:
+        if row is None:
             raise HTTPException(status_code=404, detail="collection not found")
 
         return await _execute_query(
             request,
             tenant_id=tenant_id,
-            collection_id=UUID(str(collection_id)),
+            collection_id=UUID(str(row.id)),
+            index_version=int(row.index_version),
             body=body,
         )
 
@@ -438,27 +653,43 @@ def create_app(
             raise HTTPException(status_code=404, detail="demo disabled")
 
         cfg: Settings = request.app.state.settings
-        # shortcut: per process and in memory; the Redis rate limiter replaces it in week 6.
+        limiter: RateLimiter = request.app.state.limiter
         client_ip = request.client.host if request.client else "unknown"
-        now = time.monotonic()
-        window = 60.0
-        history: deque[float] = request.app.state.demo_requests[client_ip]
-        while history and (now - history[0]) >= window:
-            history.popleft()
-        if len(history) >= cfg.demo_rate_per_minute:
-            retry_after = max(1, int(window - (now - history[0])) + 1)
+        decision = await limiter.take(
+            f"demo:{client_ip}",
+            capacity=cfg.demo_rate_per_minute,
+            rate=cfg.demo_rate_per_minute / 60.0,
+        )
+        if not decision.allowed:
             raise HTTPException(
                 status_code=429,
                 detail="demo rate limit",
-                headers={"Retry-After": str(retry_after)},
+                headers={
+                    "Retry-After": str(decision.retry_after_seconds),
+                    "X-RateLimit-Limit": str(decision.limit),
+                    "X-RateLimit-Remaining": str(decision.remaining),
+                },
             )
-        history.append(now)
 
         tenant_id, collection_id = demo_ids
+        db_engine: AsyncEngine = request.app.state.engine
+        try:
+            async with db_engine.connect() as conn:
+                raw_ver = await conn.scalar(
+                    text("SELECT index_version FROM collections WHERE id = :c"),
+                    {"c": collection_id},
+                )
+        except DBAPIError as exc:
+            raise HTTPException(status_code=503, detail="database unavailable") from exc
+
+        if raw_ver is None:
+            raise HTTPException(status_code=404, detail="collection not found")
+
         return await _execute_query(
             request,
             tenant_id=tenant_id,
             collection_id=collection_id,
+            index_version=int(raw_ver),
             body=body,
         )
 

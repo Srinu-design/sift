@@ -19,6 +19,7 @@ x-sift: &sift
     HOPPER_URL: http://api:8000
     INGEST_URL: http://sift-ingest:8000
     FILE_STORE: /data/files
+    REDIS_URL: redis://redis:6379/1      # db 1: Hopper uses db 0
   volumes:
     - hfcache:/home/app/.cache/huggingface   # models download once (week 7 bakes them in)
   init: true

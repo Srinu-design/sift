@@ -220,8 +220,8 @@ def _summarise_slice(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
             "mean": round(mean(corr_vals), 4),
             "ci95": [round(c_lo, 4), round(c_hi, 4)],
         }
-    else:
-        corr_summary = {"mean": 0.0, "ci95": [0.0, 0.0]}
+    else:  # no answerable rows here (unanswerable questions have no reference): not scored
+        corr_summary = {"mean": None, "ci95": None}
 
     return {
         "n": len(rows),
@@ -255,6 +255,10 @@ def summarise_judged(
     }
 
 
+def _interval(m: float | None, ci: list[float] | None) -> str:
+    return f"{'n/a':>24}" if m is None or ci is None else f"{m:>8.3f} [{ci[0]:.2f}, {ci[1]:.2f}]"
+
+
 def format_summary(report: dict[str, Any]) -> str:
     ov = report["overall"]
     f_mean = ov["faithfulness"]["mean"]
@@ -267,8 +271,7 @@ def format_summary(report: dict[str, Any]) -> str:
         f"{'slice':<16} {'n':>4} {'faithfulness':>24} {'faithful==1':>12} {'correctness':>24}",
         f"{'overall':<16} {ov['n']:>4} "
         f"{f_mean:>8.3f} [{f_ci[0]:.2f}, {f_ci[1]:.2f}] "
-        f"{ov['fully_faithful']:>12.3f} "
-        f"{c_mean:>8.3f} [{c_ci[0]:.2f}, {c_ci[1]:.2f}]",
+        f"{ov['fully_faithful']:>12.3f} {_interval(c_mean, c_ci)}",
     ]
     for t, s in report["by_type"].items():
         tf = s["faithfulness"]
@@ -276,8 +279,7 @@ def format_summary(report: dict[str, Any]) -> str:
         lines.append(
             f"{t:<16} {s['n']:>4} "
             f"{tf['mean']:>8.3f} [{tf['ci95'][0]:.2f}, {tf['ci95'][1]:.2f}] "
-            f"{s['fully_faithful']:>12.3f} "
-            f"{tc['mean']:>8.3f} [{tc['ci95'][0]:.2f}, {tc['ci95'][1]:.2f}]"
+            f"{s['fully_faithful']:>12.3f} {_interval(tc['mean'], tc['ci95'])}"
         )
     return "\n".join(lines)
 
@@ -341,11 +343,9 @@ async def run_judge(args: argparse.Namespace, out_path: Path) -> list[dict[str, 
                         calls_made += 1
                         break
                     except LLMUnavailable as exc:
-                        if retry == 3:
-                            raise SystemExit(
-                                f"{row['id']}: LLMUnavailable after 3 retries ({exc}); "
-                                f"rerun command to resume from {out_path}"
-                            ) from exc
+                        if retry == 3:  # skip it; it is not written, so a rerun retries it
+                            print(f"{row['id']}: skipped after 3 retries ({exc})", file=sys.stderr)
+                            break
                         await asyncio.sleep(60.0)
 
                 if judged is not None:

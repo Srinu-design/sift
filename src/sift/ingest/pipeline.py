@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 from sift.config import get_settings
 from sift.db import set_tenant
 from sift.ingest import chunker, parsers
+from sift.metrics import INGEST_CHUNKS
 
 EMBED_BATCH = 64
 Embed = Callable[[list[str]], Awaitable[list[list[float]]]]
@@ -246,6 +247,7 @@ async def parse_version(engine: AsyncEngine, version_id: UUID) -> int:
     async with engine.begin() as conn:
         if rows:
             await conn.execute(text(INSERT_CHUNK), rows)
+            INGEST_CHUNKS.inc(len(rows))
         await conn.execute(
             text(
                 "UPDATE document_versions SET status = 'embedding', chunk_count = :n"

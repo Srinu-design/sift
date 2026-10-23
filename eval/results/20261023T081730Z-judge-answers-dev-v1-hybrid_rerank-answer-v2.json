@@ -1,0 +1,148 @@
+{
+ "answers": "answers-dev-v1-hybrid_rerank-answer-v2",
+ "judge_model": "gemini-3.1-flash-lite",
+ "judge_version": "judge-v1",
+ "run_at": "2026-10-23T08:17:30+00:00",
+ "commit": "fe215a7",
+ "n": 69,
+ "faithfulness": {
+  "mean": 1.0,
+  "ci95": [
+   1.0,
+   1.0
+  ]
+ },
+ "fully_faithful": 1.0,
+ "correctness": {
+  "mean": 0.8507,
+  "ci95": [
+   0.791,
+   0.9104
+  ]
+ },
+ "overall": {
+  "n": 69,
+  "faithfulness": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "fully_faithful": 1.0,
+  "correctness": {
+   "mean": 0.8507,
+   "ci95": [
+    0.791,
+    0.9104
+   ]
+  }
+ },
+ "by_type": {
+  "factoid": {
+   "n": 30,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 0.8667,
+    "ci95": [
+     0.7833,
+     0.95
+    ]
+   }
+  },
+  "multi_section": {
+   "n": 7,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 0.8571,
+    "ci95": [
+     0.7143,
+     1.0
+    ]
+   }
+  },
+  "paraphrase": {
+   "n": 6,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 0.9167,
+    "ci95": [
+     0.75,
+     1.0
+    ]
+   }
+  },
+  "procedural": {
+   "n": 14,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 0.7857,
+    "ci95": [
+     0.6429,
+     0.9286
+    ]
+   }
+  },
+  "unanswerable": {
+   "n": 2,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": null,
+    "ci95": null
+   }
+  },
+  "version_specific": {
+   "n": 10,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 0.85,
+    "ci95": [
+     0.7,
+     1.0
+    ]
+   }
+  }
+ }
+}

@@ -47,8 +47,9 @@ reranker is ~99% of retrieval time. Top 30 keeps the quality and costs 60% of to
 
 - **No reranker.** Ties naive (ADR-0002) and gives gate 1 no calibrated score to threshold.
 - **BAAI/bge-reranker-v2-m3.** Stronger and multilingual, but about 568M parameters against
-  MiniLM's 22M: far slower on this CPU and too large next to the other models on a 4 GB host.
-  Kept as the week 6 ablation.
+  MiniLM's 22M. Measured in the week 6 ablation (docs/eval-report.md): hit@5 0.887 -> 0.986
+  (significant), MRR 0.841 -> 0.854, but reranking takes 34 s per query at p50 (77 s p95) on
+  the laptop CPU against 1.1 s, and the model is too large next to the others on a 4 GB host.
 - **Rerank in the API process.** Every API replica would load the model; sift-models loads it
   once for every caller.
 - **An API reranker (Cohere, Voyage).** Paid per call, and a network hop on every query.

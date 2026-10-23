@@ -45,6 +45,60 @@ If 3 or 4 fail, the previous release comes back the same way and is smoke tested
 `deploy.sh --rollback` and `deploy.sh --status` do what they say. Every step is logged with a
 time stamp to `/opt/sift/deploy-history.log`.
 
-## Record
+## Record (2026-10-23, from `/opt/sift/deploy-history.log`)
 
-Filled in from the host's deploy log after the first release and the broken-release drill.
+**Hopper side:** Srinu-design/hopper#15 merged, Hopper's own pipeline deployed it (CI, then
+`deploy.sh` over SSH, smoke test, public URL check: all green). Postgres came back on
+`pgvector/pgvector:0.8.6-pg16-trixie`, healthy, Hopper's `/readyz` 200 throughout.
+
+**First release:** database created and migrated, index restored (2 tenants, 207 documents,
+2,173 active chunks, none without an embedding), then:
+
+```
+12:13:39 deploy: release 8bfeffcc… (week7-final)
+smoke pass: top 5 anchors ['SQL-CREATEINDEX-CONCURRENTLY', …], rerank 3232 ms
+12:14:32 deploy: deployed 8bfeffcc…
+```
+
+`http://3.104.222.203/sift/` serves the page; a demo query answered in 3.8 s (rerank ~3.2–3.5 s
+on 2 vCPUs, against ~1.1 s on the laptop). Memory: sift-models 476 MB, sift-api 78 MB; 1.6 GB of
+the host's 3.8 GB still available.
+
+**Incident: the second release filled the disk.** The image copied the whole Python environment
+(~2 GB, with Sift installed into it) as one layer, so every release, even a one-line change,
+added ~2 GB, and Docker keeps each image both compressed and unpacked. The next build stopped
+with "no space left on device" (19 GB disk, 100% for a moment). What held: the build fails before
+the live release is touched, so Sift kept serving and Hopper's Postgres stayed healthy (checked
+at once; build cache and half-built images pruned back to 6 GB free). The fix (commit 8cbfa91):
+dependencies in their own layer, which changes only with `uv.lock`, and Sift's code (324 kB) on
+`PYTHONPATH`; `deploy.sh` now keeps only the live and previous images. The first build of the new
+layout still needed ~6 GB, so Sift (not Hopper) was taken down for 3.5 minutes and its old image
+removed. Lesson: measure an image's footprint per release, not its size.
+
+**Broken release, rolled back.** A branch with a one-character bug (the reranker sorting
+ascending: it builds, starts and passes health checks, but puts the worst passages first):
+
+```
+12:29:24 deploy: release 68d84966… (demo-broken-release)
+smoke FAIL: top 5 anchors ['INDEXES-INDEX-ONLY-SCANS', 'id-1.9.3.69.8', 'id-1.9.3.178.8', …]
+12:30:08 deploy: release 68d84966… failed
+12:30:08 deploy: rolling back to 8cbfa919…
+smoke pass: top 5 anchors ['SQL-CREATEINDEX-CONCURRENTLY', …]
+12:30:36 deploy: rolled back to 8cbfa919…
+```
+
+72 seconds from release to rolled back; the public page kept answering, and the build reused the
+cached dependency layer (disk unchanged). Health checks alone would have shipped this bug: only a
+check of *what retrieval returns* catches it.
+
+## Turning on real answers
+
+The host runs with the stub LLM until the owner adds the Gemini key (keys are entered by the
+owner, never by tooling):
+
+```bash
+ssh -i ~/.ssh/hopper-login.pem ubuntu@3.104.222.203
+sed -i 's/^LLM_PROVIDER=stub/LLM_PROVIDER=gemini/' /opt/sift/.env
+read -rsp 'Gemini API key: ' k && echo "GEMINI_API_KEY=$k" >> /opt/sift/.env && unset k
+cd /opt/sift && SIFT_IMAGE=sift:$(cat current) docker compose -p sift -f src/docker/compose.prod.yaml --env-file .env up -d --force-recreate sift-api
+```

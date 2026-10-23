@@ -46,9 +46,9 @@ cleanup() {  # keep the live and previous images only: each is ~2 GB on a 19 GB 
   docker builder prune -f >/dev/null 2>&1 || true   # dangling build cache only
 }
 
-rollback() {
-  local prev
-  prev=$(cat "$ROOT/previous" 2>/dev/null) || { log "no previous release to roll back to"; return 3; }
+rollback() {  # $1: the release to go back to (default: the recorded previous release)
+  local prev=${1:-$(cat "$ROOT/previous" 2>/dev/null)}
+  [[ -n "$prev" ]] || { log "no previous release to roll back to"; return 3; }
   log "rolling back to $prev"
   if start "$prev"; then
     echo "$prev" > "$ROOT/current"
@@ -86,5 +86,4 @@ if start "$sha"; then
 fi
 log "release $sha failed"
 [[ -n "$live" && "$live" != "$sha" ]] || { log "nothing to roll back to"; exit 1; }
-echo "$live" > "$ROOT/previous"
-rollback
+rollback "$live"

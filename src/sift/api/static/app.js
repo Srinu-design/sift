@@ -165,7 +165,7 @@
     resultsEl.appendChild(loading);
 
     try {
-      const response = await fetch("/demo/query", {
+      const response = await fetch("demo/query", {  // relative: the page also runs under a path prefix (/sift/)
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

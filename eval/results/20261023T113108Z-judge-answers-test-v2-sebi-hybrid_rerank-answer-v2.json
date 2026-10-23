@@ -1,0 +1,115 @@
+{
+ "answers": "answers-test-v2-sebi-hybrid_rerank-answer-v2",
+ "judge_model": "gemini-3.1-flash-lite",
+ "judge_version": "judge-v2",
+ "run_at": "2026-10-23T11:31:08+00:00",
+ "commit": "02676a6",
+ "n": 5,
+ "faithfulness": {
+  "mean": 1.0,
+  "ci95": [
+   1.0,
+   1.0
+  ]
+ },
+ "fully_faithful": 1.0,
+ "correctness": {
+  "mean": 1.0,
+  "ci95": [
+   1.0,
+   1.0
+  ]
+ },
+ "overall": {
+  "n": 5,
+  "faithfulness": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "fully_faithful": 1.0,
+  "correctness": {
+   "mean": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  }
+ },
+ "by_type": {
+  "factoid": {
+   "n": 2,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   }
+  },
+  "injected": {
+   "n": 1,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   }
+  },
+  "paraphrase": {
+   "n": 1,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   }
+  },
+  "procedural": {
+   "n": 1,
+   "faithfulness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   },
+   "fully_faithful": 1.0,
+   "correctness": {
+    "mean": 1.0,
+    "ci95": [
+     1.0,
+     1.0
+    ]
+   }
+  }
+ }
+}

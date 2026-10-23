@@ -1,0 +1,44 @@
+{
+ "strategy": "hybrid_rerank",
+ "split": "test",
+ "golden": "v2-sebi",
+ "run_at": "2026-10-23T11:19:39+00:00",
+ "commit": "02676a6",
+ "model": "gemini-3.5-flash-lite",
+ "prompt_version": "answer-v2",
+ "tau": 0.19,
+ "n": 6,
+ "confusion_matrix": {
+  "answerable_answered": 5,
+  "answerable_refused": 0,
+  "unanswerable_answered": 0,
+  "unanswerable_refused": 1
+ },
+ "refusals_by_gate": {
+  "retrieval": 1,
+  "model": 0,
+  "citation": 0
+ },
+ "refusal_precision": 1.0,
+ "refusal_recall": 1.0,
+ "wrong_refusal_rate": 0.0,
+ "citation_accuracy": 0.625,
+ "answered_with_gold_citation": 1.0,
+ "citation_gate_refusals": 0,
+ "attempts_histogram": {
+  "0": 1,
+  "1": 4,
+  "2": 1
+ },
+ "tokens_in": 14953,
+ "tokens_out": 1107,
+ "cost_usd": 0.0,
+ "llm_ms": {
+  "p50": 1500.9,
+  "p95": 2815.3
+ },
+ "injection": {
+  "n": 1,
+  "passed": 1
+ }
+}

@@ -2,15 +2,34 @@
 
 Question answering over your documents that cites the section behind every claim, refuses when
 the evidence is missing, and proves every retrieval change with a measured eval. Ingestion
-runs as jobs on [Hopper](../hopper), my own job queue.
+runs as jobs on [Hopper](https://github.com/Srinu-design/hopper), my own job queue.
 
-> **Status: weeks 1–4 of 7.** Corpus, golden set, schema, ingestion (in-process and through
-> Hopper), four retrieval strategies with metadata filters, cited answers with two refusal
-> gates, the query API and a demo page, and tenancy (API keys, row-level security) are done.
-> The second tenant, the judge, the CI eval gate, caching and deployment come next. Nothing
-> below is claimed beyond what a test or a measured number shows.
+**Live demo:** http://3.104.222.203/sift/ (PostgreSQL 16–18 docs; one shared rate limit).
+Design: [docs/design.md](docs/design.md) · Eval: [docs/eval-report.md](docs/eval-report.md) ·
+Load: [docs/benchmarks.md](docs/benchmarks.md) · Deploy: [docs/deploy.md](docs/deploy.md) ·
+12 [ADRs](docs/adr/). Nothing below is claimed beyond what a test or a measured number shows.
 
-## Retrieval: four strategies on the dev split
+## Results on the held-out test split (run once, at the end)
+
+37 PostgreSQL questions never used for any choice (31 answerable, 6 unanswerable), plus 6 SEBI:
+
+| | result |
+|---|---|
+| retrieval, `hybrid_rerank` | **hit@5 0.968** [0.90, 1.00], MRR@10 0.744 (dense-only: hit@5 0.839, MRR 0.681) |
+| refusals | **6 of 6 unanswerable refused**; 2 of 31 answerable wrongly refused (6.5%) |
+| citations | 83% of answers cite a gold section; every citation checked in code |
+| faithfulness (LLM judge) | 1.000; the judge caught 5 of 5 planted false claims |
+| correctness (LLM judge) | 0.897, **not yet trusted** (kappa 0.489 against 40 hand labels, ADR-0010) |
+| tenant B (SEBI PDFs) | 5 of 5 answered with a page citation, 1 of 1 refused, prompt injection resisted |
+| load (stub LLM, laptop CPU) | 0.5 req/s under 3 s p95 uncached, 1 req/s with the answer cache; the reranker saturates first |
+| CI | the retrieval gate blocked a deliberately bad PR ([docs/ci-gate-demo.md](docs/ci-gate-demo.md)) |
+| deploy | on EC2 next to Hopper; a broken release caught by the retrieval smoke test and rolled back in 72 s |
+
+Error analysis of every test miss: the reranker demoted the gold section 8 times (mostly
+version-specific questions), the answer used a weaker source 4 times, 1 embedding miss, 1 gate-1
+threshold, 1 chunk boundary, 1 too-narrow gold label ([eval report](docs/eval-report.md)).
+
+## Retrieval: four strategies on the dev split (how each choice was made)
 
 Golden set **v1**, dev split, 71 answerable questions (15 unanswerable not scored for retrieval),
 95% bootstrap intervals. `make eval` reproduces it; the committed copy is
@@ -161,7 +180,7 @@ with page-level gold ([changelog](eval/golden/CHANGELOG.md)). Dev split, `hybrid
 
 ## Quickstart
 
-Hopper must be cloned next to this repo (`../hopper`, branch `sift-ingest-support`).
+Hopper must be cloned next to this repo (`../hopper`, branch `main`).
 
 ```bash
 make up              # Hopper + Sift in one Compose project (first start downloads the models)
@@ -206,20 +225,23 @@ database and Sift's.
 - **`chunks.anchor_path`** (not in the guide's schema): every section id from the page root to
   the chunk, so the eval can tell "the gold section or one of its subsections".
 - **`parser` in a version's unique key**, so a parser fix re-parses (the guide keys on chunker only).
-- **Hopper changes** (branch `sift-ingest-support`): per-tenant internal-host allowlist (admin
-  only, link-local still refused) and a per-job `timeout` on the http task.
+- **Hopper changes** (Srinu-design/hopper#14, #15): per-tenant internal-host allowlist (admin
+  only, link-local still refused), a per-job `timeout` on the http task, the pgvector Postgres
+  image (the same 16.15 build) and a `/sift/` route in Caddy.
 - **On 1,903 chunks Postgres does not use the HNSW index:** it scans and sorts, which is
   exact, so today's naive numbers are exact-search numbers. The overlap check forces the index
   to prove it keeps recall under filters once the table is big enough for the planner to use it.
 - **Gate 1 alone refuses only 4 of 15 unanswerable dev questions.** Most ask about a feature in
   a version that lacks it ("JSON_TABLE in 16"); the reranker scores the neighbouring sections
-  above 0.95. Gate 2 (the model reading the sources) has to catch those; it is measured with the
-  answer eval next.
+  above 0.95. Gate 2 (the model reading the sources) catches 9 of the 11 it lets through.
 - **Ingestion, evals and the admin CLI run as the tables' owner**, which bypasses row-level
   security by design: they are internal paths (Hopper's signed jobs, a shell). Only the API runs
   as `sift_app` (ADR-0012).
-- **The `pdf` extra (Docling) is not in the Docker image yet:** about 400 MB more. PDFs in the
-  container get a clear 422 until week 5 (tenant B) adds it.
+- **The `pdf` extra (Docling) is not in the Docker image:** it needs ~5 GB of RAM to parse the
+  SEBI PDFs, more than the 3.8 GB host; tenant B is ingested in-process (`make ingest-sebi`) and
+  restored to production from a dump. PDFs uploaded to the container get a clear 422.
+- **Judge and answer models are free-tier Gemini** (`gemini-3.5-flash-lite` answers,
+  `gemini-3.1-flash-lite` judges), not the stronger judge the guide asks for (ADR-0010).
 
 ## Layout
 

@@ -341,11 +341,9 @@ async def run_judge(args: argparse.Namespace, out_path: Path) -> list[dict[str, 
                         calls_made += 1
                         break
                     except LLMUnavailable as exc:
-                        if retry == 3:
-                            raise SystemExit(
-                                f"{row['id']}: LLMUnavailable after 3 retries ({exc}); "
-                                f"rerun command to resume from {out_path}"
-                            ) from exc
+                        if retry == 3:  # skip it; it is not written, so a rerun retries it
+                            print(f"{row['id']}: skipped after 3 retries ({exc})", file=sys.stderr)
+                            break
                         await asyncio.sleep(60.0)
 
                 if judged is not None:

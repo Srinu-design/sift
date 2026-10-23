@@ -1,0 +1,60 @@
+# Sift on the production host, next to Hopper (deploy/deploy.sh drives it).
+#   SIFT_IMAGE=sift:<sha> docker compose -p sift -f docker/compose.prod.yaml --env-file /opt/sift/.env up -d
+# Joins Hopper's network (hopper_default) to reach its Postgres (pgvector image, database "sift")
+# and Redis (db 1). Nothing is published: Hopper's Caddy routes /sift/ to sift-api.
+# Not here yet: sift-ingest (the index is restored from a dump; PDFs need Docling, ~5 GB RAM)
+# and Prometheus scraping (Hopper's production Prometheus config is Hopper's).
+name: sift
+
+x-sift: &sift
+  image: ${SIFT_IMAGE:?set SIFT_IMAGE to the release image}
+  env_file: /opt/sift/.env
+  environment:
+    MODELS_URL: http://sift-models:8000
+    REDIS_URL: redis://redis:6379/1
+  volumes:
+    - hfcache:/home/app/.cache/huggingface
+  init: true
+  restart: unless-stopped
+  networks: [hopper]
+  logging:
+    driver: json-file
+    options: { max-size: 10m, max-file: "3" }
+
+services:
+  sift-migrate:
+    <<: *sift
+    restart: "no"
+    command: ["sh", "-c", "python -m sift.db && alembic upgrade head"]
+
+  sift-models:
+    <<: *sift
+    command: ["uvicorn", "sift.models_svc.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    mem_limit: 1500m   # bge-small + MiniLM on CPU torch, with headroom; the host has 3.8 GB
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+
+  sift-api:
+    <<: *sift
+    # No --proxy-headers: every request arrives from Caddy, so the demo's per-IP limit is one
+    # shared bucket here. shortcut: global demo limit, trust Caddy's IP to make it per client.
+    command: ["uvicorn", "sift.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    mem_limit: 400m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    depends_on:
+      sift-models: { condition: service_healthy }
+
+networks:
+  hopper:
+    name: hopper_default
+    external: true
+
+volumes:
+  hfcache: {}

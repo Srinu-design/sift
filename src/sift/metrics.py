@@ -28,6 +28,7 @@ REFUSALS = Counter("sift_refusals_total", "Refusals by gate: retrieval, model, c
 QUERIES = Counter("sift_queries_total", "Answered queries by strategy.", ["strategy"])
 BUDGET_REJECTIONS = Counter("sift_budget_rejections_total", "Queries refused (429) over budget.")
 INGEST_CHUNKS = Counter("sift_ingest_chunks_total", "Chunks written by parse steps.")
+HTTP_RESPONSES = Counter("sift_http_responses_total", "API responses by status class.", ["status"])
 RATELIMIT_FALLBACK = Counter(
     "sift_ratelimit_fallback_total",
     "Rate-limit decisions made by an in-process bucket because Redis was unavailable.",

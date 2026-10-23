@@ -88,6 +88,20 @@ yet human-verified** ([changelog](eval/golden/CHANGELOG.md)).
   history and the next step: a fresh, stratified set of labels.
 - The judge is not the stronger model the guide asks for (free-tier quotas; see the ADR).
 
+## Load, cost and monitoring
+
+`make load-query` (k6, stub LLM, laptop CPU; full table in [docs/benchmarks.md](docs/benchmarks.md)):
+**0.5 requests/s with p95 under 3 s without the answer cache, 1 request/s with it** (48% hits
+under a uniform mix of the dev questions). The cross-encoder saturates first: one rerank takes
+about a second of the whole CPU and sift-models runs one model call at a time. Postgres search
+stays under ~60 ms at every rate. About 3,000 tokens in and 180 out per answered query
+(~3.0 M / 0.18 M per 1,000 queries; free tier today, so $0).
+
+Prometheus scrapes sift-api and sift-ingest next to Hopper; Grafana has a **Sift** dashboard
+(p50/p95 per stage, cost per query, cache hit rate, refusals by gate, errors and budget 429s,
+tokens, Hopper's ingestion backlog) next to Hopper's (`deploy/grafana/`,
+`docker/hopper.override.yaml`; Hopper's files are mounted unchanged).
+
 ## Tenant B: SEBI circulars (PDF, page citations)
 
 24 SEBI circulars from July–October 2026 (`corpus/fetch_sebi.py`, SHA-256 manifest), parsed by
@@ -152,6 +166,7 @@ make eval            # all four strategies on the dev split
 make eval-tau        # sweep the gate-1 refusal threshold on dev
 make rerank-latency  # cross-encoder p50/p95 at 50 and 30 pairs
 make eval-answers    # cited answers and refusals with the real model (GEMINI_API_KEY in .env)
+make load-query      # k6 load test with the stub LLM, cache off and on
 make ingest-sebi     # tenant B: SEBI circular PDFs, in-process (needs the pdf extra)
 make eval-compare A=eval/results/<a>.json B=eval/results/<b>.json   # paired bootstrap
 make eval-overlap    # filtered HNSW versus exact search

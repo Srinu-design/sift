@@ -52,9 +52,11 @@ class Settings(BaseSettings):
     # Checked 2026-10-20 on the free tier: 2.5-flash is closed to new keys, 3.8-flash hung past
     # 150 s, 3.5-flash answered 503; 3.5-flash-lite returned valid cited JSON in 1.6 s.
     answer_model: str = "gemini-3.5-flash-lite"
-    # The judge must be a different, stronger model than the answerer (week 5). Checked
-    # 2026-10-23: pro models have no free-tier quota; 3.5-flash answers (with 503s at busy times).
-    judge_model: str = "gemini-3.5-flash"
+    # The judge must be a different model from the answerer, validated against hand labels
+    # (kappa). Checked 2026-10-23 on the free tier: pro models have no quota, 3.5-flash allows 20
+    # requests a day, Gemma 4 31B kept failing with 500/503; 3.1-flash-lite (an older version of
+    # the answerer's family, so not stronger) answers the judge schema reliably.
+    judge_model: str = "gemini-3.1-flash-lite"
     llm_timeout_seconds: float = Field(default=60.0, gt=0)
     llm_thinking_budget: int | None = None
     stub_delay_ms: int = Field(default=0, ge=0)

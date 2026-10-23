@@ -152,6 +152,7 @@ async def test_hybrid_rerank_query_and_log_row(engine: AsyncEngine, embedder: Fa
         "fuse",
         "rerank",
         "llm",
+        "total",
     }
     assert len(data["citations"]) >= 1
     for cit in data["citations"]:
@@ -349,4 +350,4 @@ async def test_index_csp_and_health_endpoints(engine: AsyncEngine, embedder: Fak
     assert r_health.status_code == 200
     assert r_health.json() == {"status": "ok"}
     assert r_ready.status_code == 200
-    assert r_ready.json() == {"status": "ok"}
+    assert r_ready.json() == {"status": "ok", "redis": "ok"}

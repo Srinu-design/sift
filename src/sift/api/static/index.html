@@ -8,6 +8,7 @@
   <meta name="color-scheme" content="light dark">
   <!-- Before the styles: applies a saved light or dark choice before the first paint. -->
   <script src="static/theme.js"></script>
+  <link rel="icon" href="static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="static/app.css">
   <script src="static/app.js" defer></script>
 </head>
@@ -28,7 +29,7 @@
         <span class="status-dot" aria-hidden="true"></span><span id="status-text">Checking</span>
       </span>
       <a class="header-link" href="https://github.com/Srinu-design/sift">GitHub</a>
-      <a class="header-link" href="../">All projects</a>
+      <a class="header-link home-link" href="../">All projects</a>
       <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode">
         <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
         <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.55 1.55M17.15 17.15l1.55 1.55M5.3 18.7l1.55-1.55M17.15 6.85l1.55-1.55"/></svg>
@@ -73,18 +74,18 @@
       <p class="eyebrow">Design principles</p>
       <h2 id="features-title">What it does</h2>
       <ul class="cards">
-        <li class="card wide"><h3>Cites every claim</h3><p>Every sentence of an answer cites a numbered
+        <li class="card wide"><svg class="ficon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h4"/></svg><h3>Cites every claim</h3><p>Every sentence of an answer cites a numbered
           source with its section or page, and code rejects any citation that does not point to
           a retrieved chunk.</p></li>
-        <li class="card"><h3>Refuses without evidence</h3><p>Two gates: a low rerank score refuses
+        <li class="card"><svg class="ficon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/></svg><h3>Refuses without evidence</h3><p>Two gates: a low rerank score refuses
           before any model call, and the model itself may refuse. Refusal precision and recall
           are measured.</p></li>
-        <li class="card"><h3>Measured</h3><p>A versioned golden set of 141 questions. CI runs the
+        <li class="card"><svg class="ficon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V8M17 16V5"/></svg><h3>Measured</h3><p>A versioned golden set of 141 questions. CI runs the
           retrieval eval on every pull request and fails the build on a regression.</p></li>
-        <li class="card"><h3>Multi-tenant</h3><p>Each customer sees only its own documents:
+        <li class="card"><svg class="ficon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6 6 0 0 1 3 5.5"/></svg><h3>Multi-tenant</h3><p>Each customer sees only its own documents:
           tenant filters plus row-level security in Postgres, with tests for chunks, answers and
           cache entries.</p></li>
-        <li class="card"><h3>Ingestion on Hopper</h3><p>Parse, embed and activate run as
+        <li class="card"><svg class="ficon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><h3>Ingestion on Hopper</h3><p>Parse, embed and activate run as
           <a href="https://github.com/Srinu-design/hopper">Hopper</a> jobs, with retries, a
           dead-letter queue and replay.</p></li>
       </ul>

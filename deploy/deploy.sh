@@ -6,6 +6,9 @@
 #   deploy.sh <git ref>    build sift:<sha> from /opt/sift/src at that ref and deploy it
 #   deploy.sh --rollback   go back to the previous good release (no migrations)
 #   deploy.sh --status     print the live and previous releases
+#   deploy.sh --from-ssh   forced command of the CI deploy key (docs/deploy.md): the one word the
+#                          key sent (a commit sha, --rollback or --status) arrives in
+#                          SSH_ORIGINAL_COMMAND, and nothing else can run
 #
 # A release: 1. build the image from the checked-out ref (compose file and code always match)
 # 2. migrate with the new image (migrations are backward compatible) 3. replace sift-models and
@@ -60,13 +63,40 @@ rollback() {  # $1: the release to go back to (default: the recorded previous re
   return 3
 }
 
+# The CI key's forced command (Hopper's deploy.sh does the same). What the key sent must be one
+# word: a full commit sha, --rollback or --status, never a command. The deploy runs detached,
+# writing to a log this session follows, so a dropped SSH connection cannot kill it halfway.
+from_ssh() {
+  local word="${SSH_ORIGINAL_COMMAND:-}" logfile pid code=0
+  [[ "$word" == --status || "$word" == --rollback || "$word" =~ ^[0-9a-f]{40}$ ]] \
+    || { echo "expected a commit sha, --rollback or --status, got: $(printf '%q' "$word")" >&2; exit 2; }
+  [[ "$word" == --status ]] && exec "$BASH" "$0" --status
+  mkdir -p "$ROOT/logs" || exit 2
+  logfile="$ROOT/logs/$(date -u +%Y%m%dT%H%M%SZ)-$$-${word#--}.log"
+  : >"$logfile"  # before tail opens it
+  # Without SSH_ORIGINAL_COMMAND, the child can never take this path again.
+  env -u SSH_ORIGINAL_COMMAND setsid --wait "$BASH" "$0" "$word" </dev/null >>"$logfile" 2>&1 &
+  pid=$!
+  tail -n +1 -f --pid="$pid" "$logfile" >&2 || true
+  wait "$pid" || code=$?
+  echo "this log is kept on the host: $logfile" >&2
+  exit "$code"
+}
+
 case "${1:-}" in
+  --from-ssh) from_ssh ;;
   --status)
     echo "current: $(cat "$ROOT/current" 2>/dev/null || echo none)"
     echo "previous: $(cat "$ROOT/previous" 2>/dev/null || echo none)"
     exit 0 ;;
+esac
+# CI and a person deploying by hand must never overlap.
+exec 9>"$ROOT/.deploy.lock"
+flock -n 9 || { log "another deploy is running"; exit 2; }
+
+case "${1:-}" in
   --rollback) rollback; exit $? ;;
-  ""|-*) echo "usage: deploy.sh <git ref> | --rollback | --status" >&2; exit 2 ;;
+  ""|-*) echo "usage: deploy.sh <git ref> | --rollback | --status | --from-ssh" >&2; exit 2 ;;
 esac
 
 git -C "$SRC" fetch -q origin || { log "git fetch failed"; exit 2; }

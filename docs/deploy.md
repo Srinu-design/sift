@@ -45,6 +45,33 @@ If 3 or 4 fail, the previous release comes back the same way and is smoke tested
 `deploy.sh --rollback` and `deploy.sh --status` do what they say. Every step is logged with a
 time stamp to `/opt/sift/deploy-history.log`.
 
+## Deploying from CI
+
+`.github/workflows/deploy.yml` deploys every push to main once `ci` (lint, tests, the retrieval
+gate) is green, and on demand any sha or `--rollback` (Actions > deploy > Run workflow). It runs
+`ssh -- sift <sha>` with a key that can do one thing: its line in the host's
+`~/.ssh/authorized_keys` is
+
+```
+restrict,command="/opt/sift/src/deploy/deploy.sh --from-ssh" ssh-ed25519 ... sift-github-deploy
+```
+
+so whatever the key sends arrives as `SSH_ORIGINAL_COMMAND`, and `deploy.sh --from-ssh` accepts
+only a full commit sha, `--rollback` or `--status` (`tests/unit/test_deploy_script.py`). The
+deploy runs detached with its log in `/opt/sift/logs/`, so a dropped connection cannot stop it
+halfway, and a lock keeps CI and a hand deploy from overlapping.
+
+One-time setup (the private key goes from the owner's machine to GitHub, never through tooling):
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/sift-deploy -N "" -C sift-github-deploy
+# on the host: append the restrict,command=... line above with the .pub key
+gh secret set EC2_SSH_KEY -R Srinu-design/sift < ~/.ssh/sift-deploy
+ssh-keygen -F 3.104.222.203 | grep -v '^#' | gh secret set EC2_KNOWN_HOSTS -R Srinu-design/sift
+gh variable set EC2_HOST -R Srinu-design/sift -b 3.104.222.203
+gh variable set PUBLIC_URL -R Srinu-design/sift -b http://3.104.222.203/sift/
+```
+
 ## Record (2026-10-23, from `/opt/sift/deploy-history.log`)
 
 **Hopper side:** Srinu-design/hopper#15 merged, Hopper's own pipeline deployed it (CI, then
@@ -98,8 +125,8 @@ swap); space was freed at once. `deploy.sh` now resolves `origin/<ref>` first.
 
 ## Turning on real answers
 
-The host runs with the stub LLM until the owner adds the Gemini key (keys are entered by the
-owner, never by tooling):
+Done on 2026-10-25: the host answers with Gemini. The key is entered by the owner, never by
+tooling:
 
 ```bash
 ssh -i ~/.ssh/hopper-login.pem ubuntu@3.104.222.203

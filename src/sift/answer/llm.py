@@ -25,6 +25,10 @@ class LLMUnavailable(Exception):
     """Raised on LLM rate limits, timeouts, 5xx responses, or empty/blocked candidates."""
 
 
+class LLMQuotaExceeded(LLMUnavailable):
+    """HTTP 429: the provider's quota is used up (the free tier's per-minute or daily limit)."""
+
+
 class LLM(Protocol):
     model: str
 
@@ -85,7 +89,9 @@ class GeminiLLM:
         except httpx.RequestError as exc:
             raise LLMUnavailable(f"Gemini transport error: {type(exc).__name__}") from exc
 
-        if resp.status_code == 429 or resp.status_code >= 500:
+        if resp.status_code == 429:
+            raise LLMQuotaExceeded("Gemini HTTP 429")
+        if resp.status_code >= 500:
             raise LLMUnavailable(f"Gemini HTTP {resp.status_code}")
         resp.raise_for_status()
 

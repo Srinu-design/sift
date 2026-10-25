@@ -8,7 +8,7 @@ from pydantic import SecretStr
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from sift.answer.llm import LLMResult, LLMUnavailable, StubLLM
+from sift.answer.llm import LLMQuotaExceeded, LLMResult, LLMUnavailable, StubLLM
 from sift.answer.prompt import PROMPT_VERSION
 from sift.api.app import create_app
 from sift.auth import keys
@@ -23,9 +23,10 @@ PEPPER = b"test-pepper"
 class CountingLLM:
     model: str = "counting-stub"
 
-    def __init__(self, fail: bool = False) -> None:
+    def __init__(self, fail: bool = False, error: type[LLMUnavailable] = LLMUnavailable) -> None:
         self.calls = 0
         self._fail = fail
+        self._error = error
         self._stub = StubLLM()
 
     async def generate(
@@ -35,7 +36,7 @@ class CountingLLM:
     ) -> LLMResult:
         self.calls += 1
         if self._fail:
-            raise LLMUnavailable("simulated rate limit")
+            raise self._error("simulated rate limit")
         return await self._stub.generate(system, turns)
 
 
@@ -270,6 +271,32 @@ async def test_low_rerank_score_refuses_at_retrieval_gate_without_calling_llm(
     assert data["refused"] is True
     assert data["refusal_gate"] == "retrieval"
     assert counting_llm.calls == 0
+
+
+async def test_llm_quota_exceeded_says_so(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
+    api_key = await _seed_pgdocs(engine, embedder)
+    async with _make_models_http(embedder) as models_http:
+        app = create_app(
+            settings=_test_settings(engine),
+            engine=engine,
+            http=models_http,
+            llm=CountingLLM(fail=True, error=LLMQuotaExceeded),
+        )
+        async with (
+            app.router.lifespan_context(app),
+            httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url="http://test"
+            ) as client,
+        ):
+            r = await client.post(
+                "/v1/query",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={"collection": "pgdocs", "question": "Paragraph 0 of section 0"},
+            )
+
+    assert r.status_code == 503
+    assert r.headers.get("Retry-After") == "60"
+    assert "free answer-model quota" in r.json()["detail"]
 
 
 async def test_llm_and_models_unavailable_return_503(

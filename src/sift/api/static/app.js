@@ -345,10 +345,11 @@
     const timings = data.timings_ms || {};
     const stages = STAGES.filter((s) => Number(timings[s]) > 0);
     for (const s of Object.keys(timings)) {
-      if (!stages.includes(s) && Number(timings[s]) > 0) stages.push(s);
+      if (s !== "total" && !stages.includes(s) && Number(timings[s]) > 0) stages.push(s);
     }
-    let totalMs = 0;
-    for (const s of stages) totalMs += Number(timings[s]);
+    // timings_ms carries its own "total" next to the stages; use it rather than adding it in.
+    let totalMs = Number(timings.total) || 0;
+    if (!totalMs) for (const s of stages) totalMs += Number(timings[s]);
 
     const meta = el("div", "result-meta");
     const facts = el("p", "meta-facts");

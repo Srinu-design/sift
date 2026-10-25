@@ -113,6 +113,16 @@
   --diagram-filter: invert(0.9) hue-rotate(180deg);
 }
 
+/* ---- Inter, self-hosted (the policy allows no other origin): the latin subset of the variable
+   font, every weight in one 48 KB file. SIL Open Font License, in fonts/inter-OFL.txt. */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/inter.woff2") format("woff2");
+}
+
 /* ---- Base, shared by all three pages. */
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -372,9 +382,10 @@ select, textarea {
 .cards > li { grid-column: span 4; border-radius: var(--r-card); padding: 26px; }
 .cards > li.wide { grid-column: span 7; }
 .cards > li.wide + li { grid-column: span 5; }
-.cards > li::before {
-  content: ""; display: block; width: 36px; height: 36px; margin-bottom: 18px;
+.ficon {
+  display: block; width: 36px; height: 36px; padding: 8px; margin-bottom: 18px;
   border-radius: var(--r-inner); background: var(--emerald); box-shadow: 0 8px 18px -8px rgb(4 120 87 / 70%);
+  fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
 .cards p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 
@@ -416,8 +427,8 @@ tbody tr:last-child > * { border-bottom: 0; }
 .page-head h1 { font-size: clamp(2.4rem, 7vw, 4rem); font-weight: 800; line-height: 1; margin-bottom: 18px; }
 .page-head .lead { margin-left: 0; }
 .subnav { position: sticky; top: 88px; z-index: 20; margin: 40px auto 0; padding: 0 16px; display: flex; justify-content: center; }
-.subnav-row { display: flex; gap: 4px; max-width: 100%; padding: 6px; border-radius: var(--r-inner); overflow-x: auto; scrollbar-width: none; }
-.subnav-row::-webkit-scrollbar { display: none; }
+/* wraps rather than scrolling sideways behind a hidden scrollbar, where a mouse can't reach */
+.subnav-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 100%; padding: 6px; border-radius: var(--r-inner); }
 .chip { flex: none; padding: 8px 14px; border-radius: var(--r-ctl); color: var(--muted); font-size: 0.88rem; font-weight: 500; white-space: nowrap; }
 .chip:hover { color: var(--text); background: var(--panel); }
 .chip[aria-current] { background: var(--text); color: var(--bg); }
@@ -559,7 +570,10 @@ tbody tr:last-child > * { border-bottom: 0; }
 
 /* ---- narrower screens */
 @media (max-width: 1080px) {
-  .header-link { display: none; }
+  .header-link:not(.home-link) { display: none; }
+}
+@media (max-width: 480px) {
+  .home-link { display: none; } /* the footer has it; in the bar it would push the nav to a third row */
 }
 @media (max-width: 1000px) {
   .cards > li, .cards > li.wide, .cards > li.wide + li { grid-column: span 6; }

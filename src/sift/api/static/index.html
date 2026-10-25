@@ -6,15 +6,17 @@
   <title>Sift · cited answers over your documents</title>
   <meta name="description" content="Sift: question answering over your documents that cites the section behind every claim, refuses when the evidence is missing, and proves every retrieval change with a measured eval.">
   <meta name="color-scheme" content="light dark">
+  <!-- Before the styles: applies a saved light or dark choice before the first paint. -->
+  <script src="static/theme.js"></script>
   <link rel="stylesheet" href="static/app.css">
   <script src="static/app.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="site-header">
-  <div class="wrap header-row">
-    <a class="brand" href="#about">Sift</a>
+<header class="nav-shell">
+  <div class="nav">
+    <a class="brand" href="#about" aria-label="Sift, home"><span class="mark emerald" aria-hidden="true">S</span><span>Sift</span></a>
     <nav class="tabs" aria-label="Sections">
       <a href="#about" data-tab-link="about">About</a>
       <a href="#how" data-tab-link="how">How it works</a>
@@ -22,8 +24,15 @@
       <a href="#evals" data-tab-link="evals">Eval history</a>
     </nav>
     <div class="header-end">
-      <a href="https://github.com/Srinu-design/sift">GitHub</a>
-      <a href="../">All projects</a>
+      <span class="status" id="status" data-state="unknown" title="Live status from readyz">
+        <span class="status-dot" aria-hidden="true"></span><span id="status-text">Checking</span>
+      </span>
+      <a class="header-link" href="https://github.com/Srinu-design/sift">GitHub</a>
+      <a class="header-link" href="../">All projects</a>
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode">
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.55 1.55M17.15 17.15l1.55 1.55M5.3 18.7l1.55-1.55M17.15 6.85l1.55-1.55"/></svg>
+      </button>
     </div>
   </div>
 </header>
@@ -32,24 +41,39 @@
 
 <!-- ============================================================ About -->
 <section id="about" data-tab="about" class="tab-panel">
-  <div class="wrap">
-    <header class="hero">
-      <h1>Sift</h1>
-      <p class="lede">Question answering over your documents that cites the section behind every
+  <div class="hero">
+    <div class="wrap hero-head">
+      <p class="eyebrow">Project 2 · Cited question answering</p>
+      <h1 class="display">Sift</h1>
+      <p class="tagline">Question answering over your documents that cites the section behind every
         claim, refuses when the evidence is missing, and proves every retrieval change with a
         measured eval.</p>
-      <p>The live demo answers from the PostgreSQL 16–18 manuals. Ingestion runs as jobs on
-        <a href="../hopper/">Hopper</a>, my own job queue.</p>
-      <p class="hero-actions">
+      <p class="lead">The live demo answers from the PostgreSQL 16–18 manuals. Ingestion runs as jobs
+        on <a href="../hopper/">Hopper</a>, my own job queue.</p>
+      <div class="actions">
         <a class="btn primary" href="#try">Try it</a>
         <a class="btn" href="#how">How it works</a>
-      </p>
-    </header>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="hero-art on-dark">
+        <dl class="figures">
+          <div><dt>hit@5 0.968</dt><dd>retrieval on the held-out test split</dd></div>
+          <div><dt>6 of 6 refused</dt><dd>unanswerable test questions</dd></div>
+          <div><dt>83%</dt><dd>of answers cite a gold section</dd></div>
+        </dl>
+      </div>
+      <p class="footnote">Measured once, at the end, on questions never used for any choice.
+        <a href="https://github.com/Srinu-design/sift/blob/main/docs/eval-report.md">Eval report</a></p>
+    </div>
+  </div>
 
+  <div class="wrap">
     <section class="section" aria-labelledby="features-title">
+      <p class="eyebrow">Design principles</p>
       <h2 id="features-title">What it does</h2>
       <ul class="cards">
-        <li class="card"><h3>Cites every claim</h3><p>Every sentence of an answer cites a numbered
+        <li class="card wide"><h3>Cites every claim</h3><p>Every sentence of an answer cites a numbered
           source with its section or page, and code rejects any citation that does not point to
           a retrieved chunk.</p></li>
         <li class="card"><h3>Refuses without evidence</h3><p>Two gates: a low rerank score refuses
@@ -67,9 +91,16 @@
     </section>
 
     <section class="section" aria-labelledby="results-title">
+      <p class="eyebrow">Empirical validation</p>
       <h2 id="results-title">Results on the held-out test split</h2>
-      <p>Run once, at the end: 37 PostgreSQL questions never used for any choice (31 answerable,
-        6 unanswerable), plus 6 SEBI questions.</p>
+      <p class="section-lead">Run once, at the end: 37 PostgreSQL questions never used for any choice
+        (31 answerable, 6 unanswerable), plus 6 SEBI questions.</p>
+      <ul class="metrics">
+        <li><p class="metric-label">Retrieval hit@5</p><p class="metric-value">0.968</p><p class="metric-note"><code>hybrid_rerank</code></p></li>
+        <li><p class="metric-label">Faithfulness</p><p class="metric-value">1.000</p><p class="metric-note">LLM judge</p></li>
+        <li><p class="metric-label">Gold citations</p><p class="metric-value">83%</p><p class="metric-note">of answers cite a gold section</p></li>
+        <li><p class="metric-label">Correctness <span class="chip-warn">Not yet trusted</span></p><p class="metric-value">0.897</p><p class="metric-note">LLM judge, kappa 0.489</p></li>
+      </ul>
       <div class="table-wrap">
         <table>
           <thead><tr><th scope="col">Measure</th><th scope="col">Result</th></tr></thead>
@@ -78,7 +109,7 @@
             <tr><td>Refusals</td><td><strong>6 of 6 unanswerable refused</strong>; 2 of 31 answerable wrongly refused (6.5%)</td></tr>
             <tr><td>Citations</td><td>83% of answers cite a gold section; every citation checked in code</td></tr>
             <tr><td>Faithfulness (LLM judge)</td><td>1.000; the judge caught 5 of 5 planted false claims</td></tr>
-            <tr><td>Correctness (LLM judge)</td><td>0.897, <strong>not yet trusted</strong> (kappa 0.489 against 40 hand labels, ADR-0010)</td></tr>
+            <tr><td>Correctness (LLM judge)</td><td>0.897, <span class="chip-warn">not yet trusted</span> (kappa 0.489 against 40 hand labels, ADR-0010)</td></tr>
             <tr><td>Tenant B (SEBI PDFs)</td><td>5 of 5 answered with a page citation, 1 of 1 refused, prompt injection resisted</td></tr>
             <tr><td>Load (stub LLM, laptop CPU)</td><td>0.5 req/s under 3 s p95 uncached, 1 req/s with the answer cache; the reranker saturates first</td></tr>
             <tr><td>CI</td><td>The retrieval gate blocked a deliberately bad PR</td></tr>
@@ -91,7 +122,7 @@
 
     <section class="section" aria-labelledby="more-title">
       <h2 id="more-title">Where to read more</h2>
-      <ul class="link-list">
+      <ul class="pill-links">
         <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/design.md">Design document</a></li>
         <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/eval-report.md">Eval report and error analysis</a></li>
         <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/benchmarks.md">Load and cost benchmarks</a></li>
@@ -107,8 +138,11 @@
   <div class="wrap">
     <header class="page-head">
       <h1>How it works</h1>
+      <p class="lead">From a question to a cited answer or a refusal, and how each step is measured.</p>
     </header>
-    <nav class="chip-row" aria-label="On this page">
+  </div>
+  <nav class="subnav" aria-label="On this page">
+    <div class="subnav-row">
       <a class="chip" href="#pipeline">Query path</a>
       <a class="chip" href="#ingest">Ingest path</a>
       <a class="chip" href="#architecture">Components</a>
@@ -118,39 +152,47 @@
       <a class="chip" href="#security">Tenancy and security</a>
       <a class="chip" href="#operations">Operations</a>
       <a class="chip" href="#decisions">Decisions</a>
-    </nav>
+    </div>
+  </nav>
+  <div class="wrap">
 
     <section class="section" id="pipeline" aria-labelledby="pipeline-title">
       <h2 id="pipeline-title">The query path</h2>
       <ol class="flow">
-        <li><strong>Auth and tenancy</strong> The tenant comes from the API key, never the request;
-          every transaction is scoped to it, and row-level security is the second layer.</li>
-        <li><strong>Answer cache</strong> Keyed by tenant, collection, index version, strategy,
-          filters, prompt version, model and the normalised question.</li>
-        <li><strong>Dense and lexical search</strong> Dense top 50 (pgvector HNSW) and lexical
-          top 50 (Postgres full-text) run concurrently, with metadata filters inside both.</li>
-        <li><strong>Fusion</strong> Reciprocal-rank fusion with k = 60 merges the two lists.</li>
-        <li><strong>Rerank</strong> A cross-encoder rescores the fused top 30; the top 8 go to the
-          model.</li>
-        <li><strong>Gate 1</strong> If the best rerank score is below τ = 0.19, Sift refuses
-          without calling the model.</li>
-        <li><strong>Answer and check</strong> The model returns JSON with <code>[S#]</code>
+        <li><h3>Auth and tenancy</h3><p>The tenant comes from the API key, never the request;
+          every transaction is scoped to it, and row-level security is the second layer.</p></li>
+        <li><h3>Answer cache</h3><p>Keyed by tenant, collection, index version, strategy,
+          filters, prompt version, model and the normalised question.</p></li>
+        <li><h3>Dense and lexical search</h3>
+          <div class="lanes">
+            <p class="lane"><strong>Dense</strong> top 50, pgvector HNSW</p>
+            <p class="lane"><strong>Lexical</strong> top 50, Postgres full-text</p>
+          </div>
+          <p>Both run concurrently, with metadata filters inside both.</p></li>
+        <li><h3>Fusion</h3><p>Reciprocal-rank fusion with k = 60 merges the two lists.</p></li>
+        <li><h3>Rerank</h3><p>A cross-encoder rescores the fused top 30; the top 8 go to the
+          model.</p></li>
+        <li><h3>Gate 1</h3><p>If the best rerank score is below τ = 0.19, Sift refuses
+          without calling the model.</p></li>
+        <li><h3>Answer and check</h3><p>The model returns JSON with <code>[S#]</code>
           markers and short quotes; code checks every id, every quote, and that every sentence
-          cites. One retry, then refusal.</li>
-        <li><strong>Gate 2</strong> The model may refuse itself. The query is logged with
-          timings per stage, tokens, cost and the gate.</li>
+          cites. One retry, then refusal.</p></li>
+        <li><h3>Gate 2</h3><p>The model may refuse itself. The query is logged with
+          timings per stage, tokens, cost and the gate.</p></li>
       </ol>
     </section>
 
     <section class="section" id="ingest" aria-labelledby="ingest-title">
       <h2 id="ingest-title">The ingest path</h2>
-      <p>An upload is stored under its SHA-256, so an unchanged file creates nothing and makes no
-        embedding calls. A Hopper <code>parse</code> job splits HTML by sections and PDFs by page
-        (chunks of about 400 tokens, 15% overlap, never across a section or page),
-        <code>embed</code> jobs run per 64 chunks on their own queue, and
-        <code>activate</code> swaps the document's live version atomically.</p>
-      <p class="note">On the live server the index was restored from the evaluated local
-        database; live uploads are not enabled there.</p>
+      <div class="card prose">
+        <p>An upload is stored under its SHA-256, so an unchanged file creates nothing and makes no
+          embedding calls. A Hopper <code>parse</code> job splits HTML by sections and PDFs by page
+          (chunks of about 400 tokens, 15% overlap, never across a section or page),
+          <code>embed</code> jobs run per 64 chunks on their own queue, and
+          <code>activate</code> swaps the document's live version atomically.</p>
+        <p class="note">On the live server the index was restored from the evaluated local
+          database; live uploads are not enabled there.</p>
+      </div>
     </section>
 
     <section class="section" id="architecture" aria-labelledby="arch-title">
@@ -172,15 +214,16 @@
 
     <section class="section" id="retrieval" aria-labelledby="retrieval-title">
       <h2 id="retrieval-title">Retrieval strategies</h2>
-      <p>Golden set v1, dev split, 71 answerable questions, 95% bootstrap intervals.</p>
+      <p class="section-lead">Golden set v1, dev split, 71 answerable questions, 95% bootstrap
+        intervals. The best value in each column is marked.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th scope="col">Strategy</th><th scope="col">hit@5</th><th scope="col">hit@8</th><th scope="col">recall@10</th><th scope="col">MRR@10</th></tr></thead>
           <tbody>
-            <tr><td>naive (dense, bge-small)</td><td>0.887 <span class="ci">[0.82, 0.96]</span></td><td>0.930 <span class="ci">[0.87, 0.99]</span></td><td>0.958 <span class="ci">[0.91, 0.99]</span></td><td>0.747 <span class="ci">[0.66, 0.83]</span></td></tr>
+            <tr><td>naive (dense, bge-small)</td><td><span class="best">0.887</span> <span class="ci">[0.82, 0.96]</span></td><td>0.930 <span class="ci">[0.87, 0.99]</span></td><td>0.958 <span class="ci">[0.91, 0.99]</span></td><td>0.747 <span class="ci">[0.66, 0.83]</span></td></tr>
             <tr><td>lexical (OR full-text)</td><td>0.817 <span class="ci">[0.72, 0.90]</span></td><td>0.873 <span class="ci">[0.79, 0.94]</span></td><td>0.852 <span class="ci">[0.77, 0.93]</span></td><td>0.607 <span class="ci">[0.51, 0.69]</span></td></tr>
-            <tr><td>hybrid (RRF, k = 60)</td><td>0.887 <span class="ci">[0.82, 0.96]</span></td><td>0.958 <span class="ci">[0.90, 1.00]</span></td><td>0.951 <span class="ci">[0.89, 0.99]</span></td><td>0.738 <span class="ci">[0.65, 0.82]</span></td></tr>
-            <tr><td><strong>hybrid_rerank</strong> (cross-encoder, top 30)</td><td>0.887 <span class="ci">[0.80, 0.96]</span></td><td><strong>0.986</strong> <span class="ci">[0.96, 1.00]</span></td><td>0.979 <span class="ci">[0.94, 1.00]</span></td><td><strong>0.841</strong> <span class="ci">[0.76, 0.91]</span></td></tr>
+            <tr><td>hybrid (RRF, k = 60)</td><td><span class="best">0.887</span> <span class="ci">[0.82, 0.96]</span></td><td>0.958 <span class="ci">[0.90, 1.00]</span></td><td>0.951 <span class="ci">[0.89, 0.99]</span></td><td>0.738 <span class="ci">[0.65, 0.82]</span></td></tr>
+            <tr><td><strong>hybrid_rerank</strong> (cross-encoder, top 30)</td><td><span class="best">0.887</span> <span class="ci">[0.80, 0.96]</span></td><td><span class="best">0.986</span> <span class="ci">[0.96, 1.00]</span></td><td><span class="best">0.979</span> <span class="ci">[0.94, 1.00]</span></td><td><span class="best">0.841</span> <span class="ci">[0.76, 0.91]</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -192,11 +235,11 @@
 
     <section class="section" id="answers" aria-labelledby="answers-title">
       <h2 id="answers-title">Answers, citations and refusals</h2>
-      <p>86 dev questions, <code>hybrid_rerank</code>, gemini-3.5-flash-lite, prompt
+      <p class="section-lead">86 dev questions, <code>hybrid_rerank</code>, gemini-3.5-flash-lite, prompt
         <code>answer-v2</code>:</p>
       <div class="table-wrap">
         <table>
-          <thead><tr><th scope="col"></th><th scope="col">Answered</th><th scope="col">Refused</th></tr></thead>
+          <thead><tr><th scope="col"><span class="sr-only">Questions</span></th><th scope="col">Answered</th><th scope="col">Refused</th></tr></thead>
           <tbody>
             <tr><td>Answerable (71)</td><td>67</td><td>4 (gate 1: 3, gate 2: 1)</td></tr>
             <tr><td>Unanswerable (15)</td><td>2</td><td>13 (gate 1: 4, gate 2: 9)</td></tr>
@@ -208,49 +251,51 @@
         section.</p>
     </section>
 
-    <section class="section" id="evaluation" aria-labelledby="eval-title">
-      <h2 id="eval-title">Evaluation</h2>
-      <ul>
-        <li>Golden set v1: 123 PostgreSQL questions (17% unanswerable), labelled by section, with
-          a frozen dev/test split; v2-sebi: 18 questions with page labels and prompt-injection
-          cases.</li>
-        <li>Retrieval metrics (hit@k, recall@k, MRR@10, bootstrap intervals, paired comparisons)
-          gate every pull request; the gate
-          <a href="https://github.com/Srinu-design/sift/blob/main/docs/ci-gate-demo.md">blocked a
-          deliberately bad one</a>.</li>
-        <li>Answers, refusals, citations and the LLM judge run nightly. The judge's correctness
-          score is not yet trusted (kappa 0.489 against 40 hand labels).</li>
-        <li>Every dated run is on the <a href="#evals">Eval history</a> tab.</li>
-      </ul>
-    </section>
+    <div class="trio">
+      <section class="card" id="evaluation" aria-labelledby="eval-title">
+        <h2 id="eval-title">Evaluation</h2>
+        <ul>
+          <li>Golden set v1: 123 PostgreSQL questions (17% unanswerable), labelled by section, with
+            a frozen dev/test split; v2-sebi: 18 questions with page labels and prompt-injection
+            cases.</li>
+          <li>Retrieval metrics (hit@k, recall@k, MRR@10, bootstrap intervals, paired comparisons)
+            gate every pull request; the gate
+            <a href="https://github.com/Srinu-design/sift/blob/main/docs/ci-gate-demo.md">blocked a
+            deliberately bad one</a>.</li>
+          <li>Answers, refusals, citations and the LLM judge run nightly. The judge's correctness
+            score is not yet trusted (kappa 0.489 against 40 hand labels).</li>
+          <li>Every dated run is on the <a href="#evals">Eval history</a> tab.</li>
+        </ul>
+      </section>
 
-    <section class="section" id="security" aria-labelledby="security-title">
-      <h2 id="security-title">Tenancy and security</h2>
-      <ul>
-        <li>Tenant filters plus row-level security on a shared index; tests prove tenant B cannot
-          retrieve tenant A's chunks, answers or cache entries.</li>
-        <li>API keys look like <code>sift_live_&lt;prefix&gt;_&lt;secret&gt;</code>; only an
-          HMAC of the secret, with a server-side pepper, is stored.</li>
-        <li>Sources are treated as data: prompt v2 fences them, and all three instructions planted
-          in a tenant-B document were resisted.</li>
-        <li>This page runs under a strict Content-Security-Policy and renders model output as text
-          only.</li>
-      </ul>
-    </section>
+      <section class="card" id="security" aria-labelledby="security-title">
+        <h2 id="security-title">Tenancy and security</h2>
+        <ul>
+          <li>Tenant filters plus row-level security on a shared index; tests prove tenant B cannot
+            retrieve tenant A's chunks, answers or cache entries.</li>
+          <li>API keys look like <code>sift_live_&lt;prefix&gt;_&lt;secret&gt;</code>; only an
+            HMAC of the secret, with a server-side pepper, is stored.</li>
+          <li>Sources are treated as data: prompt v2 fences them, and all three instructions planted
+            in a tenant-B document were resisted.</li>
+          <li>This page runs under a strict Content-Security-Policy and renders model output as text
+            only.</li>
+        </ul>
+      </section>
 
-    <section class="section" id="operations" aria-labelledby="ops-title">
-      <h2 id="ops-title">Operations</h2>
-      <ul>
-        <li>Answer cache keyed by index version, a query-embedding cache, per-client rate limits
-          and a per-tenant daily spend cap.</li>
-        <li>Prometheus metrics and a Grafana dashboard: p50/p95 per stage, cost per query, cache
-          hit rate, refusals by gate, errors.</li>
-        <li>Load: 0.5 requests/s with p95 under 3 s without the answer cache, 1 request/s with it;
-          the cross-encoder saturates first.</li>
-        <li>Deployed from GitHub Actions; each release must pass a retrieval smoke test or the
-          previous one comes back automatically.</li>
-      </ul>
-    </section>
+      <section class="card" id="operations" aria-labelledby="ops-title">
+        <h2 id="ops-title">Operations</h2>
+        <ul>
+          <li>Answer cache keyed by index version, a query-embedding cache, per-client rate limits
+            and a per-tenant daily spend cap.</li>
+          <li>Prometheus metrics and a Grafana dashboard: p50/p95 per stage, cost per query, cache
+            hit rate, refusals by gate, errors.</li>
+          <li>Load: 0.5 requests/s with p95 under 3 s without the answer cache, 1 request/s with it;
+            the cross-encoder saturates first.</li>
+          <li>Deployed from GitHub Actions; each release must pass a retrieval smoke test or the
+            previous one comes back automatically.</li>
+        </ul>
+      </section>
+    </div>
 
     <section class="section" id="decisions" aria-labelledby="decisions-title">
       <h2 id="decisions-title">Decisions</h2>
@@ -277,33 +322,23 @@
   <div class="wrap">
     <header class="page-head">
       <h1>Try it</h1>
-      <p class="subtitle">Answers come only from the PostgreSQL 16–18 manuals, with a citation for
+      <p class="lead">Answers come only from the PostgreSQL 16–18 manuals, with a citation for
         every claim; off-topic questions are refused. The demo shares one free-tier model quota.</p>
     </header>
 
-    <section class="examples" aria-label="Example questions">
-      <span class="examples-label">Try an example:</span>
-      <div class="example-buttons">
-        <button type="button" class="example-btn" data-question="Can CREATE INDEX CONCURRENTLY run inside a transaction block?">
-          Can CREATE INDEX CONCURRENTLY run inside a transaction block?
-        </button>
-        <button type="button" class="example-btn" data-question="How do I take an incremental backup in PostgreSQL 17?">
-          How do I take an incremental backup in PostgreSQL 17?
-        </button>
-        <button type="button" class="example-btn" data-question="What is the recommended shared_buffers size for a server with 64 GB of RAM?">
-          What is the recommended shared_buffers size for a server with 64 GB of RAM?
-        </button>
-      </div>
-    </section>
+    <form id="query-form" class="ask-box">
+      <label for="question" class="sr-only">Question</label>
+      <textarea id="question" name="question" rows="3" maxlength="1000" required placeholder="Ask a question about PostgreSQL 16, 17, or 18…"></textarea>
 
-    <form id="query-form" class="query-form">
-      <div class="field">
-        <label for="question">Question</label>
-        <textarea id="question" name="question" rows="3" maxlength="1000" required placeholder="Ask a question about PostgreSQL 16, 17, or 18..."></textarea>
+      <div class="examples" role="group" aria-labelledby="examples-label">
+        <span class="examples-label" id="examples-label">Try an example:</span>
+        <button type="button" class="example-btn" data-question="Can CREATE INDEX CONCURRENTLY run inside a transaction block?">Can CREATE INDEX CONCURRENTLY run inside a transaction block?</button>
+        <button type="button" class="example-btn" data-question="How do I take an incremental backup in PostgreSQL 17?">How do I take an incremental backup in PostgreSQL 17?</button>
+        <button type="button" class="example-btn" data-question="What is the recommended shared_buffers size for a server with 64 GB of RAM?">What is the recommended shared_buffers size for a server with 64 GB of RAM?</button>
       </div>
 
       <div class="controls">
-        <div class="field">
+        <div class="pill-select">
           <label for="strategy">Strategy</label>
           <select id="strategy" name="strategy">
             <option value="hybrid_rerank" selected>hybrid_rerank</option>
@@ -312,8 +347,7 @@
             <option value="lexical">lexical</option>
           </select>
         </div>
-
-        <div class="field">
+        <div class="pill-select">
           <label for="version">Version</label>
           <select id="version" name="version">
             <option value="" selected>Any</option>
@@ -322,10 +356,7 @@
             <option value="18">18</option>
           </select>
         </div>
-
-        <div class="actions">
-          <button type="submit" id="ask-btn">Ask</button>
-        </div>
+        <button type="submit" id="ask-btn" class="btn primary">Ask</button>
       </div>
     </form>
 
@@ -338,12 +369,19 @@
   <div class="wrap">
     <header class="page-head">
       <h1>Eval history</h1>
-      <p class="subtitle">Every dated eval run committed to the repository, one row per run.
+      <p class="lead">Every dated eval run committed to the repository, one row per run.
         <strong>dev</strong> runs guided every choice; <strong>test</strong> runs were made once,
         at the end. Strategy labels with a suffix (<code>-r10</code>, <code>-nofilter</code>,
         <code>-and</code>) are ablations. Regenerated with <code>make eval-history</code>.</p>
     </header>
     <p id="evals-status" class="note" aria-live="polite">Loading…</p>
+
+    <section class="card chart-card" aria-labelledby="chart-title">
+      <h2 id="chart-title">MRR@10 of <code>hybrid_rerank</code>, run by run</h2>
+      <p class="hint">Golden set v1, dev split, in the order the runs were made. Test-split runs are in the table below.</p>
+      <div class="chart-scroll"><svg id="mrr-chart" class="chart" role="img" aria-labelledby="chart-title chart-desc"><desc id="chart-desc">Loading the runs.</desc></svg></div>
+    </section>
+
     <section class="section" aria-labelledby="ret-runs-title">
       <h2 id="ret-runs-title">Retrieval runs</h2>
       <div class="table-wrap">
@@ -366,5 +404,40 @@
 </section>
 
 </main>
+
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-about">
+      <p class="footer-name">Sift</p>
+      <p>Cited question answering over documents, built and run by Veeradimmu Srinivasulu Reddy.</p>
+    </div>
+    <nav class="footer-col" aria-label="This project">
+      <p class="footer-title">Sift</p>
+      <ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#try">Try it</a></li>
+        <li><a href="#evals">Eval history</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Read more">
+      <p class="footer-title">Read</p>
+      <ul>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/design.md">Design document</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/eval-report.md">Eval report</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/benchmarks.md">Benchmarks</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Elsewhere">
+      <p class="footer-title">Elsewhere</p>
+      <ul>
+        <li><a href="https://github.com/Srinu-design/sift">Source</a></li>
+        <li><a href="../hopper/">Hopper</a></li>
+        <li><a href="../">All projects</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="wrap"><p class="footer-base">© 2026 Veeradimmu Srinivasulu Reddy</p></div>
+</footer>
 </body>
 </html>

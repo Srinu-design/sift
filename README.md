@@ -9,6 +9,26 @@ Design: [docs/design.md](docs/design.md) · Eval: [docs/eval-report.md](docs/eva
 Load: [docs/benchmarks.md](docs/benchmarks.md) · Deploy: [docs/deploy.md](docs/deploy.md) ·
 12 [ADRs](docs/adr/). Nothing below is claimed beyond what a test or a measured number shows.
 
+## Architecture
+
+```
+                     ┌──────────── Hopper (Project 1): api, workers, scheduler ────────────┐
+upload ─► sift-api ─►│ parse:<v> ─► embed:<v>:<n> (queue sift-embed) ─► activate:<v>        │
+                     └──────┬───────────────────────────────────────────────────────────────┘
+                            │ signed http jobs (HMAC, internal-host allowlist)
+                            ▼
+                       sift-ingest ──► sift-models /embed            Postgres 16 + pgvector
+                            │                                        (chunks, embeddings,
+query ─► Caddy /sift/ ─► sift-api ──► sift-models /embed, /rerank     full-text index, RLS)
+                            │  ├─► Postgres: dense (HNSW) ‖ lexical (tsvector) ─► RRF
+                            │  ├─► Redis: answer cache, query-embedding cache, rate limits, budget
+                            │  └─► Gemini (answer, JSON with [S#] citations) ─► citation checks
+                            ▼
+                 cited answer, or a refusal with "you may want to read"
+```
+
+Each process and decision: [docs/design.md](docs/design.md#components).
+
 ## Results on the held-out test split (run once, at the end)
 
 37 PostgreSQL questions never used for any choice (31 answerable, 6 unanswerable), plus 6 SEBI:

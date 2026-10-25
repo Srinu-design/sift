@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from sift.answer.citations import check
-from sift.answer.llm import GeminiLLM, LLMUnavailable, StubLLM
+from sift.answer.llm import GeminiLLM, LLMQuotaExceeded, LLMUnavailable, StubLLM
 from sift.answer.prompt import RESPONSE_SCHEMA, SYSTEM_PROMPT, ModelAnswer, user_prompt
 from sift.retrieval.hit import Hit
 
@@ -141,6 +141,7 @@ async def test_gemini_llm_rate_limit_and_5xx_raise_unavailable(status_code: int)
         with pytest.raises(LLMUnavailable) as exc_info:
             await llm.generate(SYSTEM_PROMPT, [("user", "Hello")])
         assert "super-secret-key" not in str(exc_info.value)
+        assert isinstance(exc_info.value, LLMQuotaExceeded) == (status_code == 429)
 
 
 async def test_gemini_llm_empty_candidates_raises_unavailable() -> None:

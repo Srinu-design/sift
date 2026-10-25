@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from sift import metrics
 from sift.answer.citations import Citation
 from sift.answer.generate import answer
-from sift.answer.llm import LLM, LLMUnavailable, make_llm
+from sift.answer.llm import LLM, LLMQuotaExceeded, LLMUnavailable, make_llm
 from sift.answer.prompt import PROMPT_VERSION
 from sift.answer.refusal import gate1
 from sift.auth.api_keys import ApiKeyAuthenticator, current_tenant
@@ -42,6 +42,11 @@ from sift.retrieval.rerank import remote_reranker
 from sift.retrieval.search import DEPTH, Strategy, search
 
 STATIC = Path(__file__).parent / "static"
+# Shown on the demo page as is: the free tier allows a few requests a minute, a few hundred a day.
+QUOTA_DETAIL = (
+    "The demo has used up its free answer-model quota for now. Try again in a minute; if it "
+    "still fails, today's limit is used up and resets tomorrow."
+)
 CSP_POLICY = (
     "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; "
     "img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
@@ -341,10 +346,11 @@ async def _execute_query(
             context_k=body.k,
         )
     except LLMUnavailable as exc:
+        quota = isinstance(exc, LLMQuotaExceeded)
         raise HTTPException(
             status_code=503,
-            detail="answer model unavailable",
-            headers={"Retry-After": "10"},
+            detail=QUOTA_DETAIL if quota else "answer model unavailable",
+            headers={"Retry-After": "60" if quota else "10"},
         ) from exc
 
     total_ms = round((time.perf_counter() - t_total) * 1000.0, 1)

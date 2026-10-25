@@ -1,0 +1,418 @@
+{
+ "runs": [
+  {
+   "run_at": "2026-10-12T13:22:28+00:00",
+   "commit": null,
+   "kind": "retrieval",
+   "strategy": "naive",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8873,
+    "hit@8": 0.9296,
+    "recall@10": 0.9577,
+    "mrr@10": 0.7473
+   }
+  },
+  {
+   "run_at": "2026-10-12T13:23:13+00:00",
+   "commit": null,
+   "kind": "retrieval",
+   "strategy": "naive",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8873,
+    "hit@8": 0.9296,
+    "recall@10": 0.9577,
+    "mrr@10": 0.7473
+   }
+  },
+  {
+   "run_at": "2026-10-12T13:53:05+00:00",
+   "commit": null,
+   "kind": "retrieval",
+   "strategy": "naive",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8873,
+    "hit@8": 0.9296,
+    "recall@10": 0.9577,
+    "mrr@10": 0.7473
+   }
+  },
+  {
+   "run_at": "2026-10-20T09:21:14+00:00",
+   "commit": "fea373a",
+   "kind": "retrieval",
+   "strategy": "lexical-and",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.3521,
+    "hit@8": 0.3521,
+    "recall@10": 0.3357,
+    "mrr@10": 0.2897
+   }
+  },
+  {
+   "run_at": "2026-10-20T09:21:27+00:00",
+   "commit": "fea373a",
+   "kind": "retrieval",
+   "strategy": "hybrid-and",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8732,
+    "hit@8": 0.9155,
+    "recall@10": 0.9577,
+    "mrr@10": 0.7662
+   }
+  },
+  {
+   "run_at": "2026-10-20T09:23:40+00:00",
+   "commit": "fea373a",
+   "kind": "retrieval",
+   "strategy": "naive",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8873,
+    "hit@8": 0.9296,
+    "recall@10": 0.9577,
+    "mrr@10": 0.7473
+   }
+  },
+  {
+   "run_at": "2026-10-20T09:23:42+00:00",
+   "commit": "fea373a",
+   "kind": "retrieval",
+   "strategy": "lexical",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8169,
+    "hit@8": 0.8732,
+    "recall@10": 0.8521,
+    "mrr@10": 0.6073
+   }
+  },
+  {
+   "run_at": "2026-10-20T09:23:54+00:00",
+   "commit": "fea373a",
+   "kind": "retrieval",
+   "strategy": "hybrid",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8873,
+    "hit@8": 0.9577,
+    "recall@10": 0.9507,
+    "mrr@10": 0.7379
+   }
+  },
+  {
+   "run_at": "2026-10-20T10:11:22+00:00",
+   "commit": "b57e89a",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank-r50",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8873,
+    "hit@8": 0.9859,
+    "recall@10": 0.9789,
+    "mrr@10": 0.8335
+   }
+  },
+  {
+   "run_at": "2026-10-20T10:24:34+00:00",
+   "commit": "b57e89a",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8873,
+    "hit@8": 0.9859,
+    "recall@10": 0.9789,
+    "mrr@10": 0.8405
+   }
+  },
+  {
+   "run_at": "2026-10-20T11:14:41+00:00",
+   "commit": "fd95d4e",
+   "kind": "answers",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "refusal_recall": 0.8667,
+    "refusal_precision": 0.8125,
+    "citation_accuracy": 0.7526
+   }
+  },
+  {
+   "run_at": "2026-10-22T20:16:10+00:00",
+   "commit": "74f6949",
+   "kind": "retrieval",
+   "strategy": "naive",
+   "split": "dev",
+   "golden": "v2-sebi",
+   "metrics": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "recall@10": 1.0,
+    "mrr@10": 0.8833
+   }
+  },
+  {
+   "run_at": "2026-10-22T20:16:35+00:00",
+   "commit": "74f6949",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v2-sebi",
+   "metrics": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "recall@10": 1.0,
+    "mrr@10": 0.8083
+   }
+  },
+  {
+   "run_at": "2026-10-22T20:18:34+00:00",
+   "commit": "74f6949",
+   "kind": "answers",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v2-sebi",
+   "metrics": {
+    "refusal_recall": 1.0,
+    "refusal_precision": 0.6667,
+    "citation_accuracy": 0.8462
+   }
+  },
+  {
+   "run_at": "2026-10-22T20:25:53+00:00",
+   "commit": "74f6949",
+   "kind": "answers",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v2-sebi",
+   "metrics": {
+    "refusal_recall": 1.0,
+    "refusal_precision": 1.0,
+    "citation_accuracy": 0.8
+   }
+  },
+  {
+   "run_at": "2026-10-22T20:36:28+00:00",
+   "commit": "74f6949",
+   "kind": "answers",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "refusal_recall": 0.8667,
+    "refusal_precision": 0.7647,
+    "citation_accuracy": 0.708
+   }
+  },
+  {
+   "run_at": "2026-10-22T21:38:27+00:00",
+   "commit": "2a08071",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank-r10",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.9155,
+    "hit@8": 0.9577,
+    "recall@10": 0.9507,
+    "mrr@10": 0.8442
+   }
+  },
+  {
+   "run_at": "2026-10-23T10:07:00+00:00",
+   "commit": "0721278",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.9437,
+    "hit@8": 0.9859,
+    "recall@10": 0.9789,
+    "mrr@10": 0.8021
+   }
+  },
+  {
+   "run_at": "2026-10-23T10:10:14+00:00",
+   "commit": "0721278",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.9296,
+    "hit@8": 0.9577,
+    "recall@10": 0.993,
+    "mrr@10": 0.796
+   }
+  },
+  {
+   "run_at": "2026-10-23T10:12:56+00:00",
+   "commit": "0721278",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.9014,
+    "hit@8": 0.9859,
+    "recall@10": 0.9789,
+    "mrr@10": 0.8089
+   }
+  },
+  {
+   "run_at": "2026-10-23T10:16:22+00:00",
+   "commit": "0721278",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8873,
+    "hit@8": 0.9859,
+    "recall@10": 0.9789,
+    "mrr@10": 0.8409
+   }
+  },
+  {
+   "run_at": "2026-10-23T10:17:56+00:00",
+   "commit": "0721278",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank-nofilter",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8592,
+    "hit@8": 0.8592,
+    "recall@10": 0.8474,
+    "mrr@10": 0.531
+   }
+  },
+  {
+   "run_at": "2026-10-23T11:09:21+00:00",
+   "commit": "0721278",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "dev",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.9859,
+    "hit@8": 0.9859,
+    "recall@10": 0.9789,
+    "mrr@10": 0.8542
+   }
+  },
+  {
+   "run_at": "2026-10-23T11:12:30+00:00",
+   "commit": "02676a6",
+   "kind": "retrieval",
+   "strategy": "naive",
+   "split": "test",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8387,
+    "hit@8": 0.9355,
+    "recall@10": 0.9194,
+    "mrr@10": 0.6813
+   }
+  },
+  {
+   "run_at": "2026-10-23T11:12:33+00:00",
+   "commit": "02676a6",
+   "kind": "retrieval",
+   "strategy": "lexical",
+   "split": "test",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.7097,
+    "hit@8": 0.8387,
+    "recall@10": 0.8871,
+    "mrr@10": 0.5469
+   }
+  },
+  {
+   "run_at": "2026-10-23T11:12:45+00:00",
+   "commit": "02676a6",
+   "kind": "retrieval",
+   "strategy": "hybrid",
+   "split": "test",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.8387,
+    "hit@8": 0.9355,
+    "recall@10": 0.9194,
+    "mrr@10": 0.7748
+   }
+  },
+  {
+   "run_at": "2026-10-23T11:13:32+00:00",
+   "commit": "02676a6",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "test",
+   "golden": "v1",
+   "metrics": {
+    "hit@5": 0.9677,
+    "hit@8": 0.9677,
+    "recall@10": 0.9516,
+    "mrr@10": 0.7441
+   }
+  },
+  {
+   "run_at": "2026-10-23T11:13:51+00:00",
+   "commit": "02676a6",
+   "kind": "retrieval",
+   "strategy": "hybrid_rerank",
+   "split": "test",
+   "golden": "v2-sebi",
+   "metrics": {
+    "hit@5": 1.0,
+    "hit@8": 1.0,
+    "recall@10": 1.0,
+    "mrr@10": 0.9
+   }
+  },
+  {
+   "run_at": "2026-10-23T11:18:54+00:00",
+   "commit": "02676a6",
+   "kind": "answers",
+   "strategy": "hybrid_rerank",
+   "split": "test",
+   "golden": "v1",
+   "metrics": {
+    "refusal_recall": 1.0,
+    "refusal_precision": 0.75,
+    "citation_accuracy": 0.6538
+   }
+  },
+  {
+   "run_at": "2026-10-23T11:19:39+00:00",
+   "commit": "02676a6",
+   "kind": "answers",
+   "strategy": "hybrid_rerank",
+   "split": "test",
+   "golden": "v2-sebi",
+   "metrics": {
+    "refusal_recall": 1.0,
+    "refusal_precision": 1.0,
+    "citation_accuracy": 0.625
+   }
+  }
+ ]
+}

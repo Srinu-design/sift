@@ -1,5 +1,6 @@
 # Targets: env, up, down, logs, corpus, migrate, hopper-tenant, ingest-local, ingest-sample,
-# ingest, ingest-bench, eval, eval-baseline, golden-check, golden-review, test, test-e2e, lint, fmt.
+# ingest, ingest-bench, eval, eval-baseline, eval-history, golden-check, golden-review, test, test-e2e,
+# lint, fmt.
 # Host tools read settings from the environment only (like Hopper): export .env to them.
 -include .env
 export
@@ -8,7 +9,7 @@ COMPOSE := docker compose -f docker/compose.yaml --env-file .env
 EVAL := uv run --extra models python -m eval.run
 
 .PHONY: env up down logs corpus migrate hopper-tenant api-key ingest-local ingest-sample ingest ingest-sebi ingest-bench eval \
-	eval-baseline eval-compare eval-overlap eval-tau eval-answers eval-judge label kappa load-query ablations rerank-latency golden-check golden-review test test-e2e lint fmt
+	eval-baseline eval-compare eval-overlap eval-tau eval-answers eval-judge label kappa load-query ablations rerank-latency eval-history golden-check golden-review test test-e2e lint fmt
 
 env:
 	@test -f .env || cp .env.example .env
@@ -115,6 +116,10 @@ ingest-bench:
 # Every gold location must exist in the corpus snapshot.
 golden-check:
 	uv run python -m eval.golden_check
+
+# The demo page's Eval history tab: every dated run in eval/results/. Rerun after an eval.
+eval-history:
+	uv run python -m eval.history
 
 # A checklist with a link to every gold section, for verifying the set by hand.
 golden-review:

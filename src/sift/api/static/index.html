@@ -3,15 +3,282 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sift</title>
+  <title>Sift · cited answers over your documents</title>
+  <meta name="description" content="Sift: question answering over your documents that cites the section behind every claim, refuses when the evidence is missing, and proves every retrieval change with a measured eval.">
+  <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="static/app.css">
   <script src="static/app.js" defer></script>
 </head>
 <body>
-  <main class="container">
-    <header class="site-header">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="#about">Sift</a>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#about" data-tab-link="about">About</a>
+      <a href="#how" data-tab-link="how">How it works</a>
+      <a href="#try" data-tab-link="try">Try it</a>
+      <a href="#evals" data-tab-link="evals">Eval history</a>
+    </nav>
+    <div class="header-end">
+      <a href="https://github.com/Srinu-design/sift">GitHub</a>
+      <a href="../">All projects</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================================================ About -->
+<section id="about" data-tab="about" class="tab-panel">
+  <div class="wrap">
+    <header class="hero">
       <h1>Sift</h1>
-      <p class="subtitle">Answers from the PostgreSQL 16-18 docs, with a citation for every claim, or a refusal.</p>
+      <p class="lede">Question answering over your documents that cites the section behind every
+        claim, refuses when the evidence is missing, and proves every retrieval change with a
+        measured eval.</p>
+      <p>The live demo answers from the PostgreSQL 16–18 manuals. Ingestion runs as jobs on
+        <a href="../hopper/">Hopper</a>, my own job queue.</p>
+      <p class="hero-actions">
+        <a class="btn primary" href="#try">Try it</a>
+        <a class="btn" href="#how">How it works</a>
+      </p>
+    </header>
+
+    <section class="section" aria-labelledby="features-title">
+      <h2 id="features-title">What it does</h2>
+      <ul class="cards">
+        <li class="card"><h3>Cites every claim</h3><p>Every sentence of an answer cites a numbered
+          source with its section or page, and code rejects any citation that does not point to
+          a retrieved chunk.</p></li>
+        <li class="card"><h3>Refuses without evidence</h3><p>Two gates: a low rerank score refuses
+          before any model call, and the model itself may refuse. Refusal precision and recall
+          are measured.</p></li>
+        <li class="card"><h3>Measured</h3><p>A versioned golden set of 141 questions. CI runs the
+          retrieval eval on every pull request and fails the build on a regression.</p></li>
+        <li class="card"><h3>Multi-tenant</h3><p>Each customer sees only its own documents:
+          tenant filters plus row-level security in Postgres, with tests for chunks, answers and
+          cache entries.</p></li>
+        <li class="card"><h3>Ingestion on Hopper</h3><p>Parse, embed and activate run as
+          <a href="https://github.com/Srinu-design/hopper">Hopper</a> jobs, with retries, a
+          dead-letter queue and replay.</p></li>
+      </ul>
+    </section>
+
+    <section class="section" aria-labelledby="results-title">
+      <h2 id="results-title">Results on the held-out test split</h2>
+      <p>Run once, at the end: 37 PostgreSQL questions never used for any choice (31 answerable,
+        6 unanswerable), plus 6 SEBI questions.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Measure</th><th scope="col">Result</th></tr></thead>
+          <tbody>
+            <tr><td>Retrieval, <code>hybrid_rerank</code></td><td><strong>hit@5 0.968</strong> [0.90, 1.00], MRR@10 0.744 (dense-only: hit@5 0.839, MRR 0.681)</td></tr>
+            <tr><td>Refusals</td><td><strong>6 of 6 unanswerable refused</strong>; 2 of 31 answerable wrongly refused (6.5%)</td></tr>
+            <tr><td>Citations</td><td>83% of answers cite a gold section; every citation checked in code</td></tr>
+            <tr><td>Faithfulness (LLM judge)</td><td>1.000; the judge caught 5 of 5 planted false claims</td></tr>
+            <tr><td>Correctness (LLM judge)</td><td>0.897, <strong>not yet trusted</strong> (kappa 0.489 against 40 hand labels, ADR-0010)</td></tr>
+            <tr><td>Tenant B (SEBI PDFs)</td><td>5 of 5 answered with a page citation, 1 of 1 refused, prompt injection resisted</td></tr>
+            <tr><td>Load (stub LLM, laptop CPU)</td><td>0.5 req/s under 3 s p95 uncached, 1 req/s with the answer cache; the reranker saturates first</td></tr>
+            <tr><td>CI</td><td>The retrieval gate blocked a deliberately bad PR</td></tr>
+            <tr><td>Deploy</td><td>On EC2 next to Hopper; a broken release caught by the retrieval smoke test and rolled back in 72 s</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">The golden set is drafted, not yet human-verified.</p>
+    </section>
+
+    <section class="section" aria-labelledby="more-title">
+      <h2 id="more-title">Where to read more</h2>
+      <ul class="link-list">
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/design.md">Design document</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/eval-report.md">Eval report and error analysis</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/benchmarks.md">Load and cost benchmarks</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/deploy.md">Deployment</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/tree/main/docs/adr">12 architecture decision records</a></li>
+      </ul>
+    </section>
+  </div>
+</section>
+
+<!-- ============================================================ How it works -->
+<section id="how" data-tab="how" class="tab-panel" hidden>
+  <div class="wrap">
+    <header class="page-head">
+      <h1>How it works</h1>
+    </header>
+    <nav class="chip-row" aria-label="On this page">
+      <a class="chip" href="#pipeline">Query path</a>
+      <a class="chip" href="#ingest">Ingest path</a>
+      <a class="chip" href="#architecture">Components</a>
+      <a class="chip" href="#retrieval">Retrieval</a>
+      <a class="chip" href="#answers">Answers and refusals</a>
+      <a class="chip" href="#evaluation">Evaluation</a>
+      <a class="chip" href="#security">Tenancy and security</a>
+      <a class="chip" href="#operations">Operations</a>
+      <a class="chip" href="#decisions">Decisions</a>
+    </nav>
+
+    <section class="section" id="pipeline" aria-labelledby="pipeline-title">
+      <h2 id="pipeline-title">The query path</h2>
+      <ol class="flow">
+        <li><strong>Auth and tenancy</strong> The tenant comes from the API key, never the request;
+          every transaction is scoped to it, and row-level security is the second layer.</li>
+        <li><strong>Answer cache</strong> Keyed by tenant, collection, index version, strategy,
+          filters, prompt version, model and the normalised question.</li>
+        <li><strong>Dense and lexical search</strong> Dense top 50 (pgvector HNSW) and lexical
+          top 50 (Postgres full-text) run concurrently, with metadata filters inside both.</li>
+        <li><strong>Fusion</strong> Reciprocal-rank fusion with k = 60 merges the two lists.</li>
+        <li><strong>Rerank</strong> A cross-encoder rescores the fused top 30; the top 8 go to the
+          model.</li>
+        <li><strong>Gate 1</strong> If the best rerank score is below τ = 0.19, Sift refuses
+          without calling the model.</li>
+        <li><strong>Answer and check</strong> The model returns JSON with <code>[S#]</code>
+          markers and short quotes; code checks every id, every quote, and that every sentence
+          cites. One retry, then refusal.</li>
+        <li><strong>Gate 2</strong> The model may refuse itself. The query is logged with
+          timings per stage, tokens, cost and the gate.</li>
+      </ol>
+    </section>
+
+    <section class="section" id="ingest" aria-labelledby="ingest-title">
+      <h2 id="ingest-title">The ingest path</h2>
+      <p>An upload is stored under its SHA-256, so an unchanged file creates nothing and makes no
+        embedding calls. A Hopper <code>parse</code> job splits HTML by sections and PDFs by page
+        (chunks of about 400 tokens, 15% overlap, never across a section or page),
+        <code>embed</code> jobs run per 64 chunks on their own queue, and
+        <code>activate</code> swaps the document's live version atomically.</p>
+      <p class="note">On the live server the index was restored from the evaluated local
+        database; live uploads are not enabled there.</p>
+    </section>
+
+    <section class="section" id="architecture" aria-labelledby="arch-title">
+      <h2 id="arch-title">Components</h2>
+      <dl class="defs">
+        <div><dt>sift-api</dt><dd>Query API, uploads, collections and this page; runs as a
+          non-owner database role.</dd></div>
+        <div><dt>sift-models</dt><dd>bge-small embeddings and the MiniLM cross-encoder, loaded
+          once.</dd></div>
+        <div><dt>sift-ingest</dt><dd>Internal endpoints that Hopper's jobs call: parse, embed,
+          activate.</dd></div>
+        <div><dt>Hopper</dt><dd>Retries, dead-letter queue and replay for ingestion.</dd></div>
+        <div><dt>Postgres</dt><dd>One store for chunks, vectors, full-text and filters.</dd></div>
+        <div><dt>Redis</dt><dd>Caches, rate-limit token buckets and daily spend; every use fails
+          open.</dd></div>
+        <div><dt>Gemini</dt><dd>Writes the answer from the numbered sources.</dd></div>
+      </dl>
+    </section>
+
+    <section class="section" id="retrieval" aria-labelledby="retrieval-title">
+      <h2 id="retrieval-title">Retrieval strategies</h2>
+      <p>Golden set v1, dev split, 71 answerable questions, 95% bootstrap intervals.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Strategy</th><th scope="col">hit@5</th><th scope="col">hit@8</th><th scope="col">recall@10</th><th scope="col">MRR@10</th></tr></thead>
+          <tbody>
+            <tr><td>naive (dense, bge-small)</td><td>0.887 <span class="ci">[0.82, 0.96]</span></td><td>0.930 <span class="ci">[0.87, 0.99]</span></td><td>0.958 <span class="ci">[0.91, 0.99]</span></td><td>0.747 <span class="ci">[0.66, 0.83]</span></td></tr>
+            <tr><td>lexical (OR full-text)</td><td>0.817 <span class="ci">[0.72, 0.90]</span></td><td>0.873 <span class="ci">[0.79, 0.94]</span></td><td>0.852 <span class="ci">[0.77, 0.93]</span></td><td>0.607 <span class="ci">[0.51, 0.69]</span></td></tr>
+            <tr><td>hybrid (RRF, k = 60)</td><td>0.887 <span class="ci">[0.82, 0.96]</span></td><td>0.958 <span class="ci">[0.90, 1.00]</span></td><td>0.951 <span class="ci">[0.89, 0.99]</span></td><td>0.738 <span class="ci">[0.65, 0.82]</span></td></tr>
+            <tr><td><strong>hybrid_rerank</strong> (cross-encoder, top 30)</td><td>0.887 <span class="ci">[0.80, 0.96]</span></td><td><strong>0.986</strong> <span class="ci">[0.96, 1.00]</span></td><td>0.979 <span class="ci">[0.94, 1.00]</span></td><td><strong>0.841</strong> <span class="ci">[0.76, 0.91]</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Reranking is the first real gain:</strong> MRR@10 +0.086 [+0.018, +0.163] over
+        naive. <strong>Hybrid alone beats lexical but ties naive:</strong> it fixes exact
+        identifiers (version-specific hit@5 0.70 → 1.00) but lets two medium ranks beat one first
+        place, which the reranker fixes.</p>
+    </section>
+
+    <section class="section" id="answers" aria-labelledby="answers-title">
+      <h2 id="answers-title">Answers, citations and refusals</h2>
+      <p>86 dev questions, <code>hybrid_rerank</code>, gemini-3.5-flash-lite, prompt
+        <code>answer-v2</code>:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col"></th><th scope="col">Answered</th><th scope="col">Refused</th></tr></thead>
+          <tbody>
+            <tr><td>Answerable (71)</td><td>67</td><td>4 (gate 1: 3, gate 2: 1)</td></tr>
+            <tr><td>Unanswerable (15)</td><td>2</td><td>13 (gate 1: 4, gate 2: 9)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Refusal recall 0.87, wrong refusals 5.6%. Gate 1 is mostly a cost saver; the model
+        (gate 2) catches 9 of the 11 it lets through. 94% of answers cite at least one gold
+        section.</p>
+    </section>
+
+    <section class="section" id="evaluation" aria-labelledby="eval-title">
+      <h2 id="eval-title">Evaluation</h2>
+      <ul>
+        <li>Golden set v1: 123 PostgreSQL questions (17% unanswerable), labelled by section, with
+          a frozen dev/test split; v2-sebi: 18 questions with page labels and prompt-injection
+          cases.</li>
+        <li>Retrieval metrics (hit@k, recall@k, MRR@10, bootstrap intervals, paired comparisons)
+          gate every pull request; the gate
+          <a href="https://github.com/Srinu-design/sift/blob/main/docs/ci-gate-demo.md">blocked a
+          deliberately bad one</a>.</li>
+        <li>Answers, refusals, citations and the LLM judge run nightly. The judge's correctness
+          score is not yet trusted (kappa 0.489 against 40 hand labels).</li>
+        <li>Every dated run is on the <a href="#evals">Eval history</a> tab.</li>
+      </ul>
+    </section>
+
+    <section class="section" id="security" aria-labelledby="security-title">
+      <h2 id="security-title">Tenancy and security</h2>
+      <ul>
+        <li>Tenant filters plus row-level security on a shared index; tests prove tenant B cannot
+          retrieve tenant A's chunks, answers or cache entries.</li>
+        <li>API keys look like <code>sift_live_&lt;prefix&gt;_&lt;secret&gt;</code>; only an
+          HMAC of the secret, with a server-side pepper, is stored.</li>
+        <li>Sources are treated as data: prompt v2 fences them, and all three instructions planted
+          in a tenant-B document were resisted.</li>
+        <li>This page runs under a strict Content-Security-Policy and renders model output as text
+          only.</li>
+      </ul>
+    </section>
+
+    <section class="section" id="operations" aria-labelledby="ops-title">
+      <h2 id="ops-title">Operations</h2>
+      <ul>
+        <li>Answer cache keyed by index version, a query-embedding cache, per-client rate limits
+          and a per-tenant daily spend cap.</li>
+        <li>Prometheus metrics and a Grafana dashboard: p50/p95 per stage, cost per query, cache
+          hit rate, refusals by gate, errors.</li>
+        <li>Load: 0.5 requests/s with p95 under 3 s without the answer cache, 1 request/s with it;
+          the cross-encoder saturates first.</li>
+        <li>Deployed from GitHub Actions; each release must pass a retrieval smoke test or the
+          previous one comes back automatically.</li>
+      </ul>
+    </section>
+
+    <section class="section" id="decisions" aria-labelledby="decisions-title">
+      <h2 id="decisions-title">Decisions</h2>
+      <ol class="adr-list">
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0001-postgres-for-search.md">Postgres (pgvector + full-text search) instead of a dedicated vector database</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0002-rrf-fusion.md">Reciprocal-rank fusion with k = 60 instead of weighted score fusion</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0003-cross-encoder-rerank.md">Rerank the fused top 30 with ms-marco-MiniLM-L6-v2 on CPU</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0004-chunking.md">Structure-aware chunking at ~400 tokens with 15% overlap, from the ablation</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0005-embedding-model.md">Embedding model: local bge-small-en-v1.5, not an API model</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0006-ingestion-on-hopper.md">Ingestion as Hopper http jobs; internal-host allowlist; a queue for embedding</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0007-gold-labels.md">Gold labels at section or page level, never chunk ids</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0008-two-gate-refusal.md">Two-gate refusal, with τ tuned on dev</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0009-eval-in-ci.md">Retrieval eval on every PR; generation eval nightly</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0010-llm-judge.md">LLM judge, validated against human labels (not yet trusted for correctness)</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0011-answer-cache.md">Answer cache keyed by index_version; no semantic cache</a></li>
+        <li><a href="https://github.com/Srinu-design/sift/blob/main/docs/adr/0012-tenant-isolation.md">Tenant isolation with filters plus row-level security, on a shared index</a></li>
+      </ol>
+    </section>
+  </div>
+</section>
+
+<!-- ============================================================ Try it -->
+<section id="try" data-tab="try" class="tab-panel" hidden>
+  <div class="wrap">
+    <header class="page-head">
+      <h1>Try it</h1>
+      <p class="subtitle">Answers come only from the PostgreSQL 16–18 manuals, with a citation for
+        every claim; off-topic questions are refused. The demo shares one free-tier model quota.</p>
     </header>
 
     <section class="examples" aria-label="Example questions">
@@ -63,6 +330,41 @@
     </form>
 
     <section id="results" class="results" aria-live="polite"></section>
-  </main>
+  </div>
+</section>
+
+<!-- ============================================================ Eval history -->
+<section id="evals" data-tab="evals" class="tab-panel" hidden>
+  <div class="wrap">
+    <header class="page-head">
+      <h1>Eval history</h1>
+      <p class="subtitle">Every dated eval run committed to the repository, one row per run.
+        <strong>dev</strong> runs guided every choice; <strong>test</strong> runs were made once,
+        at the end. Strategy labels with a suffix (<code>-r10</code>, <code>-nofilter</code>,
+        <code>-and</code>) are ablations. Regenerated with <code>make eval-history</code>.</p>
+    </header>
+    <p id="evals-status" class="note" aria-live="polite">Loading…</p>
+    <section class="section" aria-labelledby="ret-runs-title">
+      <h2 id="ret-runs-title">Retrieval runs</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Date (UTC)</th><th scope="col">Commit</th><th scope="col">Strategy</th><th scope="col">Split</th><th scope="col">Golden set</th><th scope="col">hit@5</th><th scope="col">hit@8</th><th scope="col">recall@10</th><th scope="col">MRR@10</th></tr></thead>
+          <tbody id="retrieval-runs"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="section" aria-labelledby="ans-runs-title">
+      <h2 id="ans-runs-title">Answer runs</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Date (UTC)</th><th scope="col">Commit</th><th scope="col">Strategy</th><th scope="col">Split</th><th scope="col">Golden set</th><th scope="col">Refusal recall</th><th scope="col">Refusal precision</th><th scope="col">Citation accuracy</th></tr></thead>
+          <tbody id="answer-runs"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>
+
+</main>
 </body>
 </html>

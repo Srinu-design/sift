@@ -1,6 +1,97 @@
 (function () {
   "use strict";
 
+  // ---------------------------------------------------------------- tabs
+  // The hash names a tab or an anchor inside one; the tab shown is the panel that holds it.
+  let evalsLoaded = false;
+
+  function showTab() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const target = id ? document.getElementById(id) : null;
+    const panel = target ? target.closest("[data-tab]") : null;
+    const tab = panel ? panel.dataset.tab : "about";
+    for (const p of document.querySelectorAll("[data-tab]")) p.hidden = p.dataset.tab !== tab;
+    for (const a of document.querySelectorAll("[data-tab-link]")) {
+      if (a.dataset.tabLink === tab) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
+    }
+    if (target && target !== panel) target.scrollIntoView();
+    else window.scrollTo(0, 0);
+    if (tab === "evals" && !evalsLoaded) {
+      evalsLoaded = true;
+      loadEvalHistory();
+    }
+  }
+
+  window.addEventListener("hashchange", showTab);
+  showTab();
+
+  // ---------------------------------------------------------------- eval history
+  function cell(text) {
+    const td = document.createElement("td");
+    td.textContent = text;
+    return td;
+  }
+
+  function commitCell(commit) {
+    const td = document.createElement("td");
+    if (!commit) {
+      td.textContent = "—";
+      return td;
+    }
+    const a = document.createElement("a");
+    a.href = "https://github.com/Srinu-design/sift/commit/" + encodeURIComponent(commit);
+    a.textContent = commit;
+    a.className = "mono";
+    td.appendChild(a);
+    return td;
+  }
+
+  function fmt(value) {
+    return typeof value === "number" ? value.toFixed(3) : "—";
+  }
+
+  function runRow(run, metricNames) {
+    const tr = document.createElement("tr");
+    const when = String(run.run_at || "").replace("T", " ").slice(0, 16);
+    tr.append(
+      cell(when),
+      commitCell(run.commit),
+      cell(String(run.strategy || "")),
+      cell(String(run.split || "")),
+      cell(String(run.golden || "")),
+    );
+    for (const name of metricNames) tr.appendChild(cell(fmt((run.metrics || {})[name])));
+    return tr;
+  }
+
+  async function loadEvalHistory() {
+    const status = document.getElementById("evals-status");
+    try {
+      const response = await fetch("static/eval-history.json", { cache: "no-cache" });
+      if (!response.ok) throw new Error("HTTP " + String(response.status));
+      const data = await response.json();
+      const runs = (data.runs || []).slice().reverse(); // newest first
+      const retrieval = document.getElementById("retrieval-runs");
+      const answers = document.getElementById("answer-runs");
+      for (const run of runs) {
+        if (run.kind === "retrieval") {
+          retrieval.appendChild(runRow(run, ["hit@5", "hit@8", "recall@10", "mrr@10"]));
+        } else if (run.kind === "answers") {
+          answers.appendChild(
+            runRow(run, ["refusal_recall", "refusal_precision", "citation_accuracy"]),
+          );
+        }
+      }
+      status.textContent = String(runs.length) + " runs.";
+    } catch (err) {
+      evalsLoaded = false; // try again next time the tab opens
+      status.textContent =
+        "Could not load the eval history: " + (err instanceof Error ? err.message : "error");
+    }
+  }
+
+  // ---------------------------------------------------------------- demo
   const form = document.getElementById("query-form");
   const questionInput = document.getElementById("question");
   const strategySelect = document.getElementById("strategy");

@@ -16,27 +16,35 @@
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="nav-shell">
-  <div class="nav">
-    <a class="brand" href="#about" aria-label="Sift, home"><span class="mark emerald" aria-hidden="true">S</span><span>Sift</span></a>
-    <nav class="tabs" aria-label="Sections">
-      <a href="#about" data-tab-link="about">About</a>
-      <a href="#how" data-tab-link="how">How it works</a>
-      <a href="#try" data-tab-link="try">Try it</a>
-      <a href="#evals" data-tab-link="evals">Eval history</a>
-    </nav>
-    <div class="header-end">
-      <span class="status" id="status" data-state="unknown" title="Live status from readyz">
-        <span class="status-dot" aria-hidden="true"></span><span id="status-text">Checking</span>
-      </span>
-      <a class="header-link" href="https://github.com/Srinu-design/sift">GitHub</a>
-      <a class="header-link home-link" href="../">All projects</a>
-      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode">
-        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
-        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.55 1.55M17.15 17.15l1.55 1.55M5.3 18.7l1.55-1.55M17.15 6.85l1.55-1.55"/></svg>
-      </button>
+  <nav class="gnav" aria-label="Main">
+    <div class="gnav-start">
+      <a class="gnav-mark" href="../" aria-label="Veeradimmu Srinivasulu Reddy, home"><span aria-hidden="true">V</span></a>
+      <div class="gnav-links">
+        <a class="wide-only" href="../#projects">Projects</a>
+        <a href="../hopper/">Hopper</a>
+        <a href="./" aria-current="page">Sift</a>
+        <a class="wide-only" href="../grafana/">Dashboard</a>
+      </div>
     </div>
-  </div>
+    <a class="gnav-button" href="https://github.com/Srinu-design">GitHub</a>
+  </nav>
 </header>
+<div class="projectbar">
+  <span class="status" id="status" data-state="unknown" title="Live status from readyz">
+    <span class="status-dot" aria-hidden="true"></span><span id="status-text">Checking</span>
+  </span>
+  <nav class="tabs" aria-label="Sift">
+    <a href="#about" data-tab-link="about">About</a>
+    <a href="#how" data-tab-link="how">How it works</a>
+    <a href="#try" data-tab-link="try">Try it</a>
+    <a href="#evals" data-tab-link="evals">Eval history</a>
+  </nav>
+  <a class="project-link" href="https://github.com/Srinu-design/sift">Source</a>
+  <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode">
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.55 1.55M17.15 17.15l1.55 1.55M5.3 18.7l1.55-1.55M17.15 6.85l1.55-1.55"/></svg>
+  </button>
+</div>
 
 <main id="main">
 
@@ -69,7 +77,7 @@
     </div>
   </div>
 
-  <div class="wrap">
+  <div class="wrap narrow">
     <section class="section" aria-labelledby="features-title">
       <p class="eyebrow">Design principles</p>
       <h2 id="features-title">What it does</h2>
@@ -155,7 +163,7 @@
       <a class="chip" href="#decisions">Decisions</a>
     </div>
   </nav>
-  <div class="wrap">
+  <div class="wrap narrow">
 
     <section class="section" id="pipeline" aria-labelledby="pipeline-title">
       <h2 id="pipeline-title">The query path</h2>

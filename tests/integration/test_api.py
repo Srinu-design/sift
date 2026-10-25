@@ -372,7 +372,6 @@ async def test_index_csp_and_health_endpoints(engine: AsyncEngine, embedder: Fak
     assert r_index.status_code == 200
     assert "text/html" in r_index.headers["content-type"]
     assert "default-src 'none'" in r_index.headers["Content-Security-Policy"]
-    assert "font-src 'self';" in r_index.headers["Content-Security-Policy"]  # self-hosted Inter
     assert r_index.headers["X-Content-Type-Options"] == "nosniff"
     assert r_index.headers["Referrer-Policy"] == "no-referrer"
     assert r_health.status_code == 200

@@ -49,8 +49,7 @@ QUOTA_DETAIL = (
 )
 CSP_POLICY = (
     "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; "
-    "img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; "
-    "frame-ancestors 'none'"
+    "img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 )
 CITATION_FAILURE_REASON = "Could not produce an answer whose citations check out."
 _REQ_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")

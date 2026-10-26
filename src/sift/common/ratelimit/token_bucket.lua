@@ -2,7 +2,7 @@
 -- API replica. GET-then-SET would let two replicas both read the last token and both allow;
 -- MULTI/EXEC cannot branch on a value it read; WATCH retries pile up under contention.
 --
--- KEYS[1]  bucket key, e.g. hopper:rl:<tenant id>:enqueue
+-- KEYS[1]  bucket key, e.g. sift:rl:query:<tenant id>
 -- ARGV[1]  capacity (the tenant's burst)
 -- ARGV[2]  refill rate in tokens per second (the tenant's rate_per_sec), > 0
 -- ARGV[3]  tokens requested

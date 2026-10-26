@@ -32,11 +32,7 @@ dev = [
     "pytest>=8.4",
     "pytest-asyncio>=1.0",
     "ruff>=0.12",
-    "types-beautifulsoup4>=4.12",
 ]
-
-[tool.uv]
-default-groups = ["dev"]
 
 # CPU wheels: the default PyPI torch for Linux bundles CUDA (gigabytes) that no host here has.
 [tool.uv.sources]
@@ -68,7 +64,7 @@ files = ["src", "eval"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["asyncpg", "asyncpg.*", "sentence_transformers", "sentence_transformers.*", "docling", "docling.*"]
+module = ["sentence_transformers", "sentence_transformers.*", "docling", "docling.*"]
 ignore_missing_imports = true
 
 # Optional (the pdf extra), and it re-exports its item classes without __all__.

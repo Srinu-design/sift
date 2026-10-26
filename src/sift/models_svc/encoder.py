@@ -36,7 +36,7 @@ class Encoder:
                 batch_size=32,
                 convert_to_numpy=True,
             )
-        return [[float(x) for x in v] for v in vectors]
+        return vectors.tolist()  # type: ignore[no-any-return]  # numpy: Python floats, fast
 
     def rerank(self, query: str, passages: list[str]) -> list[float]:
         """Relevance in 0-1. The model returns raw logits; the sigmoid makes a threshold

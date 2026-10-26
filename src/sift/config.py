@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     models_url: str = "http://127.0.0.1:8100"
     models_timeout_seconds: float = Field(default=60.0, gt=0)
 
-    # Raw uploads, stored under <tenant id>/<sha256>. A local folder in dev, S3 in production.
+    # Raw uploads, stored under <tenant id>/<sha256> on local disk.
     file_store: str = "data/files"
 
     # Hopper runs ingestion. Sift is a tenant there: its API key enqueues jobs, and its
@@ -61,10 +61,9 @@ class Settings(BaseSettings):
     llm_thinking_budget: int | None = None
     stub_delay_ms: int = Field(default=0, ge=0)
 
-    # LLM price table (USD per 1M tokens): free tier costs 0.0; set paid rates and date checked.
+    # LLM price table (USD per 1M tokens): free tier costs 0.0; set the paid rates.
     llm_price_in_per_mtok: float = 0.0
     llm_price_out_per_mtok: float = 0.0
-    llm_prices_checked_on: str = ""
 
     # Tenancy. API keys are stored as HMAC-SHA256(pepper, secret); without the pepper a leaked
     # table cannot be checked against. The API runs as sift_app, so row-level security applies.

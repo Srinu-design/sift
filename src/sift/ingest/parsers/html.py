@@ -4,7 +4,8 @@ Written against the PostgreSQL docs (content in #docContent, sections as div.sec
 with the id on the div), and general enough for pages whose headings carry their own id.
 """
 
-from bs4 import BeautifulSoup, NavigableString, Tag
+from bs4 import BeautifulSoup, Tag
+from bs4.element import NavigableString
 
 from sift.ingest.parsers import Block, BlockKind, ParsedDoc, ParseError
 

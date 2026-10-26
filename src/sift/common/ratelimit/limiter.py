@@ -40,7 +40,7 @@ class LocalBuckets:
     """The Lua script's maths in process, used only while Redis is unavailable.
 
     Each API replica keeps its own buckets, so during an outage a tenant can get up to
-    (replicas x) its limit. Login buckets are per email, so anyone can make new ones; memory
+    (replicas x) its limit. Demo buckets are per client IP, so anyone can make new ones; memory
     stays bounded because a bucket that has refilled is the same as no bucket (a missing one
     starts full, as in the Lua script): past `prune_at` buckets, refilled ones are forgotten.
     """

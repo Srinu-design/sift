@@ -55,20 +55,4 @@ async def lexical(
         await set_tenant(conn, tenant_id)
         rows = (await conn.execute(text(LEXICAL), params)).all()
     rows = sorted(rows, key=lambda r: (-r.score, r.id))
-    return [
-        Hit(
-            r.id,
-            float(r.score),
-            r.heading,
-            r.anchor,
-            tuple(r.anchor_path),
-            r.page_start,
-            r.page_end,
-            r.doc_version,
-            r.source,
-            r.source_uri,
-            r.title,
-            r.content,
-        )
-        for r in rows
-    ]
+    return [Hit.from_row(r, float(r.score)) for r in rows]

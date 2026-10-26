@@ -65,7 +65,8 @@ All 123 were **drafted by Claude** (`drafted_by`), and **`verified_by` is null o
 The build guide asks for a person to verify each question against the source page, and to
 hand-write at least half. That has not happened yet. Until it does, treat v1 as a draft.
 
-What *has* been checked mechanically (`make golden-check`, needs `make corpus` first):
+What *has* been checked mechanically (`make golden-check`, needs the raw corpus first: the
+`corpus-v1` release, see `corpus/README.md`):
 
 - every gold document exists and matches the question's version filter;
 - every gold section anchor exists in that document;
@@ -98,5 +99,5 @@ your own words also covers "hand-write at least half". Run `make golden-check` a
 - Naive dense retrieval already scores hit@8 0.93 on dev (`eval/baselines/retrieval.json`).
   hit@8 leaves little room to show later gains; MRR@10 (0.75) and hit@5 (0.89) have more.
   v2 should add harder questions: subsection-level gold, more paraphrase and multi-section.
-- Tenant B (SEBI/RBI circulars, ~15 questions with page-level gold) arrives with tenancy in
-  week 5, as v2.
+- Tenant B was planned as ~15 SEBI/RBI questions with page-level gold; it shipped as v2-sebi
+  (18 SEBI questions, above).

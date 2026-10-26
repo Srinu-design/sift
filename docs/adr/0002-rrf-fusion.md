@@ -76,5 +76,6 @@ the top 5.
 
 ## When to revisit
 
-- hybrid_rerank (week 4) does not beat naive on MRR@10: try weighted RRF before anything else.
+- hybrid_rerank does not beat naive on MRR@10: try weighted RRF before anything else. Checked:
+  hybrid_rerank (top 50) beats naive by +0.086 [+0.018, +0.163] (ADR-0003), so plain RRF stays.
 - A corpus where lexical search is weak (scanned PDFs, other languages): measure per tenant.

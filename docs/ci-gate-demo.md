@@ -22,6 +22,8 @@ dev split, golden v1, gated strategy `hybrid_rerank`:
 | hybrid_rerank | paraphrase:hit@8 | 1.000 | 0.875 | -0.125 | fail |
 | hybrid_rerank | paraphrase:recall@10 | 1.000 | 0.875 | -0.125 | fail |
 
+hit@5 and MRR@10 are reported, never gated; the gate now marks them `info` rather than `pass`.
+
 The job failed with exit code 1, so the PR could not go green. The rules (`eval/gate.py`): fail if
 `hybrid_rerank` loses more than 2 points of hit@8 or recall@10 overall, or more than 5 on any
 question type. Retrieval is deterministic, so any drop is a real change on these questions.

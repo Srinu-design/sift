@@ -41,8 +41,9 @@ The first whole-corpus run put embed jobs on `default`, where 3 workers × 20 sl
 60 at once. sift-models runs one model call at a time, so calls queued behind each other past
 sift-ingest's 60 s timeout; each 503 was retried, and the abandoned calls kept the model busy,
 so the queue only grew. Jobs reached attempt 7 of 8. With the dedicated queue the same corpus
-(182 pages, 1,903 chunks, 1,007 unique embeddings) ingested in **108.7 s, every job on its first
-attempt.** The backlog now waits in Hopper's queue (Postgres), not in open HTTP connections.
+(182 pages, 1,903 chunks, 1,007 unique embeddings) ingested in **80.9 to 87.6 s with 1 to 4 embed
+workers, every job on its first attempt** (`loadtest/results/2026-10-12-ingest/summary.md`). The
+backlog now waits in Hopper's queue (Postgres), not in open HTTP connections.
 
 ## Alternatives considered
 

@@ -56,8 +56,8 @@ reranker is ~99% of retrieval time. Top 30 keeps the quality and costs 60% of to
 
 ## Consequences
 
-- About 1.2 s per query on the laptop, and more on the EC2 host's fewer cores: rerank latency is
-  the first thing to measure there (week 7) and the first bottleneck at 10x.
+- About 1.2 s per query on the laptop. On the EC2 host's 2 vCPUs a rerank took ~3.2–3.5 s
+  (docs/deploy.md), and it is the first bottleneck at 10x.
 - The cross-encoder is trained on MS MARCO web queries. It scores questions in user wording low:
   of the three answerable dev questions that gate 1 refuses, two are paraphrases and the third
   ("a lock identified by a number" for advisory locks) avoids the docs' terms too (ADR-0008).
@@ -65,6 +65,7 @@ reranker is ~99% of retrieval time. Top 30 keeps the quality and costs 60% of to
 ## When to revisit
 
 - p95 on EC2 above ~2 s: export to ONNX (int8), cut passages to 256 tokens, or rerank the top 20,
-  and publish each against this table.
+  and publish each against this table. **This trigger is met** (~3.2–3.5 s on EC2,
+  docs/deploy.md); the work is deferred because the live demo gets little traffic.
 - hit@5 stays flat while MRR rises: the top 8 is already right and the order inside it is what
   improves, so check whether a smaller context_k loses anything.

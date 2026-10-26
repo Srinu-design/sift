@@ -13,15 +13,14 @@ x-sift: &sift
     context: ..
     dockerfile: docker/Dockerfile
   env_file: ../.env
-  environment: &sift-env
+  environment:
     DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-hopper}:${POSTGRES_PASSWORD:-hopper}@postgres:5432/sift
     MODELS_URL: http://sift-models:8000
     HOPPER_URL: http://api:8000
-    INGEST_URL: http://sift-ingest:8000
     FILE_STORE: /data/files
     REDIS_URL: redis://redis:6379/1      # db 1: Hopper uses db 0
   volumes:
-    - hfcache:/home/app/.cache/huggingface   # models download once (week 7 bakes them in)
+    - hfcache:/home/app/.cache/huggingface   # models download once, into this volume
   init: true
   restart: unless-stopped
 
@@ -36,7 +35,7 @@ services:
   sift-models:
     <<: *sift
     command: ["uvicorn", "sift.models_svc.app:app", "--host", "0.0.0.0", "--port", "8000"]
-    ports: ["127.0.0.1:${MODELS_PORT:-8100}:8000"]   # dev only, for the eval on the host
+    ports: ["127.0.0.1:${MODELS_PORT:-8100}:8000"]   # dev only: host tools that call the models
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"]
       interval: 5s
@@ -54,11 +53,14 @@ services:
       sift-migrate: { condition: service_completed_successfully }
       sift-models: { condition: service_healthy }
 
-  # The query API and the demo page. No auth until week 5: published on localhost only.
+  # The query API and the demo page, published on localhost only.
   sift-api:
     <<: *sift
     command: ["uvicorn", "sift.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
     ports: ["127.0.0.1:${API_PORT:-8200}:8000"]
+    volumes:
+      - hfcache:/home/app/.cache/huggingface
+      - ../data/files:/data/files                   # uploads land here; sift-ingest reads them
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz', timeout=3)"]
       interval: 10s

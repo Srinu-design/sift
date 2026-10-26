@@ -97,6 +97,9 @@ def _pack_units(units: list[str], budget: int, joiner: str, header: str = "") ->
     for unit in units:
         n = count_tokens(unit, special=False)
         if n > budget - base:
+            if current:  # what came before goes first, or the text comes out of order
+                pieces.append(joiner.join([header, *current] if header else current))
+                current, used = [], base
             for part in _hard_split(unit, budget - base):
                 units_part = [header, part] if header else [part]
                 pieces.append(joiner.join(units_part))

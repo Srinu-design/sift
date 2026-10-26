@@ -1,42 +1,12 @@
 """Integration tests for hybrid_rerank search strategy."""
 
-from uuid import UUID
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from sift.ingest import pipeline
 from sift.retrieval.search import search
 from tests.conftest import FakeEmbedder
-from tests.integration.test_pipeline import ingest
-
-
-async def _ingest_doc(
-    engine: AsyncEngine,
-    embedder: FakeEmbedder,
-    *,
-    tenant_id: UUID,
-    collection_id: UUID,
-    idx: int,
-    text_body: str,
-) -> None:
-    html = (
-        '<html><body><div id="docContent"><div class="sect1" id="P">'
-        f"<h2>Manual {idx}</h2>"
-        f'<div class="sect2" id="SEC-{idx}"><h3>Section {idx}</h3><p>{text_body}</p></div>'
-        "</div></div></body></html>"
-    ).encode()
-    sub = await pipeline.submit(
-        engine,
-        tenant_id=tenant_id,
-        collection_id=collection_id,
-        filename=f"doc-{idx}.html",
-        data=html,
-        source_uri=f"https://docs.test/doc-{idx}.html",
-        source="pgdocs",
-        doc_version="17",
-    )
-    await ingest(engine, sub.version_id, embedder)
+from tests.integration.helpers import add_doc
 
 
 async def test_hybrid_rerank_orders_by_reranker_and_records_timing(
@@ -44,13 +14,15 @@ async def test_hybrid_rerank_orders_by_reranker_and_records_timing(
 ) -> None:
     tenant_id, collection_id = await pipeline.ensure_collection(engine, "acme", "docs")
     for idx in range(1, 5):
-        await _ingest_doc(
+        await add_doc(
             engine,
             embedder,
             tenant_id=tenant_id,
             collection_id=collection_id,
-            idx=idx,
-            text_body=f"PostgreSQL vacuum_cost_limit configuration parameter details {idx}.",
+            title=f"Manual {idx}",
+            heading=f"Section {idx}",
+            body_text=f"PostgreSQL vacuum_cost_limit configuration parameter details {idx}.",
+            source_uri=f"https://docs.test/doc-{idx}.html",
         )
 
     [q_vec] = await embedder(["vacuum_cost_limit configuration"])

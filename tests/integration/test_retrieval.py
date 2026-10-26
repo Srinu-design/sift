@@ -1,7 +1,6 @@
 """Integration tests for lexical, dense, and hybrid retrieval with metadata filters."""
 
 from datetime import date
-from uuid import UUID
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -12,52 +11,18 @@ from sift.retrieval.filters import Filters
 from sift.retrieval.lexical import lexical
 from sift.retrieval.search import STRATEGIES, search
 from tests.conftest import FakeEmbedder
-from tests.integration.test_pipeline import ingest
+from tests.integration.helpers import add_doc
 
 
 async def fake_reranker(question: str, passages: list[str]) -> list[float]:
     return [1.0 / (i + 1) for i in range(len(passages))]  # keeps the fused order
 
 
-async def _add_doc(
-    engine: AsyncEngine,
-    embedder: FakeEmbedder,
-    *,
-    tenant_id: UUID,
-    collection_id: UUID,
-    body_text: str,
-    title: str = "PostgreSQL Manual",
-    heading: str = "Server Configuration",
-    source_uri: str = "https://docs.test/config.html",
-    source: str = "pgdocs",
-    doc_version: str | None = "17",
-    published_on: date | None = None,
-) -> None:
-    html = (
-        '<html><body><div id="docContent"><div class="sect1" id="P">'
-        f"<h2>{title}</h2>"
-        f'<div class="sect2" id="SEC-1"><h3>{heading}</h3><p>{body_text}</p></div>'
-        "</div></div></body></html>"
-    ).encode()
-    sub = await pipeline.submit(
-        engine,
-        tenant_id=tenant_id,
-        collection_id=collection_id,
-        filename="page.html",
-        data=html,
-        source_uri=source_uri,
-        source=source,
-        doc_version=doc_version,
-        published_on=published_on,
-    )
-    await ingest(engine, sub.version_id, embedder)
-
-
 async def test_lexical_identifier_punctuation_stopwords_and_modes(
     engine: AsyncEngine, embedder: FakeEmbedder
 ) -> None:
     tenant_id, collection_id = await pipeline.ensure_collection(engine, "acme", "docs")
-    await _add_doc(
+    await add_doc(
         engine,
         embedder,
         tenant_id=tenant_id,
@@ -65,7 +30,7 @@ async def test_lexical_identifier_punctuation_stopwords_and_modes(
         body_text="Raise max_connections in postgresql.conf when connection slots fill up.",
         source_uri="https://docs.test/connections.html",
     )
-    await _add_doc(
+    await add_doc(
         engine,
         embedder,
         tenant_id=tenant_id,
@@ -73,7 +38,7 @@ async def test_lexical_identifier_punctuation_stopwords_and_modes(
         body_text="Tune work_mem and enable_seqscan for the query planner.",
         source_uri="https://docs.test/planner.html",
     )
-    await _add_doc(
+    await add_doc(
         engine,
         embedder,
         tenant_id=tenant_id,
@@ -130,7 +95,7 @@ async def test_lexical_identifier_punctuation_stopwords_and_modes(
 
 async def test_filters_across_all_strategies(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
     tenant_id, collection_id = await pipeline.ensure_collection(engine, "acme", "docs")
-    await _add_doc(
+    await add_doc(
         engine,
         embedder,
         tenant_id=tenant_id,
@@ -141,7 +106,7 @@ async def test_filters_across_all_strategies(engine: AsyncEngine, embedder: Fake
         doc_version="16",
         published_on=date(2023, 9, 14),
     )
-    await _add_doc(
+    await add_doc(
         engine,
         embedder,
         tenant_id=tenant_id,
@@ -152,7 +117,7 @@ async def test_filters_across_all_strategies(engine: AsyncEngine, embedder: Fake
         doc_version="17",
         published_on=date(2024, 9, 26),
     )
-    await _add_doc(
+    await add_doc(
         engine,
         embedder,
         tenant_id=tenant_id,
@@ -195,7 +160,7 @@ async def test_tenant_isolation_all_strategies(engine: AsyncEngine, embedder: Fa
     t1, c1 = await pipeline.ensure_collection(engine, "tenant-one", "docs")
     t2, c2 = await pipeline.ensure_collection(engine, "tenant-two", "docs")
     for tid, cid in ((t1, c1), (t2, c2)):
-        await _add_doc(
+        await add_doc(
             engine,
             embedder,
             tenant_id=tid,
@@ -229,7 +194,7 @@ async def test_dense_exact_matches_hnsw_and_hybrid_fields(
 ) -> None:
     tenant_id, collection_id = await pipeline.ensure_collection(engine, "acme", "docs")
     for idx in range(4):
-        await _add_doc(
+        await add_doc(
             engine,
             embedder,
             tenant_id=tenant_id,
@@ -283,16 +248,6 @@ async def test_dense_exact_matches_hnsw_and_hybrid_fields(
         assert h.source_uri.startswith("https://docs.test/doc-")
         assert h.title.startswith("Title ")
         assert "shared_buffers" in h.content
-
-    with pytest.raises(ValueError, match="query_vector"):
-        await search(
-            engine,
-            tenant_id=tenant_id,
-            collection_id=collection_id,
-            strategy="naive",
-            question="shared_buffers",
-            query_vector=None,
-        )
 
 
 async def test_vector_strategies_need_a_vector(engine: AsyncEngine) -> None:

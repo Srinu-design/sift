@@ -6,13 +6,18 @@ import sys
 import tempfile
 import uuid
 from collections.abc import AsyncIterator, Iterator
+from dataclasses import replace
 from pathlib import Path
+from typing import Any, Literal
 
 import pytest
 import redis.asyncio as redis_asyncio
 from sqlalchemy import text
 from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+
+from sift.answer.llm import LLMResult
+from sift.retrieval.hit import Hit
 
 # Tests default to the local Compose stack's Postgres; CI overrides DATABASE_URL. Each test
 # gets its own database, so the dev data in "sift" is never touched.
@@ -105,3 +110,40 @@ class FakeEmbedder:
 @pytest.fixture
 def embedder() -> FakeEmbedder:
     return FakeEmbedder()
+
+
+def make_hit(n: int = 1, **fields: Any) -> Hit:
+    """Retrieval hit number n; keyword arguments replace any of its fields."""
+    hit = Hit(
+        chunk_id=n,
+        score=0.9,
+        heading=f"Heading {n}",
+        anchor=f"SEC-{n}",
+        anchor_path=(f"SEC-{n}",),
+        page_start=None,
+        page_end=None,
+        doc_version="17",
+        source="pgdocs",
+        source_uri=f"https://docs.test/page-{n}.html",
+        title=f"Doc {n}",
+        content=f"Source {n} explains that shared_buffers controls memory caching.",
+    )
+    return replace(hit, **fields)
+
+
+class ScriptedLLM:
+    """Gives the replies in order; records the turns of every call."""
+
+    model: str = "scripted-test"
+
+    def __init__(self, replies: list[str]) -> None:
+        self._replies = list(replies)
+        self.calls: list[list[tuple[Literal["user", "model"], str]]] = []
+
+    async def generate(
+        self,
+        system: str,
+        turns: list[tuple[Literal["user", "model"], str]],
+    ) -> LLMResult:
+        self.calls.append(list(turns))
+        return LLMResult(text=self._replies.pop(0), tokens_in=100, tokens_out=25, model=self.model)

@@ -48,7 +48,12 @@ def test_unchanged_report_passes() -> None:
     baseline = {"hybrid_rerank": base_entry}
     findings = check(_make_report(), baseline)
     assert not any(f.failed for f in findings)
-    assert all(f.status == "pass" for f in findings)
+    assert {f.metric: f.status for f in findings} == {
+        "hit@5": "info",
+        "hit@8": "pass",
+        "recall@10": "pass",
+        "mrr@10": "info",
+    }
 
 
 def test_overall_hit8_drop_003_on_hybrid_rerank_fails() -> None:

@@ -8,27 +8,7 @@ import pytest
 from sift.answer.citations import check
 from sift.answer.llm import GeminiLLM, LLMQuotaExceeded, LLMUnavailable, StubLLM
 from sift.answer.prompt import RESPONSE_SCHEMA, SYSTEM_PROMPT, ModelAnswer, user_prompt
-from sift.retrieval.hit import Hit
-
-
-def _sample_hit() -> Hit:
-    return Hit(
-        chunk_id=1,
-        score=0.92,
-        heading="WAL > Asynchronous Commit",
-        anchor="WAL-ASYNC-COMMIT",
-        anchor_path=("WAL-ASYNC-COMMIT",),
-        page_start=None,
-        page_end=None,
-        doc_version="17",
-        source="pgdocs",
-        source_uri="https://www.postgresql.org/docs/17/wal-async-commit.html",
-        title="Asynchronous Commit",
-        content=(
-            "Asynchronous commit provides an option to let transactions complete faster. "
-            "It risks losing a small amount of data on a crash."
-        ),
-    )
+from tests.conftest import make_hit
 
 
 async def test_gemini_llm_request_and_token_accounting() -> None:
@@ -125,7 +105,7 @@ async def test_gemini_llm_thinking_config_included_when_set() -> None:
     assert res.tokens_out == 0
 
 
-@pytest.mark.parametrize("status_code", [429, 503])
+@pytest.mark.parametrize("status_code", [403, 429, 503])
 async def test_gemini_llm_rate_limit_and_5xx_raise_unavailable(status_code: int) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(status_code, json={"error": "unavailable"})
@@ -161,7 +141,7 @@ async def test_gemini_llm_empty_candidates_raises_unavailable() -> None:
 
 
 async def test_stub_llm_output_passes_check() -> None:
-    hit = _sample_hit()
+    hit = make_hit()
     stub = StubLLM(delay_ms=0)
     prompt = user_prompt("What is asynchronous commit?", [hit])
     res = await stub.generate(SYSTEM_PROMPT, [("user", prompt)])

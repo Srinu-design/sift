@@ -80,3 +80,13 @@ def test_pdf_chunks_never_cross_a_page() -> None:
     blocks = [Block(sentence(i), "text", "Circular", None, (), page=1 + i // 5) for i in range(15)]
     chunks = chunk(blocks)
     assert [(c.page_start, c.page_end) for c in chunks] == [(1, 1), (2, 2), (3, 3)]
+
+
+def test_an_overlong_unit_keeps_the_text_around_it_in_order() -> None:
+    """Units before an over-budget sentence go out first, not after its hard-split parts."""
+    long = " ".join(f"w{i}" for i in range(80))
+    pieces = chunker._pack_units(["Alpha one.", "Beta two.", long, "Gamma three."], 30, " ")
+    assert pieces[0] == "Alpha one. Beta two."
+    assert pieces[-1] == "Gamma three."
+    # The hard split cuts at token offsets, sometimes inside a word: compare without spaces.
+    assert "".join(pieces[1:-1]).replace(" ", "") == long.replace(" ", "")

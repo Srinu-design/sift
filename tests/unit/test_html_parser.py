@@ -1,3 +1,5 @@
+import pytest
+
 from sift.ingest.parsers import ParseError, html, parser_for
 
 PAGE = b"""<html><head><title>T</title></head><body>
@@ -59,9 +61,5 @@ def test_code_keeps_lines_and_tables_keep_rows() -> None:
 def test_parser_choice_by_file_type() -> None:
     assert parser_for("a.HTML") == "html-v1"
     assert parser_for("circular.pdf") == "docling-v1"
-    try:
+    with pytest.raises(ParseError):  # an unsupported type is a permanent parse error
         parser_for("notes.docx")
-    except ParseError:
-        pass
-    else:
-        raise AssertionError("an unsupported type must be a permanent parse error")

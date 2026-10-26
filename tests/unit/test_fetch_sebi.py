@@ -1,14 +1,6 @@
 """The SEBI listing parser: one row per circular link, with the date cell before it."""
 
-import importlib.util
-from pathlib import Path
-
-spec = importlib.util.spec_from_file_location(
-    "fetch_sebi", Path(__file__).resolve().parents[2] / "corpus" / "fetch_sebi.py"
-)
-assert spec and spec.loader
-fetch_sebi = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(fetch_sebi)
+from corpus import fetch_sebi
 
 PAGE = """<table>
 <tr><th>Date</th><th>Title</th></tr>

@@ -1,50 +1,14 @@
 """Unit tests for the two-gate answer pipeline and retry behavior."""
 
-from typing import Literal
+from dataclasses import replace
 
 from sift.answer.generate import answer
-from sift.answer.llm import LLMResult
 from sift.answer.prompt import ModelAnswer, ModelCitation
-from sift.retrieval.hit import Hit
-
-
-class ScriptedLLM:
-    model: str = "scripted-test"
-
-    def __init__(self, replies: list[str]) -> None:
-        self._replies = list(replies)
-        self.calls: list[list[tuple[Literal["user", "model"], str]]] = []
-
-    async def generate(
-        self,
-        system: str,
-        turns: list[tuple[Literal["user", "model"], str]],
-    ) -> LLMResult:
-        self.calls.append(list(turns))
-        text = self._replies.pop(0)
-        return LLMResult(text=text, tokens_in=100, tokens_out=25, model=self.model)
-
-
-def _make_hit(idx: int, score: float = 0.85, anchor: str | None = None) -> Hit:
-    anc = anchor if anchor is not None else f"SEC-{idx}"
-    return Hit(
-        chunk_id=idx,
-        score=score,
-        heading=f"Chapter {idx} > Section {idx}",
-        anchor=anc,
-        anchor_path=(anc,),
-        page_start=None,
-        page_end=None,
-        doc_version="17",
-        source="pgdocs",
-        source_uri=f"https://docs.test/page-{idx}.html",
-        title=f"Doc {idx}",
-        content=f"Source {idx} explains that shared_buffers controls memory caching.",
-    )
+from tests.conftest import ScriptedLLM, make_hit
 
 
 async def test_good_first_reply() -> None:
-    hits = [_make_hit(1), _make_hit(2)]
+    hits = [make_hit(1), make_hit(2)]
     good = ModelAnswer(
         refused=False,
         answer="shared_buffers controls memory caching [S1].",
@@ -69,7 +33,7 @@ async def test_good_first_reply() -> None:
 
 
 async def test_malformed_json_then_good_retries_with_error() -> None:
-    hits = [_make_hit(1)]
+    hits = [make_hit(1)]
     good = ModelAnswer(
         refused=False,
         answer="shared_buffers controls memory caching [S1].",
@@ -96,7 +60,7 @@ async def test_malformed_json_then_good_retries_with_error() -> None:
 
 
 async def test_bad_twice_refuses_with_citation_gate() -> None:
-    hits = [_make_hit(1), _make_hit(2)]
+    hits = [make_hit(1), make_hit(2)]
     bad_citation = ModelAnswer(
         refused=False,
         answer="Sentence without any source tag.",
@@ -114,7 +78,7 @@ async def test_bad_twice_refuses_with_citation_gate() -> None:
 
 
 async def test_model_refusal_returns_model_gate_and_suggestions() -> None:
-    hits = [_make_hit(1), _make_hit(2)]
+    hits = [make_hit(1), make_hit(2)]
     refusal = ModelAnswer(
         refused=True,
         answer="",
@@ -133,22 +97,9 @@ async def test_model_refusal_returns_model_gate_and_suggestions() -> None:
 
 async def test_score_below_tau_triggers_retrieval_gate_without_llm_call() -> None:
     # First two hits share a URL so suggestions() must deduplicate by url.
-    h1 = _make_hit(1, score=0.15, anchor="SAME")
-    h2 = Hit(
-        chunk_id=2,
-        score=0.12,
-        heading="Chapter 1 > Section 1",
-        anchor="SAME",
-        anchor_path=("SAME",),
-        page_start=None,
-        page_end=None,
-        doc_version="17",
-        source="pgdocs",
-        source_uri="https://docs.test/page-1.html",
-        title="Doc 1",
-        content="Duplicate section url chunk.",
-    )
-    h3 = _make_hit(3, score=0.10, anchor="OTHER")
+    h1 = make_hit(1, score=0.15, anchor="SAME")
+    h2 = replace(h1, chunk_id=2, score=0.12, content="Duplicate section url chunk.")
+    h3 = make_hit(3, score=0.10, anchor="OTHER")
     llm = ScriptedLLM([])
 
     res = await answer("Unrelated question?", [h1, h2, h3], llm, tau=0.5, context_k=8)
@@ -163,7 +114,7 @@ async def test_score_below_tau_triggers_retrieval_gate_without_llm_call() -> Non
 
 
 async def test_tau_none_skips_gate1_and_context_k_limits_sources() -> None:
-    hits = [_make_hit(i, score=-5.0) for i in range(1, 5)]
+    hits = [make_hit(i, score=-5.0) for i in range(1, 5)]
     good = ModelAnswer(
         refused=False,
         answer="shared_buffers controls memory caching [S1].",

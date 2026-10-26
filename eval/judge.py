@@ -17,8 +17,8 @@ from typing import Any, Literal
 import httpx
 from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
+from eval import HERE, git_commit, read_jsonl, save
 from eval.metrics import bootstrap_ci, mean
-from eval.run import HERE, git_commit
 from sift.answer.llm import LLM, GeminiLLM, LLMUnavailable
 from sift.config import get_settings
 
@@ -191,12 +191,6 @@ async def judge_row(
     }
 
 
-def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        return []
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
-
-
 def _summarise_slice(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
     faith_vals = [float(r["faithfulness"]) for r in rows]
     if faith_vals:
@@ -348,6 +342,10 @@ async def run_judge(args: argparse.Namespace, out_path: Path) -> list[dict[str, 
                             print(f"{row['id']}: skipped after 3 retries ({exc})", file=sys.stderr)
                             break
                         await asyncio.sleep(60.0)
+                    except ValueError as exc:  # invalid JSON twice: skip it, a rerun retries it
+                        calls_made += 1
+                        print(f"{row['id']}: skipped, invalid judge reply ({exc})", file=sys.stderr)
+                        break
 
                 if judged is not None:
                     fp.write(json.dumps(judged) + "\n")
@@ -384,11 +382,7 @@ def main() -> int:
     )
     print(format_summary(report))
 
-    results_dir = HERE / "results"
-    results_dir.mkdir(exist_ok=True)
-    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    summary_path = results_dir / f"{stamp}-judge-{args.answers.stem}.json"
-    summary_path.write_text(json.dumps(report, indent=1) + "\n")
+    summary_path = save(report, f"judge-{args.answers.stem}")
     print(f"judge summary written: {summary_path.relative_to(HERE.parent)}")
     return 0
 

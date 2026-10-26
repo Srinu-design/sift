@@ -5,17 +5,16 @@ python -m eval.overlap --split dev --k 50
 
 import argparse
 import asyncio
-import json
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from eval import HERE, save
 from eval.metrics import mean
-from eval.run import HERE, load_golden
+from eval.run import find_collection, load_golden
 from sift.config import get_settings
 from sift.db import create_engine
-from sift.ingest import pipeline
 from sift.retrieval.dense import dense
 from sift.retrieval.filters import Filters
 
@@ -32,7 +31,7 @@ async def check_overlap(args: argparse.Namespace) -> dict[str, Any]:
         vectors = list(encoder().embed([q["question"] for q in filtered], "query"))
 
     engine = create_engine(get_settings())
-    tenant_id, collection_id = await pipeline.ensure_collection(engine, args.tenant, args.tenant)
+    tenant_id, collection_id = await find_collection(engine, args.tenant, args.tenant)
 
     per_question: list[dict[str, Any]] = []
     overlaps: list[float] = []
@@ -106,11 +105,7 @@ def main() -> int:
         f"short={report['short_lists']}"
     )
 
-    results = HERE / "results"
-    results.mkdir(exist_ok=True)
-    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    out = results / f"{stamp}-overlap-{report['split']}-{report['golden']}.json"
-    out.write_text(json.dumps(report, indent=1) + "\n")
+    out = save(report, f"overlap-{report['split']}-{report['golden']}")
     print(f"overlap results: {out.relative_to(HERE.parent)}")
     return 0
 

@@ -9,8 +9,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from eval import metric_names
 from eval.metrics import bootstrap_ci, mean
-from eval.run import metric_names
 
 
 def compare(a: dict[str, Any], b: dict[str, Any]) -> str:

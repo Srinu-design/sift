@@ -6,42 +6,26 @@ python -m eval.answers --split dev --strategy hybrid_rerank --rpm 8
 import argparse
 import asyncio
 import json
-import math
 import sys
 import time
-from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
 
+from eval import HERE, git_commit, percentile, read_jsonl, save
 from eval.metrics import Gold, Retrieved, is_hit
-from eval.run import HERE, docs_by_url, git_commit, load_golden
+from eval.run import docs_by_url, find_collection, load_golden
 from sift.answer.generate import AnswerResult, answer
 from sift.answer.llm import LLMUnavailable, make_llm
 from sift.answer.prompt import PROMPT_VERSION, source_label
 from sift.answer.refusal import gate1
 from sift.config import Settings, get_settings
 from sift.db import create_engine
-from sift.ingest import pipeline
 from sift.retrieval.filters import Filters
 from sift.retrieval.rerank import local_reranker
 from sift.retrieval.search import DEPTH, STRATEGIES, search
-
-
-def percentile(values: Sequence[float], q: float) -> float:
-    if not values:
-        return 0.0
-    ordered = sorted(values)
-    idx = max(0, math.ceil(q * len(ordered)) - 1)
-    return round(ordered[idx], 1)
-
-
-def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        return []
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
 def summarise_answers(
@@ -187,7 +171,7 @@ async def run_eval(args: argparse.Namespace, out_path: Path) -> list[dict[str, A
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     engine = create_engine(settings)
-    tenant_id, collection_id = await pipeline.ensure_collection(
+    tenant_id, collection_id = await find_collection(
         engine, args.tenant, args.collection or args.tenant
     )
 
@@ -348,11 +332,7 @@ def main() -> int:
     )
     print(format_summary(report))
 
-    results_dir = HERE / "results"
-    results_dir.mkdir(exist_ok=True)
-    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    summary_path = results_dir / f"{stamp}-answers-{args.split}-{golden_stem}-{args.strategy}.json"
-    summary_path.write_text(json.dumps(report, indent=1) + "\n")
+    summary_path = save(report, f"answers-{args.split}-{golden_stem}-{args.strategy}")
     print(f"summary written: {summary_path.relative_to(HERE.parent)}")
     return 0
 

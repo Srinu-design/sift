@@ -6,23 +6,23 @@
 Embeds the questions in-process with the pinned local model (no paid API, deterministic),
 retrieves against the ingested corpus, and writes every question's ranking and scores to
 eval/results/, named with the date, strategy, split and golden-set version. Retrieval
-metrics count answerable questions only; refusal metrics arrive with answering (week 4).
+metrics count answerable questions only; refusal metrics are eval.answers' job.
 """
 
 import argparse
 import asyncio
 import json
-import math
-import subprocess
 import sys
-from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 from pydantic import ValidationError
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine
 
+from eval import HERE, KS, git_commit, metric_names, percentile, save
 from eval.metrics import (
     Gold,
     Retrieved,
@@ -39,21 +39,6 @@ from sift.ingest import chunker, pipeline
 from sift.retrieval.filters import Filters
 from sift.retrieval.rerank import local_reranker
 from sift.retrieval.search import DEPTH, STRATEGIES, search
-
-HERE = Path(__file__).resolve().parent
-KS = (5, 8, 10, 20)
-
-
-def metric_names() -> list[str]:
-    return [f"hit@{k}" for k in KS] + [f"recall@{k}" for k in KS] + ["mrr@10"]
-
-
-def percentile(values: Sequence[float], q: float) -> float:
-    if not values:
-        return 0.0
-    ordered = sorted(values)
-    idx = max(0, math.ceil(q * len(ordered)) - 1)
-    return round(ordered[idx], 1)
 
 
 def load_golden(path: Path, split: str, tenant: str) -> list[dict[str, Any]]:
@@ -76,14 +61,22 @@ def docs_by_url() -> dict[str, str]:
     }
 
 
-def git_commit() -> str | None:
-    try:
-        out = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
-        )
-        return out.stdout.strip() or None
-    except OSError:
-        return None
+async def find_collection(engine: AsyncEngine, tenant: str, collection: str) -> tuple[UUID, UUID]:
+    """(tenant id, collection id). Never creates them: a typo would score an empty index as 0."""
+    async with engine.connect() as conn:
+        row = (
+            await conn.execute(
+                text(
+                    "SELECT c.tenant_id, c.id FROM collections c JOIN tenants t"
+                    " ON t.id = c.tenant_id WHERE t.name = :t AND c.name = :c"
+                ),
+                {"t": tenant, "c": collection},
+            )
+        ).first()
+    if row is None:
+        await engine.dispose()  # exiting: close the pool so asyncpg does not warn
+        raise SystemExit(f"no collection {collection!r} in tenant {tenant!r}: ingest it first")
+    return row[0], row[1]
 
 
 async def run(args: argparse.Namespace) -> dict[str, Any]:
@@ -100,7 +93,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         vectors = list(encoder().embed([q["question"] for q in answerable], "query"))
 
     engine = create_engine(get_settings())
-    tenant_id, collection_id = await pipeline.ensure_collection(
+    tenant_id, collection_id = await find_collection(
         engine, args.tenant, args.collection or args.tenant
     )
     async with engine.connect() as conn:
@@ -252,11 +245,7 @@ def main() -> int:
     report = asyncio.run(run(args))
     print(table(report))
 
-    results = HERE / "results"
-    results.mkdir(exist_ok=True)
-    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    out = results / f"{stamp}-{report['strategy']}-{report['split']}-{report['golden']}.json"
-    out.write_text(json.dumps(report, indent=1) + "\n")
+    out = save(report, f"{report['strategy']}-{report['split']}-{report['golden']}")
     print(f"per-question results: {out.relative_to(HERE.parent)}")
     if args.write_baseline:
         baseline_path = HERE / "baselines/retrieval.json"

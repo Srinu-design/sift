@@ -4,14 +4,13 @@ python -m eval.kappa --labels eval/labels/human-v1.jsonl --judged JUDGED_JSONL
 """
 
 import argparse
-import json
 import sys
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from eval.run import HERE
+from eval import HERE, read_jsonl, save
 
 FAITHFUL_LABELS: tuple[str, ...] = ("yes", "partly", "no")
 CORRECTNESS_LABELS: tuple[str, ...] = ("1", "0.5", "0")
@@ -122,12 +121,6 @@ def evaluate_dimension(
     }
 
 
-def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        return []
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
-
-
 def compare_files(labels_path: Path, judged_path: Path) -> dict[str, Any]:
     human_by_id = {str(r["id"]): r for r in read_jsonl(labels_path)}
     judged_by_id = {str(r["id"]): r for r in read_jsonl(judged_path)}
@@ -203,11 +196,7 @@ def main() -> int:
     report = compare_files(args.labels, args.judged)
     print(format_report(report))
 
-    results_dir = HERE / "results"
-    results_dir.mkdir(exist_ok=True)
-    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    out_path = results_dir / f"{stamp}-kappa.json"
-    out_path.write_text(json.dumps(report, indent=1) + "\n")
+    out_path = save(report, "kappa")
     print(f"kappa written: {out_path.relative_to(HERE.parent)}")
     return 0
 

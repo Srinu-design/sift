@@ -1,6 +1,4 @@
-# Targets: env, up, down, logs, corpus, migrate, hopper-tenant, ingest-local, ingest-sample,
-# ingest, ingest-bench, eval, eval-baseline, eval-history, golden-check, golden-review, test, test-e2e,
-# lint, fmt.
+# Every target is in the .PHONY list below.
 # Host tools read settings from the environment only (like Hopper): export .env to them.
 -include .env
 export
@@ -49,10 +47,13 @@ ingest-sample:
 ingest:
 	uv run python -m sift.ingest.corpus --via hopper --wait
 
-# Tenant B: SEBI circulars as PDFs, in-process (Docling is not in the Docker image yet).
+# Tenant B: SEBI circulars as PDFs, in-process (Docling is not in the Docker image yet), and
+# the prompt-injection fixture that v2-sebi's "injected" questions ask about.
 ingest-sebi:
 	uv run --extra models --extra pdf python -m sift.ingest.corpus --via local \
 		--manifest corpus/sebi_manifest.jsonl --tenant sebi --collection circulars
+	uv run --extra models --extra pdf python -m sift.ingest.corpus --via local \
+		--manifest corpus/fixture_manifest.jsonl --tenant sebi --collection circulars
 
 STRATEGIES := naive lexical hybrid hybrid_rerank
 

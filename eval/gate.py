@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
-from eval.run import HERE
+from eval import HERE
 
 REPORT_METRICS: tuple[str, ...] = ("hit@5", "hit@8", "recall@10", "mrr@10")
 GATED_METRICS: tuple[str, ...] = ("hit@8", "recall@10")
@@ -83,9 +83,9 @@ def check(results: dict[str, Any], baseline: dict[str, Any]) -> list[Finding]:
         if is_gated and m in GATED_METRICS:
             failed = drop > OVERALL_MAX_DROP
             status: Literal["pass", "fail", "info", "no baseline"] = "fail" if failed else "pass"
-        else:
+        else:  # reported, never gated: a drop here is not a pass
             failed = False
-            status = "pass" if is_gated else "info"
+            status = "info"
 
         findings.append(
             Finding(

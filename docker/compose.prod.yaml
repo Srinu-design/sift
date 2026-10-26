@@ -2,13 +2,13 @@
 #   SIFT_IMAGE=sift:<sha> docker compose -p sift -f docker/compose.prod.yaml --env-file /opt/sift/.env up -d
 # Joins Hopper's network (hopper_default) to reach its Postgres (pgvector image, database "sift")
 # and Redis (db 1). Nothing is published: Hopper's Caddy routes /sift/ to sift-api.
-# Not here yet: sift-ingest (the index is restored from a dump; PDFs need Docling, ~5 GB RAM)
-# and Prometheus scraping (Hopper's production Prometheus config is Hopper's).
+# Not here yet: sift-ingest (the index is restored from a dump; PDFs need Docling, ~5 GB RAM),
+# so document uploads answer 503. Hopper's production Prometheus scrapes sift-api.
 name: sift
 
 x-sift: &sift
   image: ${SIFT_IMAGE:?set SIFT_IMAGE to the release image}
-  env_file: /opt/sift/.env
+  env_file: ${SIFT_ROOT:-/opt/sift}/.env
   environment:
     MODELS_URL: http://sift-models:8000
     REDIS_URL: redis://redis:6379/1

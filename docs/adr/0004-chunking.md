@@ -47,6 +47,11 @@ tokens; anything longer is silently truncated by the model.
 - 1,903 chunks for 182 pages; ~3,000 tokens of sources per answer at k = 8.
 - The heading in the embedding does not change the reranked result; it is kept because it costs
   nothing and helps dense-only retrieval.
+- A bug fixed on 2026-10-27: the text before an over-budget sentence came out after that
+  sentence's hard-split parts. It affected 3 of 182 pages (`functions-json` in 16, 17 and 18),
+  and the numbers above were measured before the fix. The chunker's name did not change, so an
+  index built earlier keeps those chunks (an unchanged file is never re-chunked); CI rebuilds its
+  index whenever the ingest code changes.
 
 ## When to revisit
 

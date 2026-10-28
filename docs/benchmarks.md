@@ -2,8 +2,8 @@
 
 Everything here was measured on one development laptop, not the EC2 host: Intel Core i7-13700H
 (20 logical CPUs), 14 GB RAM, the whole Compose stack (Hopper + Sift + Postgres + Redis +
-Prometheus + Grafana) on the same machine. CPU only, no GPU. Week 7 repeats the rerank latency on
-the EC2 host.
+Prometheus + Grafana) on the same machine. CPU only, no GPU. On the EC2 host (2 vCPUs) a rerank
+took ~3.2–3.5 s against ~1.1 s here, and a demo query 3.8 s ([deploy.md](deploy.md)).
 
 ## Query load (2026-10-23, `make load-query`)
 

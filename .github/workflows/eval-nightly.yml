@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 90
     services:
       postgres:
-        image: pgvector/pgvector:0.8.6-pg16
+        image: pgvector/pgvector:0.8.6-pg16-trixie  # production's build
         env: { POSTGRES_USER: hopper, POSTGRES_PASSWORD: hopper, POSTGRES_DB: hopper }
         ports: ["5432:5432"]
         options: >-
@@ -77,7 +77,7 @@ jobs:
         if: always()
         run: |
           ans_summary=$(ls -t eval/results/*-answers-dev-v1-hybrid_rerank.json 2>/dev/null | head -1 || true)
-          judge_summary=$(ls -t eval/results/*-judge-answers-dev-v1-hybrid_rerank-answer-v2.json 2>/dev/null | head -1 || true)
+          judge_summary=$(ls -t eval/results/*-judge-answers.json 2>/dev/null | head -1 || true)
           {
             echo "## Nightly Answer & Judge Evaluation"
             if [ -n "$ans_summary" ]; then

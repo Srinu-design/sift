@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: pgvector/pgvector:0.8.6-pg16
+        image: pgvector/pgvector:0.8.6-pg16-trixie  # production's build
         env: { POSTGRES_USER: hopper, POSTGRES_PASSWORD: hopper, POSTGRES_DB: hopper }
         ports: ["5432:5432"]
         options: >-
@@ -37,17 +37,24 @@ jobs:
           --health-timeout 3s --health-retries 10
     env:
       DATABASE_URL: postgresql+asyncpg://hopper:hopper@127.0.0.1:5432/sift
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - run: uv sync --frozen
+      # The chunker's tokenizer: from eval-retrieval's cache, not a Hugging Face download per run.
+      - uses: actions/cache/restore@v4
+        with:
+          path: .cache/huggingface
+          key: hf-${{ hashFiles('src/sift/config.py') }}
+          restore-keys: hf-
       - run: uv run pytest -q
 
   eval-retrieval:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: pgvector/pgvector:0.8.6-pg16
+        image: pgvector/pgvector:0.8.6-pg16-trixie  # production's build
         env: { POSTGRES_USER: hopper, POSTGRES_PASSWORD: hopper, POSTGRES_DB: hopper }
         ports: ["5432:5432"]
         options: >-
@@ -66,6 +73,9 @@ jobs:
         with:
           path: .cache/huggingface
           key: hf-${{ hashFiles('src/sift/config.py') }}
+          # The model revisions are pinned, so an older cache is a safe start: only what
+          # changed downloads.
+          restore-keys: hf-
 
       - name: Create database and migrate
         run: uv run python -m sift.db && uv run alembic upgrade head

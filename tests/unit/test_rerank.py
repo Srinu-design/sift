@@ -5,29 +5,12 @@ import json
 import httpx
 import pytest
 
-from sift.retrieval.hit import Hit
 from sift.retrieval.rerank import passage, remote_reranker, rerank
-
-
-def _hit(chunk_id: int, score: float = 0.0) -> Hit:
-    return Hit(
-        chunk_id=chunk_id,
-        score=score,
-        heading=f"Heading {chunk_id}",
-        anchor=f"ANC-{chunk_id}",
-        anchor_path=(f"ANC-{chunk_id}",),
-        page_start=None,
-        page_end=None,
-        doc_version="17",
-        source="pgdocs",
-        source_uri=f"https://docs.test/{chunk_id}.html",
-        title=f"Title {chunk_id}",
-        content=f"Content for chunk {chunk_id}.",
-    )
+from tests.conftest import make_hit
 
 
 async def test_rerank_orders_ties_replaces_score_and_trims() -> None:
-    hits = [_hit(1, 0.1), _hit(2, 0.2), _hit(3, 0.3), _hit(4, 0.4)]
+    hits = [make_hit(n, score=n / 10, content=f"Content for chunk {n}.") for n in range(1, 5)]
     seen_passages: list[str] = []
 
     async def fake_reranker(question: str, passages: list[str]) -> list[float]:

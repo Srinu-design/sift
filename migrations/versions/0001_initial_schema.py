@@ -117,7 +117,7 @@ STATEMENTS = [
       strategy          text NOT NULL,     -- naive | lexical | hybrid | hybrid_rerank
       cache_hit         boolean NOT NULL,
       refused           boolean NOT NULL,
-      refusal_gate      text,              -- 'retrieval' | 'model'
+      refusal_gate      text,              -- 'retrieval' | 'model' | 'citation'
       top_rerank_score  real,
       timings_ms        jsonb NOT NULL,
       tokens_in         integer,

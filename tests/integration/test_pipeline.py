@@ -10,54 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from sift.ingest import parsers, pipeline
 from sift.retrieval.dense import dense
 from tests.conftest import FakeEmbedder
-
-
-def page(sections: int = 3, paragraphs: int = 4, extra: str = "") -> bytes:
-    """A docs page: one h2 section per id, each with a few paragraphs."""
-    body = "".join(
-        f'<div class="sect2" id="SEC-{s}"><h3>Section {s}</h3>'
-        + "".join(
-            f"<p>Paragraph {p} of section {s} explains option_{s}_{p} in some detail. "
-            + "Vacuum and analyze keep statistics fresh. " * 6
-            + "</p>"
-            for p in range(paragraphs)
-        )
-        + "</div>"
-        for s in range(sections)
-    )
-    root = (
-        f'<div id="docContent"><div class="sect1" id="P"><h2>A Page</h2>{extra}{body}</div></div>'
-    )
-    html = f"<html><body>{root}</body></html>"
-    return html.encode()
-
-
-async def setup(engine: AsyncEngine) -> tuple[UUID, UUID]:
-    return await pipeline.ensure_collection(engine, "acme", "docs")
-
-
-async def submit(engine: AsyncEngine, ids: tuple[UUID, UUID], data: bytes) -> pipeline.Submitted:
-    return await pipeline.submit(
-        engine,
-        tenant_id=ids[0],
-        collection_id=ids[1],
-        filename="page.html",
-        data=data,
-        source_uri="https://docs.test/page.html",
-        source="test",
-        doc_version="17",
-    )
-
-
-async def ingest(engine: AsyncEngine, version_id: UUID, embed: FakeEmbedder) -> str:
-    for b in range(await pipeline.parse_version(engine, version_id)):
-        await pipeline.embed_batch(engine, version_id, b, embed)
-    return await pipeline.activate(engine, version_id)
-
-
-async def scalar(engine: AsyncEngine, sql: str, **params: object) -> object:
-    async with engine.connect() as conn:
-        return await conn.scalar(text(sql), params)
+from tests.integration.helpers import ingest, page, scalar, setup, submit
 
 
 async def rows(engine: AsyncEngine, sql: str) -> list[tuple[object, ...]]:
@@ -132,6 +85,10 @@ async def test_queries_see_the_old_version_until_activation_then_only_the_new(
     statuses = dict(await rows(engine, "SELECT id, status FROM document_versions"))
     assert statuses == {v1.version_id: "superseded", v2.version_id: "ready"}
     assert await scalar(engine, "SELECT index_version FROM collections") == index_before + 1
+    v1_chunks = await scalar(
+        engine, "SELECT count(*) FROM chunks WHERE version_id = :v", v=v1.version_id
+    )
+    assert v1_chunks == 0  # a superseded version's chunks are deleted
 
 
 async def test_an_older_version_finishing_late_never_replaces_a_newer_one(
@@ -148,6 +105,10 @@ async def test_an_older_version_finishing_late_never_replaces_a_newer_one(
     assert await pipeline.activate(engine, old.version_id) == "superseded"
     active = await scalar(engine, "SELECT active_version_id FROM documents")
     assert active == new.version_id
+    old_chunks = await scalar(
+        engine, "SELECT count(*) FROM chunks WHERE version_id = :v", v=old.version_id
+    )
+    assert old_chunks == 0  # the late version never goes live, and its chunks are deleted
 
 
 async def test_every_step_repeats_safely(engine: AsyncEngine, embedder: FakeEmbedder) -> None:
@@ -206,7 +167,6 @@ async def test_a_parse_failure_marks_the_version_and_a_retry_after_the_fix_succe
     """What a DLQ replay does after a parser fix: the same job, run again."""
     ids = await setup(engine)
     v = (await submit(engine, ids, page())).version_id
-    real_parse = parsers.parse
 
     def broken(parser: str, data: bytes) -> parsers.ParsedDoc:
         raise parsers.ParseError("parser bug")
@@ -217,6 +177,6 @@ async def test_a_parse_failure_marks_the_version_and_a_retry_after_the_fix_succe
     assert await scalar(engine, "SELECT status FROM document_versions") == "failed"
     assert await scalar(engine, "SELECT count(*) FROM chunks") == 0
 
-    monkeypatch.setattr(parsers, "parse", real_parse)  # the fix ships
+    monkeypatch.undo()  # the fix ships
     assert await pipeline.parse_version(engine, v) >= 1
     assert await scalar(engine, "SELECT status FROM document_versions") == "embedding"

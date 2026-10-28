@@ -1,42 +1,26 @@
 """Unit tests for deterministic citation validation and mapping."""
 
+from dataclasses import replace
+
 from sift.answer.citations import check, cited
 from sift.answer.prompt import ModelAnswer, ModelCitation
-from sift.retrieval.hit import Hit
+from tests.conftest import make_hit
 
-
-def _hit(
-    chunk_id: int = 1,
-    *,
-    heading: str = "Server Administration > Client Authentication > pg_hba.conf",
-    anchor: str | None = "AUTH-PG-HBA-CONF",
-    page_start: int | None = None,
-    doc_version: str | None = "17",
-    source_uri: str = "https://www.postgresql.org/docs/17/auth-pg-hba-conf.html",
-    title: str = "Client Authentication",
-    content: str = (
+PG_HBA = make_hit(
+    heading="Server Administration > Client Authentication > pg_hba.conf",
+    anchor="AUTH-PG-HBA-CONF",
+    anchor_path=("AUTH-PG-HBA-CONF",),
+    source_uri="https://www.postgresql.org/docs/17/auth-pg-hba-conf.html",
+    title="Client Authentication",
+    content=(
         "Client authentication is controlled by a configuration file, "
         "which traditionally is named pg_hba.conf and is stored in the database cluster."
     ),
-) -> Hit:
-    return Hit(
-        chunk_id=chunk_id,
-        score=0.9,
-        heading=heading,
-        anchor=anchor,
-        anchor_path=("AUTH-PG-HBA-CONF",) if anchor else (),
-        page_start=page_start,
-        page_end=page_start,
-        doc_version=doc_version,
-        source="pgdocs",
-        source_uri=source_uri,
-        title=title,
-        content=content,
-    )
+)
 
 
 def test_valid_answer_passes() -> None:
-    sources = [_hit(1)]
+    sources = [PG_HBA]
     ans = ModelAnswer(
         refused=False,
         answer="Client authentication uses pg_hba.conf [S1].",
@@ -51,7 +35,7 @@ def test_valid_answer_passes() -> None:
 
 
 def test_unknown_id_in_text_fails() -> None:
-    sources = [_hit(1)]
+    sources = [PG_HBA]
     ans = ModelAnswer(
         refused=False,
         answer="Client authentication uses pg_hba.conf [S2].",
@@ -67,7 +51,7 @@ def test_unknown_id_in_text_fails() -> None:
 
 
 def test_unknown_id_in_citations_fails() -> None:
-    sources = [_hit(1)]
+    sources = [PG_HBA]
     ans = ModelAnswer(
         refused=False,
         answer="Client authentication uses pg_hba.conf [S1].",
@@ -83,7 +67,7 @@ def test_unknown_id_in_citations_fails() -> None:
 
 
 def test_quote_not_in_chunk_fails() -> None:
-    sources = [_hit(1)]
+    sources = [PG_HBA]
     ans = ModelAnswer(
         refused=False,
         answer="Client authentication uses pg_hba.conf [S1].",
@@ -99,7 +83,7 @@ def test_quote_not_in_chunk_fails() -> None:
 
 
 def test_quote_case_and_whitespace_normalised() -> None:
-    sources = [_hit(1)]
+    sources = [PG_HBA]
     ans = ModelAnswer(
         refused=False,
         answer="Client authentication uses pg_hba.conf [S1].",
@@ -114,7 +98,7 @@ def test_quote_case_and_whitespace_normalised() -> None:
 
 
 def test_quote_with_changed_punctuation_passes_fuzzy() -> None:
-    sources = [_hit(1)]
+    sources = [PG_HBA]
     # ";" instead of "," after "configuration file" -> >90% contiguous match
     ans = ModelAnswer(
         refused=False,
@@ -130,7 +114,7 @@ def test_quote_with_changed_punctuation_passes_fuzzy() -> None:
 
 
 def test_uncited_sentence_fails_and_partial_disclaimer_passes() -> None:
-    sources = [_hit(1)]
+    sources = [PG_HBA]
     bad = ModelAnswer(
         refused=False,
         answer="Client authentication uses pg_hba.conf [S1]. Second sentence has no citation.",
@@ -161,7 +145,7 @@ def test_uncited_sentence_fails_and_partial_disclaimer_passes() -> None:
 
 
 def test_refused_answer_skips_checks() -> None:
-    sources = [_hit(1)]
+    sources = [PG_HBA]
     refused = ModelAnswer(
         refused=True,
         answer="",
@@ -172,19 +156,22 @@ def test_refused_answer_skips_checks() -> None:
 
 
 def test_cited_maps_fields_and_dedupes() -> None:
-    s1 = _hit(
-        1,
+    s1 = replace(
+        PG_HBA,
         heading="Indexes > Index Types > GIN",
         anchor="GIN",
         doc_version="17",
         source_uri="https://www.postgresql.org/docs/17/gin.html",
         title="GIN Indexes",
     )
-    s2 = _hit(
-        2,
+    s2 = replace(
+        PG_HBA,
+        chunk_id=2,
         heading="Appendix > Release Notes",
         anchor=None,
+        anchor_path=(),
         page_start=42,
+        page_end=42,
         doc_version=None,
         source_uri="https://www.postgresql.org/docs/release.pdf",
         title="Release Notes PDF",

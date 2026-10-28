@@ -1,6 +1,7 @@
 """Retrieval hit returned by dense, lexical, and hybrid search."""
 
 from dataclasses import dataclass
+from typing import Any, Self
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,3 +18,21 @@ class Hit:
     source_uri: str
     title: str
     content: str
+
+    @classmethod
+    def from_row(cls, r: Any, score: float) -> Self:
+        """A dense or lexical result row (both select the same columns)."""
+        return cls(
+            r.id,
+            score,
+            r.heading,
+            r.anchor,
+            tuple(r.anchor_path),
+            r.page_start,
+            r.page_end,
+            r.doc_version,
+            r.source,
+            r.source_uri,
+            r.title,
+            r.content,
+        )

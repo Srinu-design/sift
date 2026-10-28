@@ -1,6 +1,7 @@
 """Unit tests for query normalization, cache key construction, and spend budget checks."""
 
 from datetime import UTC, datetime
+from typing import Any
 from uuid import uuid4
 
 from sift.cache import (
@@ -49,168 +50,35 @@ def test_normalize_query() -> None:
 
 def test_answer_key_tenant_prefix_and_sensitivity() -> None:
     tenant_id = uuid4()
-    collection_id = uuid4()
-    base = answer_key(
-        tenant_id=tenant_id,
-        collection_id=collection_id,
-        index_version=1,
-        strategy="hybrid_rerank",
-        filters=Filters(version="17"),
-        k=8,
-        prompt_version="answer-v2",
-        model="stub",
-        question="What is MVCC?",
-    )
+    kwargs: dict[str, Any] = {
+        "tenant_id": tenant_id,
+        "collection_id": uuid4(),
+        "index_version": 1,
+        "strategy": "hybrid_rerank",
+        "filters": Filters(version="17"),
+        "k": 8,
+        "prompt_version": "answer-v2",
+        "model": "stub",
+        "question": "What is MVCC?",
+    }
+    base = answer_key(**kwargs)
     assert base.startswith(f"sift:ans:{tenant_id}:")
 
-    assert (
-        answer_key(
-            tenant_id=uuid4(),
-            collection_id=collection_id,
-            index_version=1,
-            strategy="hybrid_rerank",
-            filters=Filters(version="17"),
-            k=8,
-            prompt_version="answer-v2",
-            model="stub",
-            question="What is MVCC?",
-        )
-        != base
-    )
-    assert (
-        answer_key(
-            tenant_id=tenant_id,
-            collection_id=uuid4(),
-            index_version=1,
-            strategy="hybrid_rerank",
-            filters=Filters(version="17"),
-            k=8,
-            prompt_version="answer-v2",
-            model="stub",
-            question="What is MVCC?",
-        )
-        != base
-    )
-    assert (
-        answer_key(
-            tenant_id=tenant_id,
-            collection_id=collection_id,
-            index_version=2,
-            strategy="hybrid_rerank",
-            filters=Filters(version="17"),
-            k=8,
-            prompt_version="answer-v2",
-            model="stub",
-            question="What is MVCC?",
-        )
-        != base
-    )
-    assert (
-        answer_key(
-            tenant_id=tenant_id,
-            collection_id=collection_id,
-            index_version=1,
-            strategy="dense",
-            filters=Filters(version="17"),
-            k=8,
-            prompt_version="answer-v2",
-            model="stub",
-            question="What is MVCC?",
-        )
-        != base
-    )
-    assert (
-        answer_key(
-            tenant_id=tenant_id,
-            collection_id=collection_id,
-            index_version=1,
-            strategy="hybrid_rerank",
-            filters=Filters(version="17"),
-            k=4,
-            prompt_version="answer-v2",
-            model="stub",
-            question="What is MVCC?",
-        )
-        != base
-    )
-    assert (
-        answer_key(
-            tenant_id=tenant_id,
-            collection_id=collection_id,
-            index_version=1,
-            strategy="hybrid_rerank",
-            filters=Filters(version="17"),
-            k=8,
-            prompt_version="answer-v3",
-            model="stub",
-            question="What is MVCC?",
-        )
-        != base
-    )
-    assert (
-        answer_key(
-            tenant_id=tenant_id,
-            collection_id=collection_id,
-            index_version=1,
-            strategy="hybrid_rerank",
-            filters=Filters(version="17"),
-            k=8,
-            prompt_version="answer-v2",
-            model="gemini-2.5-flash",
-            question="What is MVCC?",
-        )
-        != base
-    )
-    assert (
-        answer_key(
-            tenant_id=tenant_id,
-            collection_id=collection_id,
-            index_version=1,
-            strategy="hybrid_rerank",
-            filters=Filters(version="16"),
-            k=8,
-            prompt_version="answer-v2",
-            model="stub",
-            question="What is MVCC?",
-        )
-        != base
-    )
+    for field, value in [
+        ("tenant_id", uuid4()),
+        ("collection_id", uuid4()),
+        ("index_version", 2),
+        ("strategy", "dense"),
+        ("k", 4),
+        ("prompt_version", "answer-v3"),
+        ("model", "gemini-2.5-flash"),
+        ("filters", Filters(version="16")),
+    ]:
+        assert answer_key(**{**kwargs, field: value}) != base, field
 
-    same_norm = answer_key(
-        tenant_id=tenant_id,
-        collection_id=collection_id,
-        index_version=1,
-        strategy="hybrid_rerank",
-        filters=Filters(version="17"),
-        k=8,
-        prompt_version="answer-v2",
-        model="stub",
-        question="  what   IS mvcc??? ",
-    )
-    assert same_norm == base
-
-    f1 = answer_key(
-        tenant_id=tenant_id,
-        collection_id=collection_id,
-        index_version=1,
-        strategy="hybrid_rerank",
-        filters={"version": "17", "sources": ["pgdocs"]},
-        k=8,
-        prompt_version="answer-v2",
-        model="stub",
-        question="What is MVCC?",
-    )
-    f2 = answer_key(
-        tenant_id=tenant_id,
-        collection_id=collection_id,
-        index_version=1,
-        strategy="hybrid_rerank",
-        filters={"sources": ["pgdocs"], "version": "17"},
-        k=8,
-        prompt_version="answer-v2",
-        model="stub",
-        question="What is MVCC?",
-    )
+    assert answer_key(**{**kwargs, "question": "  what   IS mvcc??? "}) == base
+    f1 = answer_key(**{**kwargs, "filters": {"version": "17", "sources": ["pgdocs"]}})
+    f2 = answer_key(**{**kwargs, "filters": {"sources": ["pgdocs"], "version": "17"}})
     assert f1 == f2
 
 

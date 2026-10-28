@@ -1,32 +1,11 @@
 """Unit tests for the LLM judge parser, faithfulness scoring, and retry handling."""
 
-from typing import Any, Literal
+from typing import Any
 
 import pytest
 
 from eval.judge import JudgeReply, faithfulness_score, judge_rows
-from sift.answer.llm import LLMResult
-
-
-class ScriptedJudgeLLM:
-    model: str = "judge-test-model"
-
-    def __init__(self, replies: list[str]) -> None:
-        self._replies = list(replies)
-        self.calls: list[list[tuple[Literal["user", "model"], str]]] = []
-
-    async def generate(
-        self,
-        system: str,
-        turns: list[tuple[Literal["user", "model"], str]],
-    ) -> LLMResult:
-        self.calls.append(list(turns))
-        return LLMResult(
-            text=self._replies.pop(0),
-            tokens_in=80,
-            tokens_out=30,
-            model=self.model,
-        )
+from tests.conftest import ScriptedLLM
 
 
 def test_faithfulness_from_parsed_reply() -> None:
@@ -119,7 +98,7 @@ async def test_judged_row_builder_skips_refused_and_retries_invalid_json() -> No
         '"supported": true, "source": "S1"}], '
         '"correctness": 0.5, "correctness_reason": "Missed server restart."}'
     )
-    llm = ScriptedJudgeLLM(["{malformed json", valid_reply])
+    llm = ScriptedLLM(["{malformed json", valid_reply])
 
     judged = await judge_rows(rows, golden_by_id, llm)
     assert len(judged) == 1

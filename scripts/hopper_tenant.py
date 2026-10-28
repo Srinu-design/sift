@@ -56,7 +56,7 @@ def main() -> int:
             "exec",
             "-T",
             "-e",
-            f"HOPPER_ADMIN_PASSWORD={password}",
+            "HOPPER_ADMIN_PASSWORD",  # value from our env, never argv (ps shows argv)
             "api",
             "python",
             "-m",

@@ -52,9 +52,13 @@ can have: it leaks a customer's documents. Filters in application code are one f
 ## Consequences
 
 - `SET ROLE` can be undone by `RESET ROLE` from inside the session, so RLS is a second layer
-  against bugs, not against SQL injection. Production (week 7) gives the API its own login role.
-- The demo page queries one public tenant without a key, rate-limited per client IP in memory
-  (per process; the Redis limiter replaces it in week 6).
+  against bugs, not against SQL injection. Production still works this way: the API connects as
+  the tables' owner and runs `SET ROLE sift_app`, a `NOLOGIN` role (migration 0002); it has no
+  login role of its own.
+- The demo page queries one public tenant without a key, rate-limited per client IP by the same
+  Redis token bucket as the API (`RateLimiter`). In production every request reaches sift-api
+  from Caddy's address, so the demo's bucket is one bucket shared by every visitor
+  (`docker/compose.prod.yaml`).
 - Key lookups are cached for 60 s per API process: a revoked key keeps working on a replica for
   up to a minute (as in Hopper).
 

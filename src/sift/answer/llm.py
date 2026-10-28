@@ -91,9 +91,10 @@ class GeminiLLM:
 
         if resp.status_code == 429:
             raise LLMQuotaExceeded("Gemini HTTP 429")
-        if resp.status_code >= 500:
+        if resp.status_code >= 400:
+            # 5xx, and 4xx too (a bad key, a retired model): the API answers "model
+            # unavailable" instead of a bare 500.
             raise LLMUnavailable(f"Gemini HTTP {resp.status_code}")
-        resp.raise_for_status()
 
         data = resp.json()
         candidates = data.get("candidates") or []

@@ -13,7 +13,9 @@ extension) and Caddy routes `/sift/` to `sift-api`.
 | sift-migrate | (one-off) | creates the `sift` database and runs Alembic |
 
 Not deployed: sift-ingest (the index is restored from a dump, below; PDF parsing needs ~5 GB of
-RAM), and Prometheus scraping of Sift (Hopper's production Prometheus config is Hopper's).
+RAM), so uploads answer 503 "document uploads are unavailable" in production. Hopper's production
+Prometheus scrapes sift-api, and its Grafana has the Sift dashboard (Srinu-design/hopper
+commit 2e7cf53).
 
 ## One-time setup on the host
 

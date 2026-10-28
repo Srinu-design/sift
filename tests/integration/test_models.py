@@ -1,5 +1,5 @@
-"""The real pinned models. Skipped where the models extra is not installed (CI until week 5,
-when the retrieval eval in CI needs them anyway). Loading takes a few seconds."""
+"""The real pinned models. Skipped where the models extra is not installed, so CI (plain
+`uv sync`) never runs them. Loading takes a few seconds."""
 
 import math
 

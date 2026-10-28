@@ -18,7 +18,7 @@ from sift.config import get_settings
 from sift.ingest import pipeline
 from sift.ingest.service import app
 from tests.conftest import FakeEmbedder
-from tests.integration.test_pipeline import page, scalar, setup, submit
+from tests.integration.helpers import page, scalar, setup, submit
 
 SECRET = base64.urlsafe_b64decode(get_settings().hopper_signing_secret.get_secret_value())
 

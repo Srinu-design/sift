@@ -35,8 +35,9 @@ pgvector 0.8.0+): with a plain HNSW scan, filters apply after the index returns 
 
 ## Consequences
 
-- Activation (old chunks off, new on, `index_version` bumped) is one transaction, and tests
-  prove queries see the old version until the commit and only the new one after.
+- Activation (new chunks on, the old version's chunks deleted, `index_version` bumped) is one
+  transaction, and tests prove queries see the old version until the commit and only the new
+  one after.
 - Tenant isolation is SQL: every query filters on `tenant_id`, and row-level security as a
   non-owner role is the second layer (week 5).
 - One HNSW graph is shared by every tenant, so one tenant's vectors affect another's recall
@@ -48,7 +49,8 @@ pgvector 0.8.0+): with a plain HNSW scan, filters apply after the index returns 
 ## When to revisit
 
 - More than about 1 million chunks, or HNSW no longer fitting in memory on the host.
-- Filtered queries whose exact-versus-HNSW overlap at 50 drops below 0.9 (the test arrives in
-  week 3), or many tenants of very different sizes: then list-partition chunks by tenant, as
-  pgvector's README suggests, before reaching for another store.
+- Filtered queries whose exact-versus-HNSW overlap at 50 drops below 0.9 (`make eval-overlap`:
+  mean 0.999, minimum 0.92 on dev today), or many tenants of very different sizes: then
+  list-partition chunks by tenant, as pgvector's README suggests, before reaching for another
+  store.
 - Needing BM25 itself rather than `ts_rank_cd` (stretch: ParadeDB's `pg_search`).

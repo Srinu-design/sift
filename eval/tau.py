@@ -5,20 +5,19 @@ python -m eval.tau --split dev --max-wrong 0.05
 
 import argparse
 import asyncio
-import json
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from eval.run import HERE, git_commit, load_golden
+from eval import HERE, git_commit, save
+from eval.run import find_collection, load_golden
 from sift.config import get_settings
 from sift.db import create_engine
-from sift.ingest import pipeline
 from sift.models_svc.encoder import encoder
 from sift.retrieval.filters import Filters
 from sift.retrieval.rerank import local_reranker
-from sift.retrieval.search import search
+from sift.retrieval.search import DEPTH, search
 
 
 def evaluate_tau(rows: list[dict[str, Any]], tau: float) -> dict[str, Any]:
@@ -51,7 +50,7 @@ async def tune_tau(args: argparse.Namespace) -> dict[str, Any]:
     vectors = list(encoder().embed([q["question"] for q in questions], "query"))
     reranker = local_reranker()
     engine = create_engine(settings)
-    tenant_id, collection_id = await pipeline.ensure_collection(engine, args.tenant, args.tenant)
+    tenant_id, collection_id = await find_collection(engine, args.tenant, args.tenant)
 
     per_question: list[dict[str, Any]] = []
     for q, vec in zip(questions, vectors, strict=True):
@@ -65,7 +64,7 @@ async def tune_tau(args: argparse.Namespace) -> dict[str, Any]:
             query_vector=vec,
             filters=filters,
             k=settings.context_k,
-            depth=settings.rerank_depth,
+            depth=DEPTH,
             rerank_depth=settings.rerank_depth,
             reranker=reranker,
         )
@@ -154,11 +153,7 @@ def main() -> int:
     report = asyncio.run(tune_tau(args))
     print(format_report(report))
 
-    results = HERE / "results"
-    results.mkdir(exist_ok=True)
-    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    out = results / f"{stamp}-tau-{report['split']}-{report['golden']}.json"
-    out.write_text(json.dumps(report, indent=1) + "\n")
+    out = save(report, f"tau-{report['split']}-{report['golden']}")
     print(f"tau results: {out.relative_to(HERE.parent)}")
     return 0
 

@@ -1,5 +1,5 @@
-"""PDF parsing with Docling. Skipped where the pdf extra is not installed (as in CI, until
-tenant B's circulars arrive in week 5). The first run downloads Docling's layout models."""
+"""PDF parsing with Docling. Skipped where the pdf extra is not installed, so CI (plain
+`uv sync`) never runs them. The first run downloads Docling's layout models."""
 
 import pytest
 

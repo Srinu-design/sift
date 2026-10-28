@@ -74,6 +74,7 @@
 
   // ---------------------------------------------------------------- live status
   async function checkStatus() {
+    if (document.hidden) return; // checked again when the tab is shown
     const box = document.getElementById("status");
     let state = "down";
     let text = "Down";
@@ -96,6 +97,7 @@
   }
   checkStatus();
   setInterval(checkStatus, 15000);
+  document.addEventListener("visibilitychange", checkStatus);
 
   // ---------------------------------------------------------------- section links
   // Marks the How it works section being read in the sticky row of section links.
@@ -393,7 +395,7 @@
   }
 
   function renderError(message) {
-    const box = el("div", "callout error-box");
+    const box = el("div", "callout");
     box.append(el("h2", "", "The demo could not answer"), el("p", "", message));
     resultsEl.replaceChildren(box);
   }
@@ -402,7 +404,7 @@
     resultsEl.replaceChildren();
 
     if (data.refused) {
-      const box = el("div", "callout refusal-box");
+      const box = el("div", "callout");
       box.append(
         el("h2", "", "Not enough evidence to answer"),
         el("p", "", data.refusal_reason || "Refused."),
@@ -443,6 +445,7 @@
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (askButton.disabled) return; // a question is in flight; Enter submits even so
     const question = questionInput.value.trim();
     if (!question) {
       return;

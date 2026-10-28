@@ -7,7 +7,7 @@ import structlog
 
 
 def configure_logging(level: str = "INFO") -> None:
-    """JSON logs on stdout. Bind job_id, tenant_id, attempt, worker_id via contextvars."""
+    """JSON logs on stdout. Bind request_id, tenant_id or the ingest step's ids via contextvars."""
     logging.basicConfig(format="%(message)s", stream=sys.stdout, level=level.upper())
     structlog.configure(
         processors=[

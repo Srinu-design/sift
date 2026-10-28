@@ -44,8 +44,8 @@ def file_path(store: str, tenant_id: UUID, content_hash: bytes) -> Path:
 
 
 async def ensure_collection(engine: AsyncEngine, tenant: str, collection: str) -> tuple[UUID, UUID]:
-    """(tenant id, collection id), created if missing. Dev and eval tenants only, until the
-    admin API arrives with tenancy (week 5)."""
+    """(tenant id, collection id), created if missing: for ingestion. Tenants of the API are
+    created with `python -m sift.admin`."""
     async with engine.begin() as conn:
         tenant_id = await conn.scalar(
             text(
@@ -72,6 +72,7 @@ class Submitted:
     # ready: unchanged, nothing to do. failed: replay the parse job from Hopper's DLQ.
     # superseded: this exact file was active before and has since been replaced.
     status: str
+    document_id: UUID
 
     @property
     def needs_parse(self) -> bool:
@@ -110,13 +111,8 @@ async def submit(
     """Store the file under its SHA-256 and record a version. An unchanged file finds its
     existing version, so the caller enqueues nothing and no embedding is paid for twice."""
     parser = parsers.parser_for(filename)
-    content_hash = hashlib.sha256(data).digest()
-    path = file_path(get_settings().file_store, tenant_id, content_hash)
-    if not path.exists():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(f".{os.getpid()}.tmp")
-        tmp.write_bytes(data)
-        tmp.replace(path)  # atomic: a reader never sees half a file
+    # Up to max_upload_bytes of hashing and disk I/O: in a thread, off the API's event loop.
+    content_hash = await asyncio.to_thread(_store, get_settings().file_store, tenant_id, data)
     async with engine.begin() as conn:
         await set_tenant(conn, tenant_id)
         document_id = await conn.scalar(
@@ -141,7 +137,7 @@ async def submit(
             },
         )
         if version_id is not None:
-            return Submitted(version_id, "new")
+            return Submitted(version_id, "new", document_id)
         row = (
             await conn.execute(
                 text(
@@ -151,9 +147,21 @@ async def submit(
                 {"d": document_id, "h": content_hash, "p": parser, "c": chunker.NAME},
             )
         ).one()
-    # shortcut: re-uploading a superseded file does not re-activate it; add that (a fresh
-    # job key per activation) when the 24 h retention of superseded chunks lands in week 6.
-    return Submitted(row.id, row.status)
+    # shortcut: re-uploading a superseded file does not re-activate it (its chunks were
+    # deleted when it was replaced); add that with a fresh job key per activation if needed.
+    return Submitted(row.id, row.status, document_id)
+
+
+def _store(file_store: str, tenant_id: UUID, data: bytes) -> bytes:
+    """Write the file under its SHA-256 (once) and return the hash."""
+    content_hash = hashlib.sha256(data).digest()
+    path = file_path(file_store, tenant_id, content_hash)
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(f".{os.getpid()}.tmp")
+        tmp.write_bytes(data)
+        tmp.replace(path)  # atomic: a reader never sees half a file
+    return content_hash
 
 
 async def _version(conn: AsyncConnection, version_id: UUID, lock: bool = False) -> Any:
@@ -180,6 +188,10 @@ async def _version(conn: AsyncConnection, version_id: UUID, lock: bool = False) 
 def batches(chunk_count: int) -> int:
     return -(-chunk_count // EMBED_BATCH)
 
+
+# A superseded version's chunks are never queried again: deleted, not kept as dead rows
+# (with their HNSW and GIN entries) for ever. Its vectors stay in embedding_cache.
+DELETE_CHUNKS = "DELETE FROM chunks WHERE version_id = :v"
 
 INSERT_CHUNK = """
 INSERT INTO chunks (tenant_id, collection_id, version_id, ordinal, heading, anchor, anchor_path,
@@ -363,6 +375,7 @@ async def activate(engine: AsyncEngine, version_id: UUID) -> str:
                     text("UPDATE document_versions SET status = 'superseded' WHERE id = :v"),
                     {"v": version_id},
                 )
+                await conn.execute(text(DELETE_CHUNKS), {"v": version_id})
                 return "superseded"
         await conn.execute(
             text(
@@ -372,17 +385,14 @@ async def activate(engine: AsyncEngine, version_id: UUID) -> str:
             {"v": version_id},
         )
         await conn.execute(
-            text(
-                "UPDATE chunks SET is_active = (version_id = :v)"
-                " WHERE version_id = :v OR version_id = :o"
-            ),
-            {"v": version_id, "o": old},
+            text("UPDATE chunks SET is_active = true WHERE version_id = :v"), {"v": version_id}
         )
         if old is not None:
             await conn.execute(
                 text("UPDATE document_versions SET status = 'superseded' WHERE id = :o"),
                 {"o": old},
             )
+            await conn.execute(text(DELETE_CHUNKS), {"v": old})
         await conn.execute(
             text("UPDATE documents SET active_version_id = :v WHERE id = :d"),
             {"v": version_id, "d": v.document_id},

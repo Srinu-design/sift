@@ -28,9 +28,9 @@ from sift.answer.llm import LLM, LLMQuotaExceeded, LLMUnavailable, make_llm
 from sift.answer.prompt import PROMPT_VERSION
 from sift.answer.refusal import gate1
 from sift.auth.api_keys import ApiKeyAuthenticator, current_tenant
-from sift.cache import REDIS_DOWN, AnswerCache, QueryEmbeddingCache, SpendBudget, answer_key
+from sift.cache import AnswerCache, QueryEmbeddingCache, SpendBudget, answer_key
 from sift.common.logging import configure_logging
-from sift.common.ratelimit.limiter import RateLimiter
+from sift.common.ratelimit.limiter import REDIS_DOWN, Decision, RateLimiter
 from sift.common.ratelimit.redis_health import RedisHealth
 from sift.config import Settings, get_settings
 from sift.db import create_engine, set_tenant
@@ -196,7 +196,20 @@ async def _write_query_log(
                 },
             )
     except DBAPIError as exc:
-        raise HTTPException(status_code=503, detail="database unavailable") from exc
+        # The answer is already paid for: return it without its log row rather than a 503.
+        logger.warning("query_log_failed", request_id=request_id, error=type(exc).__name__)
+
+
+def _rate_limited(decision: Decision, detail: str) -> HTTPException:
+    return HTTPException(
+        status_code=429,
+        detail=detail,
+        headers={
+            "Retry-After": str(decision.retry_after_seconds),
+            "X-RateLimit-Limit": str(decision.limit),
+            "X-RateLimit-Remaining": str(decision.remaining),
+        },
+    )
 
 
 async def _execute_query(
@@ -217,7 +230,6 @@ async def _execute_query(
     budget: SpendBudget = request.app.state.budget
     req_id: str = request.state.request_id
 
-    cache_model = settings.answer_model if settings.llm_provider == "gemini" else "stub"
     ans_key = answer_key(
         tenant_id=tenant_id,
         collection_id=collection_id,
@@ -226,7 +238,7 @@ async def _execute_query(
         filters=body.filters,
         k=body.k,
         prompt_version=PROMPT_VERSION,
-        model=cache_model,
+        model=llm_client.model,
         question=body.question,
     )
 
@@ -267,7 +279,7 @@ async def _execute_query(
                 tokens_out=0,
                 cost_usd=0.0,
                 prompt_version=hit_out.prompt_version,
-                model=cache_model,
+                model=llm_client.model,
             )
             metrics.QUERY_SECONDS.labels(stage="total").observe(total_ms / 1000.0)
             metrics.QUERIES.labels(strategy=body.strategy).inc()
@@ -546,7 +558,8 @@ def create_app(
             if own_engine:
                 await active_engine.dispose()
 
-    app = FastAPI(lifespan=lifespan)
+    # No /docs or /redoc: Swagger UI needs an inline script and a CDN, which the CSP below forbids.
+    app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 
     @app.middleware("http")
     async def _security_and_request_id(
@@ -617,15 +630,7 @@ def create_app(
             rate=cfg.query_rate_per_sec,
         )
         if not decision.allowed:
-            raise HTTPException(
-                status_code=429,
-                detail="rate limit",
-                headers={
-                    "Retry-After": str(decision.retry_after_seconds),
-                    "X-RateLimit-Limit": str(decision.limit),
-                    "X-RateLimit-Remaining": str(decision.remaining),
-                },
-            )
+            raise _rate_limited(decision, "rate limit")
 
         db_engine: AsyncEngine = request.app.state.engine
         try:
@@ -668,15 +673,7 @@ def create_app(
             rate=cfg.demo_rate_per_minute / 60.0,
         )
         if not decision.allowed:
-            raise HTTPException(
-                status_code=429,
-                detail="demo rate limit",
-                headers={
-                    "Retry-After": str(decision.retry_after_seconds),
-                    "X-RateLimit-Limit": str(decision.limit),
-                    "X-RateLimit-Remaining": str(decision.remaining),
-                },
-            )
+            raise _rate_limited(decision, "demo rate limit")
 
         tenant_id, collection_id = demo_ids
         db_engine: AsyncEngine = request.app.state.engine
@@ -762,9 +759,13 @@ def create_app(
         db_engine: AsyncEngine = request.app.state.engine
         http_client: httpx.AsyncClient = request.app.state.http
 
-        data = await request.body()
-        if len(data) > cfg.max_upload_bytes:
-            raise HTTPException(status_code=413, detail="file exceeds max_upload_bytes")
+        # Read up to the cap and no further: request.body() would buffer any size first.
+        body = bytearray()
+        async for part in request.stream():
+            body += part
+            if len(body) > cfg.max_upload_bytes:
+                raise HTTPException(status_code=413, detail="file exceeds max_upload_bytes")
+        data = bytes(body)
         if not data:
             raise HTTPException(status_code=422, detail="empty file body")
 
@@ -792,16 +793,14 @@ def create_app(
                 doc_version=doc_version,
                 published_on=published_on,
             )
-            async with db_engine.begin() as conn:
-                await set_tenant(conn, tenant_id)
-                doc_id = await conn.scalar(
-                    text("SELECT document_id FROM document_versions WHERE id = :v"),
-                    {"v": submitted.version_id},
-                )
         except ParseError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         except DBAPIError as exc:
             raise HTTPException(status_code=503, detail="database unavailable") from exc
+        except OSError as exc:
+            # No writable file store: production runs no ingestion yet (docker/compose.prod.yaml).
+            logger.warning("file_store_unavailable", error=str(exc))
+            raise HTTPException(status_code=503, detail="document uploads are unavailable") from exc
 
         if submitted.needs_parse:
             ver_str = str(submitted.version_id)
@@ -821,7 +820,7 @@ def create_app(
                 ) from exc
 
         return DocumentSubmittedOut(
-            document_id=UUID(str(doc_id)),
+            document_id=submitted.document_id,
             version_id=submitted.version_id,
             status=submitted.status,
         )

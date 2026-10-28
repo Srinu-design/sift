@@ -9,18 +9,11 @@ from typing import Any, Protocol
 from uuid import UUID
 
 import redis.asyncio as redis_asyncio
-import redis.exceptions
 
+from sift.common.ratelimit.limiter import REDIS_DOWN
 from sift.common.ratelimit.redis_health import RedisHealth
 from sift.metrics import CACHE_HITS, CACHE_LOOKUPS
 from sift.retrieval.filters import Filters
-
-REDIS_DOWN = (
-    redis.exceptions.ConnectionError,
-    redis.exceptions.TimeoutError,
-    OSError,
-    TimeoutError,
-)
 
 _WS_RE = re.compile(r"\s+")
 _TRAILING_PUNCT = ".?!,;: "

@@ -112,10 +112,10 @@ async def one_run(sift: AsyncEngine, hopper: AsyncEngine, workers: int) -> dict[
                     " count(*) FILTER (WHERE attempts > 1) AS retried,"
                     " count(*) FILTER (WHERE status <> 'succeeded') AS not_succeeded"
                     " FROM jobs WHERE created_at >= :s"
-                    " AND tenant_id = (SELECT id FROM tenants WHERE name = 'sift')"
+                    " AND tenant_id = (SELECT id FROM tenants WHERE name = :h)"
                     " GROUP BY queue ORDER BY queue"
                 ),
-                {"s": started_at},
+                {"s": started_at, "h": os.environ.get("SIFT_HOPPER_TENANT", "sift")},
             )
         ]
     async with sift.begin() as conn:  # leave nothing behind but the (refilled) cache

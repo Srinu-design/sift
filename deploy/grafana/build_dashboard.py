@@ -71,10 +71,9 @@ PANELS = [  # (title, unit, [(promql, legend)])
         "Ingestion backlog (Hopper queues)",
         "short",
         [
-            (
-                'sum by (queue) (hopper_queue_depth{state="ready", queue=~"default|sift-embed"})',
-                "{{queue}} ready",
-            )
+            # Hopper's schedulers label only their own WORKER_QUEUES ("default"): sift-embed is
+            # counted under "other". max, not sum: each scheduler publishes the same gauge.
+            ('max by (queue) (hopper_queue_depth{state="ready"})', "{{queue}} ready")
         ],
     ),
     (
@@ -109,6 +108,7 @@ dashboard = {
     "tags": ["sift"],
     "panels": [panel(i, *p) for i, p in enumerate(PANELS)],
 }
+# Hopper ships a copy for production: ../hopper/deploy/grafana/provisioning/dashboards/sift.json.
 out = Path(__file__).parent / "dashboards" / "sift.json"
 out.write_text(json.dumps(dashboard, indent=1) + "\n")
 print(f"wrote {out} ({len(PANELS)} panels)")

@@ -6,21 +6,7 @@ eval. Every number below links to how it was measured.
 
 ## Components
 
-```
-                     ┌──────────── Hopper (Project 1): api, workers, scheduler ────────────┐
-upload ─► sift-api ─►│ parse:<v> ─► embed:<v>:<n> (queue sift-embed) ─► activate:<v>        │
-                     └──────┬───────────────────────────────────────────────────────────────┘
-                            │ signed http jobs (HMAC, internal-host allowlist)
-                            ▼
-                       sift-ingest ──► sift-models /embed            Postgres 16 + pgvector
-                            │                                        (chunks, embeddings,
-query ─► Caddy /sift/ ─► sift-api ──► sift-models /embed, /rerank     full-text index, RLS)
-                            │  ├─► Postgres: dense (HNSW) ‖ lexical (tsvector) ─► RRF
-                            │  ├─► Redis: answer cache, query-embedding cache, rate limits, budget
-                            │  └─► Gemini (answer, JSON with [S#] citations) ─► citation checks
-                            ▼
-                 cited answer, or a refusal with "you may want to read"
-```
+The diagram of every process and call is at the top of the [README](../README.md#architecture).
 
 | Process | Role |
 |---|---|
@@ -55,7 +41,9 @@ Upload → file stored under its SHA-256, document upserted, version inserted (a
 creates nothing) → Hopper `parse` job (HTML by DOM sections; PDF by Docling with page numbers;
 chunks of ~400 tokens, 15% overlap, never across a section or page, ≤ 512 tokens, ADR-0004) →
 `embed` jobs per 64 chunks on their own queue (embedding cache first) → `activate`, which swaps
-the document's live version atomically and bumps the collection's index_version.
+the document's live version atomically, deletes the replaced version's chunks (their vectors stay
+in `embedding_cache`) and bumps the collection's index_version. Uploads need the ingestion
+service, so production, which runs none, answers them with 503 (docs/deploy.md).
 
 ## Evaluation
 
@@ -91,12 +79,13 @@ the document's live version atomically and bumps the collection's index_version.
 | more queries | cross-encoder CPU (~1 s per query, one call at a time) | docs/benchmarks.md | rerank depth 20, ONNX/int8, more sift-models replicas, cache hit rate |
 | more documents | embedding throughput at ingest (model-bound) | ADR-0006 | batch across documents, replicas behind the `sift-embed` queue |
 | more tenants / chunks | shared HNSW index (one tenant's vectors slow another's) | ADR-0012 | list-partition chunks by tenant past ~1M chunks |
-| answer cost | LLM tokens (~3,000 in per answer) | docs/benchmarks.md | cache, gate-1 refusals, fewer sources, a smaller model |
+| answer cost | LLM tokens (~3,000 in per query) | docs/benchmarks.md | cache, gate-1 refusals, fewer sources, a smaller model |
 
 ## Known limits
 
 - The judge's correctness score is not validated (kappa 0.489 < 0.6, ADR-0010); faithfulness is.
-- Golden questions were drafted by a model and only partly verified by a person.
+- Golden questions were drafted by a model and not yet verified by a person (`verified_by` is
+  null on every question).
 - On a 2-vCPU host the reranker allows well under one uncached query per second.
 - PDF ingestion (Docling) needs ~5 GB of RAM and is not in the production image.
 - Out of scope: agents, multi-turn chat, fine-tuning, reading images or tables as pictures.

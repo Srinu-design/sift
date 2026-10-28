@@ -21,11 +21,20 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from eval import read_jsonl
 from sift.ingest.chunker import chunk
 from sift.ingest.parsers import Block, parse, parser_for
 
 ROOT = Path(__file__).resolve().parent.parent
-TYPES = {"factoid", "procedural", "version_specific", "multi_section", "paraphrase", "unanswerable"}
+TYPES = {
+    "factoid",
+    "procedural",
+    "version_specific",
+    "multi_section",
+    "paraphrase",
+    "unanswerable",
+    "injected",
+}
 MIN_UNANSWERABLE = 0.15
 
 
@@ -35,8 +44,9 @@ def norm(s: str) -> str:
 
 @lru_cache
 def manifest() -> dict[str, dict[str, Any]]:
-    lines = (ROOT / "corpus/manifest.jsonl").read_text().splitlines()
-    return {m["doc"]: m for m in map(json.loads, lines)}
+    """Every tenant's documents (corpus/*manifest.jsonl), as eval.run reads them."""
+    paths = sorted((ROOT / "corpus").glob("*manifest.jsonl"))
+    return {m["doc"]: m for path in paths for m in read_jsonl(path)}
 
 
 @lru_cache
@@ -53,7 +63,7 @@ def section_text(doc: str, section: str) -> str | None:
 
 @lru_cache
 def version_chunks(version: str | None) -> list[str]:
-    docs = [d for d, m in manifest().items() if version is None or m["version"] == version]
+    docs = [d for d, m in manifest().items() if version is None or m.get("version") == version]
     return [f"{c.heading}\n{c.content}" for d in docs for c in chunk(blocks(d))]
 
 
@@ -79,7 +89,7 @@ def check(rows: list[dict[str, Any]]) -> list[str]:
             if g["doc"] not in manifest():
                 problems.append(f"{qid}: no document {g['doc']}")
                 continue
-            if version and manifest()[g["doc"]]["version"] != version:
+            if version and manifest()[g["doc"]].get("version") != version:
                 problems.append(f"{qid}: gold {g['doc']} is not version {version}")
             if g.get("section"):
                 text = section_text(g["doc"], g["section"])
